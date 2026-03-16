@@ -1,0 +1,29 @@
+{
+  "name": "webapi-template",
+  "version": "1.0.0",
+  "description": "",
+  "keywords": [],
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "scripts": {
+    "dev": "vp dev",
+    "build": "vp build",
+    "preview": "node dist/index.js",
+    "lint": "vp lint",
+    "fmt": "vp fmt",
+    "check": "vp check",
+    "test": "vp test"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.19.11",
+    "hono": "^4.12.8"
+  },
+  "devDependencies": {
+    "@hono/vite-build": "^1.10.0",
+    "@hono/vite-dev-server": "^0.25.1",
+    "@types/node": "^25.5.0",
+    "typescript": "^5.9.3",
+    "vite-plus": "^0.1.12"
+  }
+}
