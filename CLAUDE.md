@@ -4,6 +4,13 @@ TypeScript ファイルを作成・編集する際は、以下のルールを必
 
 - [1ファイル1エクスポート](docs/rule/one-export-per-file.md)
 - [モジュールの公開API制御](docs/rule/module-barrel-export.md)
+- [Discriminated Unionによるエラーハンドリング](docs/rule/either-error-handling.md)
+
+# Design
+
+ビジネスロジックを実装する際は、以下の設計方針に従うこと。
+
+- [関数指向のロジック設計](docs/design/function-oriented-logic.md)
 
 # Commit
 
