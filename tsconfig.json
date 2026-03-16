@@ -7,7 +7,11 @@
     "skipLibCheck": true,
     "esModuleInterop": true,
     "forceConsistentCasingInImports": true,
-    "types": ["node"]
+    "types": ["node"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
   },
   "include": ["src"]
 }

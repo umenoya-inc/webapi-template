@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { healthRoute } from "./routes/health";
+import { healthRoute } from "./routes/healthRoute";
 
 const app = new Hono();
 
