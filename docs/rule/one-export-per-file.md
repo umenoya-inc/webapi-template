@@ -20,6 +20,16 @@ export const healthRoute = new Hono()
 export const statusRoute = new Hono()
 ```
 
+## 同名の値と型のペア
+
+同名の値エクスポートと型エクスポートは1つのエクスポートとみなす。Valibot スキーマとその推論型のように、値と型が一体で使われるパターンに対応する。
+
+```typescript
+// ✅ User.ts — 同名の値と型は1つのエクスポート扱い
+export const User = pipe(object({ name: string() }), brand("User"))
+export type User = InferOutput<typeof User>
+```
+
 ## 除外
 
 - `index.ts` は barrel export 用のファイルとして使用するため、このルールの対象外とする。

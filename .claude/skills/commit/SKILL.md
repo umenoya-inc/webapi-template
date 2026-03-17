@@ -14,10 +14,10 @@ allowed-tools: Bash(git *), Bash(npx vp *)
 `vp check`（lint + fmt + 型チェック）を実行する。
 
 ```bash
-npx vp check
+npx vp check --fix
 ```
 
-エラーがある場合はコミットせず、修正内容をユーザーに報告する。
+フォーマットは自動修正される。lint・型チェックのエラーがある場合はコミットせず、修正内容をユーザーに報告する。
 
 ### 2. 変更内容の確認
 

@@ -24,13 +24,18 @@ export default defineConfig({
     semi: false,
   },
   lint: {
-    jsPlugins: ["./lint/module-boundary/index.js", "./lint/single-export/index.js"],
+    jsPlugins: [
+      "./lint/module-boundary/index.js",
+      "./lint/single-export/index.js",
+      "./lint/import-style/index.js",
+    ],
     overrides: [
       {
         files: ["src/routes/**/*.ts", "src/modules/**/*.ts"],
         rules: {
           "module-boundary/no-module-internal-import": "error",
           "single-export/one-export-per-file": "error",
+          "import-style/no-namespace-import": "error",
         },
       },
     ],

@@ -27,15 +27,18 @@ const oneExportPerFile = {
       return {}
     }
 
-    /** @type {{ name: string | null, node: import("oxlint/plugins-dev").Node }[]} */
+    /** @type {{ name: string | null, kind: "value" | "type", node: import("oxlint/plugins-dev").Node }[]} */
     const exports = []
 
     return {
       ExportNamedDeclaration(node) {
+        const kind = node.exportKind === "type" ? "type" : "value"
+
         // re-export: export { foo } from "./bar"
         if (node.source) {
           for (const spec of node.specifiers) {
-            exports.push({ name: spec.exported.name, node })
+            const specKind = spec.exportKind === "type" ? "type" : kind
+            exports.push({ name: spec.exported.name, kind: specKind, node })
           }
           return
         }
@@ -43,34 +46,38 @@ const oneExportPerFile = {
         // export const foo = ... / export function foo() ...
         if (node.declaration) {
           const name = getDeclarationName(node.declaration)
-          exports.push({ name, node })
+          const declKind = isTypeDeclaration(node.declaration) ? "type" : kind
+          exports.push({ name, kind: declKind, node })
           return
         }
 
         // export { foo, bar }
         for (const spec of node.specifiers) {
-          exports.push({ name: spec.exported.name, node })
+          const specKind = spec.exportKind === "type" ? "type" : kind
+          exports.push({ name: spec.exported.name, kind: specKind, node })
         }
       },
 
       ExportDefaultDeclaration(node) {
-        exports.push({ name: null, node })
+        exports.push({ name: null, kind: "value", node })
       },
 
       ExportAllDeclaration(node) {
-        exports.push({ name: node.exported?.name ?? null, node })
+        exports.push({ name: node.exported?.name ?? null, kind: "value", node })
       },
 
       "Program:exit"() {
-        if (exports.length === 1) {
-          checkNameMatch(context, exports[0], filename)
+        const unique = deduplicateTypeValuePairs(exports)
+
+        if (unique.length === 1) {
+          checkNameMatch(context, unique[0], filename)
           return
         }
 
-        if (exports.length > 1) {
-          for (let i = 1; i < exports.length; i++) {
+        if (unique.length > 1) {
+          for (let i = 1; i < unique.length; i++) {
             context.report({
-              node: exports[i].node,
+              node: unique[i].node,
               messageId: "tooManyExports",
             })
           }
@@ -78,6 +85,47 @@ const oneExportPerFile = {
       },
     }
   },
+}
+
+/**
+ * 同名の value export と type export のペアを1つのエクスポートとみなす
+ * @param {{ name: string | null, kind: "value" | "type", node: import("oxlint/plugins-dev").Node }[]} exports
+ * @returns {{ name: string | null, node: import("oxlint/plugins-dev").Node }[]}
+ */
+function deduplicateTypeValuePairs(exports) {
+  /** @type {Map<string, { value: typeof exports[0] | null, type: typeof exports[0] | null }>} */
+  const named = new Map()
+  /** @type {typeof exports} */
+  const unnamed = []
+
+  for (const exp of exports) {
+    if (!exp.name) {
+      unnamed.push(exp)
+      continue
+    }
+    const entry = named.get(exp.name) ?? { value: null, type: null }
+    if (exp.kind === "type") {
+      entry.type = exp
+    } else {
+      entry.value = exp
+    }
+    named.set(exp.name, entry)
+  }
+
+  /** @type {{ name: string | null, node: import("oxlint/plugins-dev").Node }[]} */
+  const result = []
+
+  for (const [name, entry] of named) {
+    // value export を優先して代表ノードにする
+    const representative = entry.value ?? entry.type
+    result.push({ name, node: representative.node })
+  }
+
+  for (const exp of unnamed) {
+    result.push({ name: exp.name, node: exp.node })
+  }
+
+  return result
 }
 
 /**
@@ -102,6 +150,16 @@ function getDeclarationName(declaration) {
     default:
       return null
   }
+}
+
+/**
+ * @param {import("oxlint/plugins-dev").Declaration} declaration
+ * @returns {boolean}
+ */
+function isTypeDeclaration(declaration) {
+  return (
+    declaration.type === "TSTypeAliasDeclaration" || declaration.type === "TSInterfaceDeclaration"
+  )
 }
 
 /**
