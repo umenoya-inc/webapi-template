@@ -24,6 +24,10 @@ export default defineConfig({
     semi: false,
   },
   lint: {
+    options: {
+      typeAware: true,
+      typeCheck: true,
+    },
     jsPlugins: [
       "./lint/module-boundary/index.js",
       "./lint/single-export/index.js",

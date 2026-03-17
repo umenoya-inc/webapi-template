@@ -4,44 +4,54 @@ import {
   type InferInput,
   type InferIssue,
   type InferOutput,
+  parse,
   safeParse,
 } from "valibot"
+
+type OkResult<T> = { ok: true; value: T }
+type ErrorResult = { ok: false } & Record<string, unknown>
+type FnResult<TRawValue, TFnError extends ErrorResult> = OkResult<TRawValue> | TFnError
+
+type ContractResult<
+  TOutputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
+  TFnError extends ErrorResult,
+  TInputError,
+> = OkResult<InferOutput<TOutputSchema>> | TFnError | TInputError
 
 type ContractOptions<
   TInputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
   TOutputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
-  TFnResult,
+  TFnError extends ErrorResult,
   TInputError,
 > = {
   input: TInputSchema
   output: TOutputSchema
   onInputError: (issues: [InferIssue<TInputSchema>, ...InferIssue<TInputSchema>[]]) => TInputError
-  fn: (input: InferOutput<TInputSchema>) => Promise<TFnResult>
+  fn: (input: InferOutput<TInputSchema>) => Promise<FnResult<InferInput<TOutputSchema>, TFnError>>
 }
 
 export const defineContract = <
   TInputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
   TOutputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
-  TFnResult,
+  TFnError extends ErrorResult,
   TInputError,
 >(
-  options: ContractOptions<TInputSchema, TOutputSchema, TFnResult, TInputError>,
-): ((input: InferInput<TInputSchema>) => Promise<TFnResult | TInputError>) => {
+  options: ContractOptions<TInputSchema, TOutputSchema, TFnError, TInputError>,
+): ((
+  input: InferInput<TInputSchema>,
+) => Promise<ContractResult<TOutputSchema, TFnError, TInputError>>) => {
   return async (rawInput) => {
-    const parsed = safeParse(options.input, rawInput)
-    if (!parsed.success) {
-      return options.onInputError(parsed.issues)
+    const inputParsed = safeParse(options.input, rawInput)
+    if (!inputParsed.success) {
+      return options.onInputError(inputParsed.issues)
     }
 
-    const result = await options.fn(parsed.output)
+    const result = await options.fn(inputParsed.output)
 
-    if (process.env["NODE_ENV"] === "test") {
-      const outputParsed = safeParse(options.output, result)
-      if (!outputParsed.success) {
-        throw new Error(`Contract output validation failed: ${JSON.stringify(outputParsed.issues)}`)
-      }
+    if (!result.ok) {
+      return result
     }
 
-    return result
+    return { ok: true, value: parse(options.output, result.value) }
   }
 }
