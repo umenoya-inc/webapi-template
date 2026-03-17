@@ -172,7 +172,7 @@ function checkNameMatch(context, exportInfo, filename) {
   if (!symbolName) return
 
   const base = basename(filename)
-  const fileName = base.replace(/\.[^.]+$/, "")
+  const fileName = base.replace(/\..*$/, "")
 
   if (symbolName !== fileName) {
     context.report({

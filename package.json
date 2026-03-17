@@ -23,6 +23,7 @@
     "valibot": "^1.2.0"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.3.16",
     "@hono/vite-build": "^1.10.0",
     "@hono/vite-dev-server": "^0.25.1",
     "@types/node": "^25.5.0",
