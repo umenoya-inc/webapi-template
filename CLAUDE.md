@@ -6,6 +6,7 @@ TypeScript ファイルを作成・編集する際は、以下のルールを必
 - [モジュールの公開API制御](docs/rule/module-barrel-export.md)
 - [Discriminated Unionによるエラーハンドリング](docs/rule/either-error-handling.md)
 - [Namespace Importの禁止](docs/rule/no-namespace-import.md)
+- [テーブル定義](docs/rule/table-definition.md)
 
 # Design
 
