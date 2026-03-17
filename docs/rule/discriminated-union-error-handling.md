@@ -12,6 +12,10 @@
 
 `Fallible`（`@/types/Fallible`）は `{ ok: true } | { ok: false }` だけを制約とする型。カスタム Discriminated Union を受け入れる共通の上界として使う。直接の戻り値型としては使わず、`dbTransaction` のようにジェネリクスの制約（`F extends Fallible`）として利用する。
 
+### ReasonedFallible — reason を持つ Fallible
+
+`ReasonedFallible`（`@/types/ReasonedFallible`）は `{ ok: true } | { ok: false; reason: string }` を制約とする型。`Fallible` を拡張し、失敗ケースに `reason` フィールドを要求する。`defineContract` のようにジェネリクスの制約として利用する。
+
 ### カスタム Discriminated Union — 関数の戻り値型
 
 関数の成功/失敗を表現するにはカスタムの Discriminated Union 型を定義する。

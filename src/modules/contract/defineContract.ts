@@ -7,21 +7,22 @@ import {
   parse,
   safeParse,
 } from "valibot"
+import type { ReasonedFallible } from "@/types/ReasonedFallible"
 
 type OkResult<T> = { ok: true; value: T }
-type ErrorResult = { ok: false } & Record<string, unknown>
-type FnResult<TRawValue, TFnError extends ErrorResult> = OkResult<TRawValue> | TFnError
+type FailureResult = Extract<ReasonedFallible, { ok: false }>
+type FnResult<TRawValue, TFnError extends FailureResult> = OkResult<TRawValue> | TFnError
 
 type ContractResult<
   TOutputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
-  TFnError extends ErrorResult,
+  TFnError extends FailureResult,
   TInputError,
 > = OkResult<InferOutput<TOutputSchema>> | TFnError | TInputError
 
 type ContractOptions<
   TInputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
   TOutputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
-  TFnError extends ErrorResult,
+  TFnError extends FailureResult,
   TInputError,
 > = {
   input: TInputSchema
@@ -33,7 +34,7 @@ type ContractOptions<
 export const defineContract = <
   TInputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
   TOutputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
-  TFnError extends ErrorResult,
+  TFnError extends FailureResult,
   TInputError,
 >(
   options: ContractOptions<TInputSchema, TOutputSchema, TFnError, TInputError>,
