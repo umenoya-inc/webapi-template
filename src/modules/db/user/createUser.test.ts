@@ -26,7 +26,7 @@ describe("createUser", () => {
     expect(result.value.id).toBeDefined()
   })
 
-  it("email が重複した場合 duplicate_entry を返す", async () => {
+  it("email が重複した場合 db_error (unique_violation) を返す", async () => {
     const { ctx, cleanup: c } = await createTestDbContext({ userTable })
     cleanup = c
 
@@ -42,7 +42,10 @@ describe("createUser", () => {
 
     expect(result.ok).toBe(false)
     if (result.ok) return
-    expect(result.reason).toBe("duplicate_entry")
+    expect(result).toMatchObject({
+      reason: "duplicate_entry",
+      field: "email",
+    })
   })
 
   it("バリデーションエラー時に validation_failed を返す", async () => {
