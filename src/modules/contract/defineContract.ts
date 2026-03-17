@@ -15,7 +15,7 @@ type ContractOptions<
 > = {
   input: TInputSchema
   output: TOutputSchema
-  onInputError: (issues: InferIssue<TInputSchema>[]) => TInputError
+  onInputError: (issues: [InferIssue<TInputSchema>, ...InferIssue<TInputSchema>[]]) => TInputError
   fn: (input: InferOutput<TInputSchema>) => Promise<TFnResult>
 }
 
@@ -30,7 +30,7 @@ export const defineContract = <
   return async (rawInput) => {
     const parsed = safeParse(options.input, rawInput)
     if (!parsed.success) {
-      return options.onInputError([...parsed.issues])
+      return options.onInputError(parsed.issues)
     }
 
     const result = await options.fn(parsed.output)

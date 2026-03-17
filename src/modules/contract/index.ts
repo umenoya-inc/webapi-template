@@ -23,13 +23,15 @@
  *   defineContract({
  *     input: FindUserByIdInput,
  *     output: FindUserByIdOutput,
- *     onInputError: (issues) => ({ ok: false, error: "validation_failed" } as const),
+ *     onInputError: () => ({ ok: false, error: "validation_failed" } as const),
  *     fn: async (input): Promise<Result<User, "not_found">> => {
  *       // input は検証済み、ctx はクロージャ経由
  *     },
  *   })
  *
- * // カスタム DU で詳細なエラー分岐が必要なケース
+ * // カスタム DU + flatten でフィールド別エラーを返すケース
+ * import { flatten } from "valibot"
+ *
  * export const createOrder = (ctx: DbContext) =>
  *   defineContract({
  *     input: CreateOrderInput,
@@ -37,7 +39,8 @@
  *     onInputError: (issues) => ({
  *       ok: false,
  *       reason: "validation_failed",
- *       issues,
+ *       fields: flatten(issues).nested ?? {},
+ *       // => { productId: ["UUIDの形式が不正です"], quantity: ["1以上の値を指定してください"] }
  *     } as const),
  *     fn: async (input) => {
  *       // ...
@@ -61,7 +64,7 @@
  * if (!result.ok) {
  *   switch (result.reason) {
  *     case "validation_failed":
- *       // result.issues で詳細なバリデーションエラーにアクセス可能
+ *       // result.fields でフィールド別のエラーメッセージにアクセス可能
  *       break
  *     case "out_of_stock":
  *       // result.productId, result.available にアクセス可能
@@ -73,6 +76,7 @@
  * ### 動作
  *
  * - **input 検証**: 常に実行。失敗時は `onInputError` の返り値を返す。
+ *   - `onInputError` の引数は Valibot の issues タプル。`flatten(issues)` でフィールド別に変換可能。
  * - **output 検証**: `NODE_ENV === "test"` 時のみ実行。失敗時は throw（バグ検出用）。
  */
 
