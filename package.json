@@ -17,12 +17,16 @@
   },
   "dependencies": {
     "@hono/node-server": "^1.19.11",
-    "hono": "^4.12.8"
+    "drizzle-orm": "^0.45.1",
+    "hono": "^4.12.8",
+    "pg": "^8.20.0"
   },
   "devDependencies": {
     "@hono/vite-build": "^1.10.0",
     "@hono/vite-dev-server": "^0.25.1",
     "@types/node": "^25.5.0",
+    "@types/pg": "^8.18.0",
+    "drizzle-kit": "^0.31.9",
     "typescript": "^5.9.3",
     "vite-plus": "^0.1.12"
   },

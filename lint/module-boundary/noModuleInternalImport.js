@@ -132,10 +132,7 @@ function checkRelativeImport(context, node, source, modulesDir, filename) {
  * @returns {boolean}
  */
 function isBarrelExport(importPath) {
-  return (
-    existsSync(resolve(importPath, "index.ts")) ||
-    existsSync(resolve(importPath, "index.js"))
-  );
+  return existsSync(resolve(importPath, "index.ts")) || existsSync(resolve(importPath, "index.js"));
 }
 
 /**
