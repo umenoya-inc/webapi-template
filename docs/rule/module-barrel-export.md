@@ -2,6 +2,7 @@
 
 `src/modules/` 配下の各モジュールは、他のモジュールに公開する定義を `index.ts` の barrel export に集約する。
 他のモジュールからは `@/modules/<module名>` エイリアス経由でのみアクセスし、内部ファイルを直接インポートしてはならない。
+モジュールはネスト可能で、各階層の `index.ts` が公開APIとなる。
 
 ## 目的
 
@@ -10,14 +11,20 @@
 ## 例
 
 ```typescript
-// ✅ エイリアス経由でモジュールのindex.tsからインポート
+// ✅ エイリアス経由でモジュールのbarrel exportからインポート
 import { userStore } from "@/modules/user";
+
+// ✅ ネストされたサブモジュールのbarrel export経由でインポート
+import { profileStore } from "@/modules/user/profile";
 
 // ❌ 相対パスでモジュールにアクセス
 import { userStore } from "../user";
 
 // ❌ モジュールの内部ファイルに直接アクセス
 import { userStore } from "@/modules/user/userStore";
+
+// ❌ サブモジュールの内部ファイルに直接アクセス
+import { profileStore } from "@/modules/user/profile/profileStore";
 ```
 
 ## 同一モジュール内
@@ -28,3 +35,7 @@ import { userStore } from "@/modules/user/userStore";
 // ✅ 同一モジュール内での直接インポート（user/userRoute.ts から）
 import { userStore } from "./userStore";
 ```
+
+## Lint
+
+`module-boundary/no-module-internal-import` カスタムoxlintプラグイン（`lint/module-boundary/`）でファイルシステムを参照し、インポート先が barrel export（`index.ts` を持つディレクトリ）か内部ファイルかを判定して強制する。

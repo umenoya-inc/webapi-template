@@ -21,27 +21,12 @@ export default defineConfig({
     }),
   ],
   lint: {
+    jsPlugins: ["./lint/module-boundary/index.js"],
     overrides: [
       {
         files: ["src/routes/**/*.ts", "src/modules/**/*.ts"],
         rules: {
-          "no-restricted-imports": [
-            "error",
-            {
-              patterns: [
-                {
-                  regex: "^@/modules/[^/]+/.+",
-                  message:
-                    "モジュールの内部ファイルに直接アクセスしないでください。@/modules/<module名> 経由でインポートしてください。",
-                },
-                {
-                  regex: "^\\.\\./",
-                  message:
-                    "相対パスでのモジュール外へのアクセスは禁止されています。@/modules/<module名> 経由でインポートしてください。",
-                },
-              ],
-            },
-          ],
+          "module-boundary/no-module-internal-import": "error",
         },
       },
     ],
