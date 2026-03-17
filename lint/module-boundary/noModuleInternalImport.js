@@ -16,6 +16,8 @@ const noModuleInternalImport = {
         "モジュールの内部ファイルに直接アクセスしないでください。@/modules/{{ modulePath }} 経由でインポートしてください。",
       noRelativeOutside:
         "相対パスでのモジュール外へのアクセスは禁止されています。@/modules/<module名> 経由でインポートしてください。",
+      noAliasInsideModule:
+        "同一モジュール内では相対パスを使用してください。エイリアス経由でのアクセスは禁止されています。",
     },
     schema: [],
   },
@@ -58,15 +60,26 @@ function checkAliasImport(context, node, source, srcDir, modulesDir, filename) {
   const afterModules = source.slice("@/modules/".length);
   const segments = afterModules.split("/");
 
-  // @/modules/<module> のみの場合は barrel export なので OK
+  // @/modules/<module> のみの場合
   if (segments.length <= 1) {
+    // 同一モジュール内からの alias アクセスはブロック
+    if (isInsideModule(filename, modulesDir, segments[0])) {
+      context.report({
+        node,
+        messageId: "noAliasInsideModule",
+      });
+    }
     return;
   }
 
   // @/modules/<module>/<path> の場合
-  // 同一モジュール内からのアクセスかチェック
+  // 同一モジュール内からの alias アクセスはブロック
   const targetTopModule = segments[0];
   if (isInsideModule(filename, modulesDir, targetTopModule)) {
+    context.report({
+      node,
+      messageId: "noAliasInsideModule",
+    });
     return;
   }
 
