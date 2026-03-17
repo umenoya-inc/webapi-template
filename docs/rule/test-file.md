@@ -24,3 +24,20 @@ src/modules/db/
 │   ├── createUser.ts
 │   └── createUser.test.ts
 ```
+
+## Discriminated Union の型絞り込み
+
+テストで Discriminated Union の判別子（`ok` 等）を検証した後、型を絞り込むには `expect.unreachable()` を使う。early return は使わない。
+
+`expect.unreachable()` は戻り値が `never` 型のため TypeScript の型絞り込みが効き、到達した場合はテストを即座に失敗させる。
+
+```typescript
+// ✅ expect.unreachable() で型を絞り込む
+const result = await createUser(ctx)({ name: "Alice", email: "alice@example.com" })
+expect(result.ok).toBe(true)
+if (!result.ok) expect.unreachable("result should be ok")
+expect(result.value.name).toBe("Alice")
+
+// ❌ early return は使わない
+if (!result.ok) return
+```

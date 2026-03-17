@@ -25,7 +25,7 @@ describe("createUser", () => {
     })
 
     expect(result.ok).toBe(true)
-    if (!result.ok) return
+    if (!result.ok) expect.unreachable("result should be ok")
     expect(result.value.name).toBe("Alice")
     expect(result.value.email).toBe("alice@example.com")
     expect(result.value.id).toBeDefined()
@@ -38,7 +38,7 @@ describe("createUser", () => {
     })
 
     expect(result.ok).toBe(false)
-    if (result.ok) return
+    if (result.ok) expect.unreachable("result should not be ok")
     expect(result).toMatchObject({
       reason: "duplicate_entry",
       field: "email",
@@ -52,7 +52,7 @@ describe("createUser", () => {
     })
 
     expect(result.ok).toBe(false)
-    if (result.ok) return
+    if (result.ok) expect.unreachable("result should not be ok")
     expect(result.reason).toBe("validation_failed")
   })
 })
