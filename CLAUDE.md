@@ -20,6 +20,7 @@ TypeScript ファイルを作成・編集する際は、以下のルールを必
 
 - [DBアクセス](src/modules/db/index.ts) — DbContext, トランザクション, DB操作関数の追加方法
 - [環境変数](src/modules/envvar/index.ts) — 型安全な環境変数の取得・追加方法
+- [Design by Contract](src/modules/contract/index.ts) — Valibot スキーマによる入出力検証付き関数定義
 
 # Commit
 
