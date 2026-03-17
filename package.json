@@ -26,9 +26,11 @@
     "@electric-sql/pglite": "^0.3.16",
     "@hono/vite-build": "^1.10.0",
     "@hono/vite-dev-server": "^0.25.1",
+    "@testcontainers/postgresql": "^11.12.0",
     "@types/node": "^25.5.0",
     "@types/pg": "^8.18.0",
     "drizzle-kit": "^0.31.9",
+    "testcontainers": "^11.12.0",
     "typescript": "^5.9.3",
     "vite-plus": "^0.1.12"
   },
