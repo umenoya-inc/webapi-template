@@ -53,11 +53,11 @@ export const createTodo = async (ctx: DbContext, title: string, assignee: string
 
 ```typescript
 // routes/todoRoute.ts
-import { dbContext, dbTransaction } from "@/modules/db"
+import { globalDbContext, dbTransaction } from "@/modules/db"
 import { createTodo } from "@/modules/todo"
 
 // トランザクションなし
-const result = await createTodo(dbContext, title, assignee)
+const result = await createTodo(globalDbContext, title, assignee)
 
 // トランザクションあり
 const result = await dbTransaction(async (ctx) => {

@@ -7,7 +7,7 @@
  * ### エクスポート
  *
  * - `DbContext` — opaque なDB接続コンテキスト型。DB操作関数の第一引数に渡す。
- * - `dbContext` — トランザクション外で使用するグローバルな DbContext。
+ * - `globalDbContext` — トランザクション外で使用するグローバルな DbContext。
  * - `dbTransaction` — トランザクション実行。コールバックに DbContext が渡される。
  *
  * ### DB操作関数の追加
@@ -36,11 +36,11 @@
  * ### 利用側（route層・ビジネスロジック）
  *
  * ```typescript
- * import { dbContext, dbTransaction } from "@/modules/db"
+ * import { globalDbContext, dbTransaction } from "@/modules/db"
  * import { findUserById } from "@/modules/db/user"
  *
  * // トランザクションなし
- * const result = await findUserById(dbContext, "user-1")
+ * const result = await findUserById(globalDbContext, "user-1")
  *
  * // トランザクションあり
  * const result = await dbTransaction(async (ctx) => {
@@ -50,5 +50,5 @@
  */
 
 export type { DbContext } from "./DbContext"
-export { dbContext } from "./dbContext"
+export { globalDbContext } from "./globalDbContext"
 export { dbTransaction } from "./dbTransaction"
