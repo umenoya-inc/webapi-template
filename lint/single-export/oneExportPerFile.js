@@ -1,4 +1,4 @@
-import { basename } from "node:path";
+import { basename } from "node:path"
 
 /**
  * @type {import("oxlint/plugins-dev").Rule}
@@ -19,52 +19,52 @@ const oneExportPerFile = {
     schema: [],
   },
   create(context) {
-    const filename = context.filename;
+    const filename = context.filename
 
     // index.ts は barrel export 用なので除外
-    const base = basename(filename);
+    const base = basename(filename)
     if (base === "index.ts" || base === "index.js") {
-      return {};
+      return {}
     }
 
     /** @type {{ name: string | null, node: import("oxlint/plugins-dev").Node }[]} */
-    const exports = [];
+    const exports = []
 
     return {
       ExportNamedDeclaration(node) {
         // re-export: export { foo } from "./bar"
         if (node.source) {
           for (const spec of node.specifiers) {
-            exports.push({ name: spec.exported.name, node });
+            exports.push({ name: spec.exported.name, node })
           }
-          return;
+          return
         }
 
         // export const foo = ... / export function foo() ...
         if (node.declaration) {
-          const name = getDeclarationName(node.declaration);
-          exports.push({ name, node });
-          return;
+          const name = getDeclarationName(node.declaration)
+          exports.push({ name, node })
+          return
         }
 
         // export { foo, bar }
         for (const spec of node.specifiers) {
-          exports.push({ name: spec.exported.name, node });
+          exports.push({ name: spec.exported.name, node })
         }
       },
 
       ExportDefaultDeclaration(node) {
-        exports.push({ name: null, node });
+        exports.push({ name: null, node })
       },
 
       ExportAllDeclaration(node) {
-        exports.push({ name: node.exported?.name ?? null, node });
+        exports.push({ name: node.exported?.name ?? null, node })
       },
 
       "Program:exit"() {
         if (exports.length === 1) {
-          checkNameMatch(context, exports[0], filename);
-          return;
+          checkNameMatch(context, exports[0], filename)
+          return
         }
 
         if (exports.length > 1) {
@@ -72,13 +72,13 @@ const oneExportPerFile = {
             context.report({
               node: exports[i].node,
               messageId: "tooManyExports",
-            });
+            })
           }
         }
       },
-    };
+    }
   },
-};
+}
 
 /**
  * @param {import("oxlint/plugins-dev").Declaration} declaration
@@ -87,20 +87,20 @@ const oneExportPerFile = {
 function getDeclarationName(declaration) {
   switch (declaration.type) {
     case "VariableDeclaration": {
-      const first = declaration.declarations[0];
+      const first = declaration.declarations[0]
       if (first?.id?.type === "Identifier") {
-        return first.id.name;
+        return first.id.name
       }
-      return null;
+      return null
     }
     case "FunctionDeclaration":
     case "ClassDeclaration":
     case "TSTypeAliasDeclaration":
     case "TSInterfaceDeclaration":
     case "TSEnumDeclaration":
-      return declaration.id?.name ?? null;
+      return declaration.id?.name ?? null
     default:
-      return null;
+      return null
   }
 }
 
@@ -110,19 +110,19 @@ function getDeclarationName(declaration) {
  * @param {string} filename
  */
 function checkNameMatch(context, exportInfo, filename) {
-  const symbolName = exportInfo.name;
-  if (!symbolName) return;
+  const symbolName = exportInfo.name
+  if (!symbolName) return
 
-  const base = basename(filename);
-  const fileName = base.replace(/\.[^.]+$/, "");
+  const base = basename(filename)
+  const fileName = base.replace(/\.[^.]+$/, "")
 
   if (symbolName !== fileName) {
     context.report({
       node: exportInfo.node,
       messageId: "nameMismatch",
       data: { symbolName, fileName },
-    });
+    })
   }
 }
 
-export default oneExportPerFile;
+export default oneExportPerFile

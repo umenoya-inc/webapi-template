@@ -1,8 +1,8 @@
-import { Hono } from "hono";
-import { healthRoute } from "./routes/healthRoute";
+import { Hono } from "hono"
+import { healthRoute } from "./routes/healthRoute"
 
-const app = new Hono();
+const app = new Hono()
 
-app.route("/health", healthRoute);
+app.route("/health", healthRoute)
 
-export default app;
+export default app

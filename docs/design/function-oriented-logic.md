@@ -14,23 +14,23 @@
 
 ```typescript
 // ✅ createTodo.ts（ビジネスロジック）
-import type { DbContext } from "@/modules/db";
-import type { Result } from "@/types/Result";
-import type { Todo } from "./Todo";
-import { findUserById } from "@/modules/db/user";
-import { saveTodo } from "@/modules/db/todo";
+import type { DbContext } from "@/modules/db"
+import type { Result } from "@/types/Result"
+import type { Todo } from "./Todo"
+import { findUserById } from "@/modules/db/user"
+import { saveTodo } from "@/modules/db/todo"
 
 export const createTodo = async (
   ctx: DbContext,
   title: string,
   assignee: string,
   env: {
-    findUserById: typeof findUserById;
-    saveTodo: typeof saveTodo;
+    findUserById: typeof findUserById
+    saveTodo: typeof saveTodo
   } = { findUserById, saveTodo },
 ): Promise<Result<Todo, "user_not_found">> => {
-  const userResult = await env.findUserById(ctx, assignee);
-  if (!userResult.ok) return { ok: false, error: "user_not_found" };
+  const userResult = await env.findUserById(ctx, assignee)
+  if (!userResult.ok) return { ok: false, error: "user_not_found" }
   return {
     ok: true,
     value: await env.saveTodo(ctx, {
@@ -39,30 +39,30 @@ export const createTodo = async (
       completed: false,
       assignee,
     }),
-  };
-};
+  }
+}
 
 // ❌ env を使わず直接依存にアクセスする（テストで差し替えできない）
 export const createTodo = async (ctx: DbContext, title: string, assignee: string) => {
-  const user = await findUserById(ctx, assignee);
+  const user = await findUserById(ctx, assignee)
   // ...
-};
+}
 ```
 
 ## route 層からの呼び出し
 
 ```typescript
 // routes/todoRoute.ts
-import { dbContext, dbTransaction } from "@/modules/db";
-import { createTodo } from "@/modules/todo";
+import { dbContext, dbTransaction } from "@/modules/db"
+import { createTodo } from "@/modules/todo"
 
 // トランザクションなし
-const result = await createTodo(dbContext, title, assignee);
+const result = await createTodo(dbContext, title, assignee)
 
 // トランザクションあり
 const result = await dbTransaction(async (ctx) => {
-  return await createTodo(ctx, title, assignee);
-});
+  return await createTodo(ctx, title, assignee)
+})
 ```
 
 ## テストでの利用
@@ -72,5 +72,5 @@ const result = await dbTransaction(async (ctx) => {
 const result = await createTodo({} as DbContext, "Buy milk", "user-1", {
   findUserById: async (_ctx, id) => ({ ok: true, value: { id, name: "Alice" } }),
   saveTodo: async (_ctx, todo) => todo,
-});
+})
 ```

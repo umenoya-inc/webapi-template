@@ -13,16 +13,16 @@
 エラーコードだけで十分なケースでは `Result<T, E>`（`@/types/Result`）を使う。`E` は任意の型。
 
 ```typescript
-import type { Result } from "@/types/Result";
+import type { Result } from "@/types/Result"
 
 const findUser = async (ctx: DbContext, id: string): Promise<Result<User, "not_found">> => {
   // ...
-};
+}
 
-const result = await findUser(ctx, id);
+const result = await findUser(ctx, id)
 if (!result.ok) {
   // result.error: "not_found"
-  return c.json({ error: result.error }, 404);
+  return c.json({ error: result.error }, 404)
 }
 ```
 
@@ -43,18 +43,18 @@ type CreateOrderResult =
   | { ok: true; value: Order }
   | { ok: false; reason: "user_not_found"; userId: string }
   | { ok: false; reason: "out_of_stock"; productId: string; available: number }
-  | { ok: false; reason: "credit_exceeded"; limit: number; requested: number };
+  | { ok: false; reason: "credit_exceeded"; limit: number; requested: number }
 
 // ✅ 呼び出し側: reason で分岐すると各ケースの固有フィールドが型安全に使える
-const result = await createOrder(ctx, input);
+const result = await createOrder(ctx, input)
 if (!result.ok) {
   switch (result.reason) {
     case "user_not_found":
-      return c.json({ error: result.reason, userId: result.userId }, 404);
+      return c.json({ error: result.reason, userId: result.userId }, 404)
     case "out_of_stock":
-      return c.json({ error: result.reason, available: result.available }, 409);
+      return c.json({ error: result.reason, available: result.available }, 409)
     case "credit_exceeded":
-      return c.json({ error: result.reason, limit: result.limit }, 403);
+      return c.json({ error: result.reason, limit: result.limit }, 403)
   }
 }
 ```

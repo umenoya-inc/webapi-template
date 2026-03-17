@@ -1,4 +1,4 @@
-import oneExportPerFile from "./oneExportPerFile.js";
+import oneExportPerFile from "./oneExportPerFile.js"
 
 export default {
   meta: {
@@ -7,4 +7,4 @@ export default {
   rules: {
     "one-export-per-file": oneExportPerFile,
   },
-};
+}

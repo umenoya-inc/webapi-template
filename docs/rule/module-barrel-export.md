@@ -12,19 +12,19 @@
 
 ```typescript
 // ✅ エイリアス経由でモジュールのbarrel exportからインポート
-import { userStore } from "@/modules/user";
+import { userStore } from "@/modules/user"
 
 // ✅ ネストされたサブモジュールのbarrel export経由でインポート
-import { profileStore } from "@/modules/user/profile";
+import { profileStore } from "@/modules/user/profile"
 
 // ❌ 相対パスでモジュールにアクセス
-import { userStore } from "../user";
+import { userStore } from "../user"
 
 // ❌ モジュールの内部ファイルに直接アクセス
-import { userStore } from "@/modules/user/userStore";
+import { userStore } from "@/modules/user/userStore"
 
 // ❌ サブモジュールの内部ファイルに直接アクセス
-import { profileStore } from "@/modules/user/profile/profileStore";
+import { profileStore } from "@/modules/user/profile/profileStore"
 ```
 
 ## 同一モジュール内
@@ -33,7 +33,7 @@ import { profileStore } from "@/modules/user/profile/profileStore";
 
 ```typescript
 // ✅ 同一モジュール内での直接インポート（user/userRoute.ts から）
-import { userStore } from "./userStore";
+import { userStore } from "./userStore"
 ```
 
 ## Lint

@@ -1,10 +1,10 @@
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-import { defineConfig } from "vite-plus";
-import devServer from "@hono/vite-dev-server";
-import build from "@hono/vite-build/node";
+import path from "node:path"
+import { fileURLToPath } from "node:url"
+import { defineConfig } from "vite-plus"
+import devServer from "@hono/vite-dev-server"
+import build from "@hono/vite-build/node"
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
   resolve: {
@@ -20,6 +20,9 @@ export default defineConfig({
       entry: "src/index.ts",
     }),
   ],
+  fmt: {
+    semi: false,
+  },
   lint: {
     jsPlugins: ["./lint/module-boundary/index.js", "./lint/single-export/index.js"],
     overrides: [
@@ -32,4 +35,4 @@ export default defineConfig({
       },
     ],
   },
-});
+})

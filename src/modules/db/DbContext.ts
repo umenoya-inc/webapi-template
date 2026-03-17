@@ -1,3 +1,3 @@
-declare const brand: unique symbol;
+declare const brand: unique symbol
 
-export type DbContext = { readonly [brand]: never };
+export type DbContext = { readonly [brand]: never }

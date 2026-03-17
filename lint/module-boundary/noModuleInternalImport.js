@@ -1,5 +1,5 @@
-import { existsSync } from "node:fs";
-import { resolve, dirname, relative, sep } from "node:path";
+import { existsSync } from "node:fs"
+import { resolve, dirname, relative, sep } from "node:path"
 
 /**
  * @type {import("oxlint/plugins-dev").Rule}
@@ -22,29 +22,29 @@ const noModuleInternalImport = {
     schema: [],
   },
   create(context) {
-    const filename = context.filename;
-    const cwd = context.cwd;
-    const srcDir = resolve(cwd, "src");
-    const modulesDir = resolve(srcDir, "modules");
+    const filename = context.filename
+    const cwd = context.cwd
+    const srcDir = resolve(cwd, "src")
+    const modulesDir = resolve(srcDir, "modules")
 
     return {
       ImportDeclaration(node) {
-        const source = node.source.value;
+        const source = node.source.value
 
         // @/modules/ で始まるインポートをチェック
         if (source.startsWith("@/modules/")) {
-          checkAliasImport(context, node, source, srcDir, modulesDir, filename);
-          return;
+          checkAliasImport(context, node, source, srcDir, modulesDir, filename)
+          return
         }
 
         // 相対パスでモジュール外にアクセスしていないかチェック
         if (source.startsWith("../")) {
-          checkRelativeImport(context, node, source, modulesDir, filename);
+          checkRelativeImport(context, node, source, modulesDir, filename)
         }
       },
-    };
+    }
   },
-};
+}
 
 /**
  * @/modules/... 形式のインポートをチェック
@@ -57,8 +57,8 @@ const noModuleInternalImport = {
  */
 function checkAliasImport(context, node, source, srcDir, modulesDir, filename) {
   // @/modules/ 以降のパスを取得
-  const afterModules = source.slice("@/modules/".length);
-  const segments = afterModules.split("/");
+  const afterModules = source.slice("@/modules/".length)
+  const segments = afterModules.split("/")
 
   // @/modules/<module> のみの場合
   if (segments.length <= 1) {
@@ -67,37 +67,37 @@ function checkAliasImport(context, node, source, srcDir, modulesDir, filename) {
       context.report({
         node,
         messageId: "noAliasInsideModule",
-      });
+      })
     }
-    return;
+    return
   }
 
   // @/modules/<module>/<path> の場合
   // 同一モジュール内からの alias アクセスはブロック
-  const targetTopModule = segments[0];
+  const targetTopModule = segments[0]
   if (isInsideModule(filename, modulesDir, targetTopModule)) {
     context.report({
       node,
       messageId: "noAliasInsideModule",
-    });
-    return;
+    })
+    return
   }
 
   // インポート先がディレクトリ（= barrel export）かファイルかを判定
-  const importPath = resolve(srcDir, source.slice("@/".length));
+  const importPath = resolve(srcDir, source.slice("@/".length))
   if (isBarrelExport(importPath)) {
     // ディレクトリの index.ts に解決される → サブモジュールの barrel export なので OK
-    return;
+    return
   }
 
   // 最も近い barrel export のパスを提案
-  const modulePath = findNearestModulePath(segments);
+  const modulePath = findNearestModulePath(segments)
 
   context.report({
     node,
     messageId: "noInternalImport",
     data: { modulePath },
-  });
+  })
 }
 
 /**
@@ -111,31 +111,31 @@ function checkAliasImport(context, node, source, srcDir, modulesDir, filename) {
 function checkRelativeImport(context, node, source, modulesDir, filename) {
   // 現在のファイルが modules 配下でなければ対象外
   if (!filename.startsWith(modulesDir + sep)) {
-    return;
+    return
   }
 
   // 解決先のパスを取得
-  const resolvedTarget = resolve(dirname(filename), source);
+  const resolvedTarget = resolve(dirname(filename), source)
 
   // 解決先が modules 配下でなければモジュール外アクセス
   if (!resolvedTarget.startsWith(modulesDir + sep)) {
     context.report({
       node,
       messageId: "noRelativeOutside",
-    });
-    return;
+    })
+    return
   }
 
   // 現在のファイルのトップレベルモジュールを取得
-  const currentModule = getTopModule(filename, modulesDir);
-  const targetModule = getTopModule(resolvedTarget, modulesDir);
+  const currentModule = getTopModule(filename, modulesDir)
+  const targetModule = getTopModule(resolvedTarget, modulesDir)
 
   // 異なるトップレベルモジュールへの相対パスアクセスは禁止
   if (currentModule !== targetModule) {
     context.report({
       node,
       messageId: "noRelativeOutside",
-    });
+    })
   }
 }
 
@@ -145,7 +145,7 @@ function checkRelativeImport(context, node, source, modulesDir, filename) {
  * @returns {boolean}
  */
 function isBarrelExport(importPath) {
-  return existsSync(resolve(importPath, "index.ts")) || existsSync(resolve(importPath, "index.js"));
+  return existsSync(resolve(importPath, "index.ts")) || existsSync(resolve(importPath, "index.js"))
 }
 
 /**
@@ -156,8 +156,8 @@ function isBarrelExport(importPath) {
  * @returns {boolean}
  */
 function isInsideModule(filename, modulesDir, moduleName) {
-  const moduleDir = resolve(modulesDir, moduleName);
-  return filename.startsWith(moduleDir + sep);
+  const moduleDir = resolve(modulesDir, moduleName)
+  return filename.startsWith(moduleDir + sep)
 }
 
 /**
@@ -167,8 +167,8 @@ function isInsideModule(filename, modulesDir, moduleName) {
  * @returns {string}
  */
 function getTopModule(filepath, modulesDir) {
-  const rel = relative(modulesDir, filepath);
-  return rel.split(sep)[0];
+  const rel = relative(modulesDir, filepath)
+  return rel.split(sep)[0]
 }
 
 /**
@@ -179,9 +179,9 @@ function getTopModule(filepath, modulesDir) {
 function findNearestModulePath(segments) {
   // 最後のセグメント（ファイル名）を除いたパスを提案
   if (segments.length === 2) {
-    return segments[0];
+    return segments[0]
   }
-  return segments.slice(0, -1).join("/");
+  return segments.slice(0, -1).join("/")
 }
 
-export default noModuleInternalImport;
+export default noModuleInternalImport

@@ -1,4 +1,4 @@
-import noModuleInternalImport from "./noModuleInternalImport.js";
+import noModuleInternalImport from "./noModuleInternalImport.js"
 
 export default {
   meta: {
@@ -7,4 +7,4 @@ export default {
   rules: {
     "no-module-internal-import": noModuleInternalImport,
   },
-};
+}
