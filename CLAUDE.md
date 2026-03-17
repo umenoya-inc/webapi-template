@@ -8,6 +8,7 @@ TypeScript ファイルを作成・編集する際は、以下のルールを必
 - [Namespace Importの禁止](docs/rule/no-namespace-import.md)
 - [テーブル定義](docs/rule/table-definition.md)
 - [テストファイル](docs/rule/test-file.md)
+- [DBエラーハンドリング](docs/rule/db-error-handling.md)
 
 # Design
 
