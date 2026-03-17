@@ -11,31 +11,37 @@
  *
  * 検証対象外の引数（DbContext, env 等）はカリー化で外側に出し、
  * `defineContract` には検証対象の input のみを渡す。
+ * input / output スキーマは通常の引数の感覚でインラインに定義できる。
+ * 複雑なスキーマの場合のみ別ファイルに切り出す。
  *
  * ```typescript
  * import type { Result } from "@/types/Result"
  * import type { DbContext } from "@/modules/db"
+ * import { object, pipe, string, uuid } from "valibot"
  * import { defineContract } from "@/modules/contract"
- * import { FindUserByIdInput, FindUserByIdOutput } from "./schema"
+ * import type { User } from "./User"
  *
  * // Result<T, E> でシンプルに返すケース
  * export const findUserById = (ctx: DbContext) =>
  *   defineContract({
- *     input: FindUserByIdInput,
- *     output: FindUserByIdOutput,
+ *     input: object({ id: pipe(string(), uuid()) }),
+ *     output: object({ ok: boolean(), value: object({ ... }) }),
  *     onInputError: () => ({ ok: false, error: "validation_failed" } as const),
  *     fn: async (input): Promise<Result<User, "not_found">> => {
- *       // input は検証済み、ctx はクロージャ経由
+ *       // input.id は string & uuid 検証済み、ctx はクロージャ経由
  *     },
  *   })
  *
  * // カスタム DU + flatten でフィールド別エラーを返すケース
- * import { flatten } from "valibot"
+ * import { flatten, minValue, number } from "valibot"
  *
  * export const createOrder = (ctx: DbContext) =>
  *   defineContract({
- *     input: CreateOrderInput,
- *     output: CreateOrderOutput,
+ *     input: object({
+ *       productId: pipe(string(), uuid()),
+ *       quantity: pipe(number(), minValue(1)),
+ *     }),
+ *     output: object({ ok: boolean() }),
  *     onInputError: (issues) => ({
  *       ok: false,
  *       reason: "validation_failed",
@@ -43,7 +49,7 @@
  *       // => { productId: ["UUIDの形式が不正です"], quantity: ["1以上の値を指定してください"] }
  *     } as const),
  *     fn: async (input) => {
- *       // ...
+ *       // input.productId, input.quantity は検証済み
  *       // return { ok: false, reason: "out_of_stock", productId, available }
  *       // return { ok: true, value: order }
  *     },
