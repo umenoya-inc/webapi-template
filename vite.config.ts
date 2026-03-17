@@ -21,12 +21,13 @@ export default defineConfig({
     }),
   ],
   lint: {
-    jsPlugins: ["./lint/module-boundary/index.js"],
+    jsPlugins: ["./lint/module-boundary/index.js", "./lint/single-export/index.js"],
     overrides: [
       {
         files: ["src/routes/**/*.ts", "src/modules/**/*.ts"],
         rules: {
           "module-boundary/no-module-internal-import": "error",
+          "single-export/one-export-per-file": "error",
         },
       },
     ],
