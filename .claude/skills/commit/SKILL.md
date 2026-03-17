@@ -1,7 +1,6 @@
 ---
 name: commit
 description: コードチェックを実行してからコミットする
-disable-model-invocation: true
 allowed-tools: Bash(git *), Bash(npx vp *)
 ---
 
