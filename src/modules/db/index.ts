@@ -9,6 +9,9 @@
  * - `DbContext` — opaque なDB接続コンテキスト型。DB操作関数の第一引数に渡す。
  * - `globalDbContext` — トランザクション外で使用するグローバルな DbContext。
  * - `dbTransaction` — トランザクション実行。コールバックに DbContext が渡される。
+ *   コールバックの戻り値は `{ ok: true } | { ok: false }` を満たす任意の Discriminated Union。
+ *   コールバックが `ok: false` を返した場合は自動でロールバックされる。
+ *   トランザクション自体の失敗（DB接続断等）は例外として伝播する。
  *
  * ### DB操作関数の追加
  *
@@ -17,18 +20,21 @@
  *
  * ```typescript
  * import type { DbContext } from "./DbContext"
- * import type { Result } from "@/types/Result"
  * import { fromDbContext } from "./fromDbContext"
  * import { users } from "./schema"
  * import { eq } from "drizzle-orm"
  *
+ * type FindUserResult =
+ *   | { ok: true; value: User }
+ *   | { ok: false; reason: "not_found" }
+ *
  * export const findUserById = async (
  *   ctx: DbContext,
  *   id: string,
- * ): Promise<Result<User, "not_found">> => {
+ * ): Promise<FindUserResult> => {
  *   const db = fromDbContext(ctx)
  *   const rows = await db.select().from(users).where(eq(users.id, id))
- *   if (rows.length === 0) return { ok: false, error: "not_found" }
+ *   if (rows.length === 0) return { ok: false, reason: "not_found" }
  *   return { ok: true, value: rows[0] }
  * }
  * ```

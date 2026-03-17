@@ -8,27 +8,13 @@
 
 ## 使い分け
 
-### Result<T, E> — シンプルな成功/失敗
+### Fallible — ok のみを制約とする最小の型
 
-エラーコードだけで十分なケースでは `Result<T, E>`（`@/types/Result`）を使う。`E` は任意の型。
+`Fallible`（`@/types/Fallible`）は `{ ok: true } | { ok: false }` だけを制約とする型。カスタム Discriminated Union を受け入れる共通の上界として使う。直接の戻り値型としては使わず、`dbTransaction` のようにジェネリクスの制約（`F extends Fallible`）として利用する。
 
-```typescript
-import type { Result } from "@/types/Result"
+### カスタム Discriminated Union — 関数の戻り値型
 
-const findUser = async (ctx: DbContext, id: string): Promise<Result<User, "not_found">> => {
-  // ...
-}
-
-const result = await findUser(ctx, id)
-if (!result.ok) {
-  // result.error: "not_found"
-  return c.json({ error: result.error }, 404)
-}
-```
-
-### カスタム Discriminated Union — 詳細な分岐が必要な場合
-
-エラーケースが3つ以上ある場合や、各エラーに固有の追加情報を持たせたい場合は、カスタムの Discriminated Union 型を定義する。
+関数の成功/失敗を表現するにはカスタムの Discriminated Union 型を定義する。
 
 #### 制約
 
