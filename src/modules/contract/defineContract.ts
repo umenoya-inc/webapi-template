@@ -31,7 +31,7 @@ type ContractOptionsWithInputError<
   fn: (input: InferOutput<TInputSchema>) => Promise<TFnReturn>
 }
 
-type ContractOptionsWithoutInputError<
+type ContractOptionsWithDefaultInputError<
   TInputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
   TOutputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
   TFnReturn,
@@ -41,6 +41,15 @@ type ContractOptionsWithoutInputError<
   fn: (input: InferOutput<TInputSchema>) => Promise<TFnReturn>
 }
 
+type ContractOptionsWithoutInput<
+  TOutputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
+  TFnReturn,
+> = {
+  output: TOutputSchema
+  fn: () => Promise<TFnReturn>
+}
+
+// input + custom onInputError
 export function defineContract<
   TInputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
   TOutputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
@@ -52,21 +61,30 @@ export function defineContract<
   input: InferInput<TInputSchema>,
 ) => Promise<OkResult<InferOutput<TOutputSchema>> | ExtractFailure<TFnReturn> | TInputError>
 
+// input + default onInputError
 export function defineContract<
   TInputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
   TOutputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
   TFnReturn extends OkResult<InferInput<TOutputSchema>> | { ok: false },
 >(
-  options: ContractOptionsWithoutInputError<TInputSchema, TOutputSchema, TFnReturn>,
+  options: ContractOptionsWithDefaultInputError<TInputSchema, TOutputSchema, TFnReturn>,
 ): (
   input: InferInput<TInputSchema>,
 ) => Promise<OkResult<InferOutput<TOutputSchema>> | ExtractFailure<TFnReturn> | DefaultInputError>
 
+// no input
+export function defineContract<
+  TOutputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
+  TFnReturn extends OkResult<InferInput<TOutputSchema>> | { ok: false },
+>(
+  options: ContractOptionsWithoutInput<TOutputSchema, TFnReturn>,
+): () => Promise<OkResult<InferOutput<TOutputSchema>> | ExtractFailure<TFnReturn>>
+
 export function defineContract(options: {
-  input: BaseSchema<unknown, unknown, BaseIssue<unknown>>
+  input?: BaseSchema<unknown, unknown, BaseIssue<unknown>>
   output: BaseSchema<unknown, unknown, BaseIssue<unknown>>
   onInputError?: (issues: [BaseIssue<unknown>, ...BaseIssue<unknown>[]]) => unknown
-  fn: (input: unknown) => Promise<{ ok: true; value: unknown } | { ok: false; reason: string }>
+  fn: (input?: unknown) => Promise<{ ok: true; value: unknown } | { ok: false; reason: string }>
 }) {
   const onInputError =
     options.onInputError ??
@@ -76,8 +94,19 @@ export function defineContract(options: {
       fields: flatten(issues).nested ?? {},
     }))
 
+  if (!options.input) {
+    return async () => {
+      const result = await options.fn()
+      if (!result.ok) {
+        return result
+      }
+      return { ok: true, value: parse(options.output, result.value) }
+    }
+  }
+
+  const inputSchema = options.input
   return async (rawInput: unknown) => {
-    const inputParsed = safeParse(options.input, rawInput)
+    const inputParsed = safeParse(inputSchema, rawInput)
     if (!inputParsed.success) {
       return onInputError(inputParsed.issues)
     }

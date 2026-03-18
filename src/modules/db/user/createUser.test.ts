@@ -1,6 +1,7 @@
-import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test"
+import { afterAll, beforeAll, describe, expect } from "vite-plus/test"
 import type { DbContext } from "../DbContext"
 import { createTestDbContext } from "../testing/createTestDbContext.testutil"
+import { testContract } from "@/modules/testing"
 import { createUser } from "./createUser"
 import { userTable } from "./userTable"
 
@@ -18,41 +19,31 @@ describe("createUser", () => {
     await cleanup?.()
   })
 
-  it("ユーザーを作成して Branded な User を返す", async () => {
-    const result = await createUser(ctx)({
-      name: "Alice",
-      email: "alice@example.com",
-    })
-
-    expect(result.ok).toBe(true)
-    if (!result.ok) expect.unreachable("result should be ok")
-    expect(result.value.name).toBe("Alice")
-    expect(result.value.email).toBe("alice@example.com")
-    expect(result.value.id).toBeDefined()
-  })
-
-  it("email が重複した場合 duplicate_entry を返す", async () => {
-    const result = await createUser(ctx)({
-      name: "Bob",
-      email: "alice@example.com",
-    })
-
-    expect(result.ok).toBe(false)
-    if (result.ok) expect.unreachable("result should not be ok")
-    expect(result).toMatchObject({
-      reason: "duplicate_entry",
-      field: "email",
-    })
-  })
-
-  it("バリデーションエラー時に validation_failed を返す", async () => {
-    const result = await createUser(ctx)({
-      name: "",
-      email: "invalid-email",
-    })
-
-    expect(result.ok).toBe(false)
-    if (result.ok) expect.unreachable("result should not be ok")
-    expect(result.reason).toBe("validation_failed")
+  testContract(createUser, {
+    success: async (assert) => {
+      const result = await createUser(ctx)({
+        name: "Alice",
+        email: "alice@example.com",
+      })
+      const user = assert(result)
+      expect(user.value.name).toBe("Alice")
+      expect(user.value.email).toBe("alice@example.com")
+      expect(user.value.id).toBeDefined()
+    },
+    duplicate_entry: async (assert) => {
+      const result = await createUser(ctx)({
+        name: "Bob",
+        email: "alice@example.com",
+      })
+      const error = assert(result)
+      expect(error.field).toBe("email")
+    },
+    validation_failed: async (assert) => {
+      const result = await createUser(ctx)({
+        name: "",
+        email: "invalid-email",
+      })
+      assert(result)
+    },
   })
 })

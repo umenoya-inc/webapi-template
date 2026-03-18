@@ -1,7 +1,8 @@
-import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test"
+import { afterAll, beforeAll, describe, expect } from "vite-plus/test"
 import type { DbContext } from "../DbContext"
 import { fromDbContext } from "../fromDbContext"
 import { createTestDbContext } from "../testing/createTestDbContext.testutil"
+import { testContract } from "@/modules/testing"
 import { listUsers } from "./listUsers"
 import { userTable } from "./userTable"
 
@@ -24,28 +25,27 @@ describe("listUsers", () => {
     await cleanup?.()
   })
 
-  it("ユーザーが存在しない場合は空配列を返す", async () => {
-    const result = await listUsers(ctx)({})
+  testContract(listUsers, {
+    success: {
+      ユーザーが存在しない場合は空配列を返す: async (assert) => {
+        const result = await listUsers(ctx)()
+        const ok = assert(result)
+        expect(ok.value).toEqual([])
+      },
+      作成済みのユーザー一覧を返す: async (assert) => {
+        await insertUserRow(ctx, { name: "Alice", email: "alice@example.com" })
+        await insertUserRow(ctx, { name: "Bob", email: "bob@example.com" })
 
-    expect(result.ok).toBe(true)
-    if (!result.ok) expect.unreachable("result should be ok")
-    expect(result.value).toEqual([])
-  })
-
-  it("作成済みのユーザー一覧を返す", async () => {
-    await insertUserRow(ctx, { name: "Alice", email: "alice@example.com" })
-    await insertUserRow(ctx, { name: "Bob", email: "bob@example.com" })
-
-    const result = await listUsers(ctx)({})
-
-    expect(result.ok).toBe(true)
-    if (!result.ok) expect.unreachable("result should be ok")
-    expect(result.value).toHaveLength(2)
-    expect(result.value).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ name: "Alice", email: "alice@example.com" }),
-        expect.objectContaining({ name: "Bob", email: "bob@example.com" }),
-      ]),
-    )
+        const result = await listUsers(ctx)()
+        const ok = assert(result)
+        expect(ok.value).toHaveLength(2)
+        expect(ok.value).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({ name: "Alice", email: "alice@example.com" }),
+            expect.objectContaining({ name: "Bob", email: "bob@example.com" }),
+          ]),
+        )
+      },
+    },
   })
 })

@@ -13,7 +13,8 @@
 
 type ContractInner<F> = F extends (...args: any[]) => infer Inner ? Inner : never
 type ContractInput<F> = ContractInner<F> extends (input: infer I) => any ? I : never
-type ContractResultUnion<F> = ContractInner<F> extends (input: any) => Promise<infer R> ? R : never
+type ContractResultUnion<F> =
+  ContractInner<F> extends (...args: any[]) => Promise<infer R> ? R : never
 
 type VariantKey<T> = T extends { ok: true }
   ? "success"
@@ -27,7 +28,9 @@ type VariantResult<F, K extends string> = K extends "success"
   ? Extract<ContractResultUnion<F>, { ok: true }>
   : Extract<ContractResultUnion<F>, { ok: false; reason: K }>
 
-type MockFn<F, K extends string> = (input: ContractInput<F>) => Promise<VariantResult<F, K>>
+type MockFn<F, K extends string> = [ContractInput<F>] extends [never]
+  ? () => Promise<VariantResult<F, K>>
+  : (input: ContractInput<F>) => Promise<VariantResult<F, K>>
 
 type VariantEntry<F, K extends string> = MockFn<F, K> | Record<string, MockFn<F, K>>
 
@@ -38,7 +41,7 @@ type MockReturn<F, B> = {
 }
 
 export const mockContract = <
-  F extends (...args: any[]) => (input: any) => Promise<any>,
+  F extends (...args: any[]) => (...args: any[]) => Promise<any>,
   B extends Behaviors<F>,
 >(
   _fn: F,

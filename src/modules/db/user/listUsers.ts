@@ -1,4 +1,4 @@
-import { array, object } from "valibot"
+import { array } from "valibot"
 import type { DbContext } from "../DbContext"
 import { fromDbContext } from "../fromDbContext"
 import { defineContract } from "@/modules/contract"
@@ -13,7 +13,6 @@ import { userTable } from "./userTable"
  */
 export const listUsers = (ctx: DbContext) =>
   defineContract({
-    input: object({}),
     output: array(User),
     fn: async () => {
       const db = fromDbContext(ctx)

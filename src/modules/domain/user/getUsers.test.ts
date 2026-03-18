@@ -29,16 +29,11 @@ const listUsersMock = mockContract(listUsers, {
       value: [],
     }),
   },
-  validation_failed: async () => ({
-    ok: false,
-    reason: "validation_failed",
-    fields: {},
-  }),
 })
 
 describe("getUsers", () => {
   it("ユーザー一覧を返す", async () => {
-    const result = await getUsers(dummyCtx, { listUsers: listUsersMock.success.with_users })({})
+    const result = await getUsers(dummyCtx, { listUsers: listUsersMock.success.with_users })()
 
     expect(result.ok).toBe(true)
     if (!result.ok) expect.unreachable("result should be ok")
@@ -52,7 +47,7 @@ describe("getUsers", () => {
   })
 
   it("ユーザーが存在しない場合は空配列を返す", async () => {
-    const result = await getUsers(dummyCtx, { listUsers: listUsersMock.success.empty })({})
+    const result = await getUsers(dummyCtx, { listUsers: listUsersMock.success.empty })()
 
     expect(result.ok).toBe(true)
     if (!result.ok) expect.unreachable("result should be ok")
