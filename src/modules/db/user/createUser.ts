@@ -7,8 +7,11 @@ import { User } from "./User"
 import { userTable } from "./userTable"
 
 /**
- * ユーザーを新規作成し、作成されたユーザーを返す。
- * email が既に存在する場合は unique_violation エラーを返す。
+ * ユーザーを新規作成する。
+ *
+ * - 正常に作成された場合、Branded な User を返す
+ * - email が既存ユーザーと重複する場合、duplicate_entry エラーを返す
+ * - 入力値が不正な場合、validation_failed エラーを返す
  */
 export const createUser = (ctx: DbContext) =>
   defineContract({

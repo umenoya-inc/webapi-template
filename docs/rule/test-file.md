@@ -41,3 +41,7 @@ expect(result.value.name).toBe("Alice")
 // ❌ early return は使わない
 if (!result.ok) return
 ```
+
+## テスト変更時の JSDoc 更新
+
+テストファイルを新規作成または更新した場合は、`/test-to-doc` スキルで対応するソースファイルの JSDoc を再生成する。
