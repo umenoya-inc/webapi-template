@@ -97,3 +97,8 @@ declare function findOrder(ctx: DbContext, id: OrderId): Promise<...>
 const userId = parse(UserId, "...")
 findOrder(ctx, userId) // ❌ Type error
 ```
+
+## 参考
+
+- [Always-Valid Domain Model](https://enterprisecraftsmanship.com/posts/always-valid-domain-model/) — Vladimir Khorikov による Always Valid パターンの解説
+- [Domain Modeling Made Functional](https://pragprog.com/titles/swdddf/domain-modeling-made-functional/) — Scott Wlaschin による型駆動ドメインモデリング。Branded Types による不正状態の排除はこの書籍の考え方に基づく

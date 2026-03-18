@@ -50,3 +50,8 @@ src/modules/db/
 **設定より規約。** `index.ts` の有無という単一の規約で、共有ユーティリティとカプセル化されたサブモジュールを区別する。ディレクトリ構造を見るだけでアクセスポリシーが読み取れる。
 
 **lint で強制する。** この規約はカスタム oxlint プラグイン（`module-boundary/no-module-internal-import`）で自動的に検証される。開発者がルールを記憶する必要はなく、違反は CI で検出される。
+
+## 参考
+
+- [Rust のモジュールシステム](https://doc.rust-lang.org/book/ch07-00-managing-growing-projects-with-packages-crates-and-modules.html) — `mod.rs` がモジュールの公開 API を定義し、`pub` をつけないものはモジュール外から不可視になる。`index.ts` の役割はこれに近い
+- [Convention over Configuration](https://en.wikipedia.org/wiki/Convention_over_configuration) — 設定ファイルではなくディレクトリ構造の規約でアクセスポリシーを表現する考え方

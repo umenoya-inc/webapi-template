@@ -84,3 +84,8 @@ const result = await createTodo({} as DbContext, {
   saveTodo: (_ctx) => async (input) => ({ ok: true, value: input }),
 })({ title: "Buy milk", assignee: "user-1" })
 ```
+
+## 参考
+
+- [Domain Modeling Made Functional](https://pragprog.com/titles/swdddf/domain-modeling-made-functional/) — Scott Wlaschin による関数指向のドメインモデリング。クラスではなく関数でドメインロジックを表現するアプローチの基盤
+- [Dependency Injection Principles, Practices, and Patterns](https://www.manning.com/books/dependency-injection-principles-practices-patterns) — Mark Seemann による依存注入の原則。`env` パターンによる依存の外部化はこの考え方に基づく

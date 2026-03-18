@@ -45,3 +45,8 @@ src/modules/
 | ---------- | ---------------- | ------------------------ |
 | `db/*`     | CRUD 操作        | PGlite（実 DB）          |
 | それ以外   | ビジネスロジック | モック（`env` 差し替え） |
+
+## 参考
+
+- [Separation of Concerns](https://en.wikipedia.org/wiki/Separation_of_concerns) — CRUD 操作とビジネスロジックを異なるモジュールに分離する基本原則
+- [Dependency Inversion Principle](https://en.wikipedia.org/wiki/Dependency_inversion_principle) — `env` パターンで具象への直接依存を避け、テスト時にモック可能にする考え方
