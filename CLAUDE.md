@@ -18,6 +18,7 @@ TypeScript ファイルを作成・編集する際は、以下のルールを必
 - [関数指向のロジック設計](docs/design/function-oriented-logic.md)
 - [Always Valid Domain Model](docs/design/always-valid-domain-model.md)
 - [モジュールの責務分離](docs/design/module-responsibility.md)
+- [index.ts によるモジュールアクセス制御](docs/design/module-access-control.md)
 
 # Infrastructure
 
