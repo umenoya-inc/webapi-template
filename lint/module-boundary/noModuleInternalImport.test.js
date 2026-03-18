@@ -30,7 +30,7 @@ tester.run("no-module-internal-import", noModuleInternalImport, {
       code: 'import { userTable } from "./userTable"',
       filename: src("modules/db/user/createUser.ts"),
     },
-    // 同一モジュール内で別サブモジュールへの相対パス
+    // 同一モジュール内で別サブモジュールへの相対パス（barrel export なし）
     {
       code: 'import { isDuplicateKeyError } from "../error/isDuplicateKeyError"',
       filename: src("modules/db/user/createUser.ts"),
@@ -60,6 +60,12 @@ tester.run("no-module-internal-import", noModuleInternalImport, {
       code: 'import { envvar } from "../../envvar/envvar"',
       filename: src("modules/db/user/createUser.ts"),
       errors: [{ messageId: "noRelativeOutside" }],
+    },
+    // 同一モジュール内で barrel export を持つサブモジュールの内部ファイルに相対パスでアクセス
+    {
+      code: 'import { createTodo } from "../todo/createTodo"',
+      filename: src("modules/domain/user/registerUser.ts"),
+      errors: [{ messageId: "noSubmoduleInternalImport" }],
     },
   ],
 })

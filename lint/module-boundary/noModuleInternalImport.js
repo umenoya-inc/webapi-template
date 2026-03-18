@@ -18,6 +18,8 @@ const noModuleInternalImport = {
         "相対パスでのモジュール外へのアクセスは禁止されています。@/modules/<module名> 経由でインポートしてください。",
       noAliasInsideModule:
         "同一モジュール内では相対パスを使用してください。エイリアス経由でのアクセスは禁止されています。",
+      noSubmoduleInternalImport:
+        "サブモジュールの内部ファイルに直接アクセスしないでください。barrel export 経由でインポートしてください。",
     },
     schema: [],
   },
@@ -136,6 +138,16 @@ function checkRelativeImport(context, node, source, modulesDir, filename) {
       node,
       messageId: "noRelativeOutside",
     })
+    return
+  }
+
+  // 同一トップレベルモジュール内で、barrel export を持つサブモジュールの境界を跨いでいないかチェック
+  const topModuleDir = resolve(modulesDir, currentModule)
+  if (crossesSubmoduleBoundary(filename, resolvedTarget, topModuleDir)) {
+    context.report({
+      node,
+      messageId: "noSubmoduleInternalImport",
+    })
   }
 }
 
@@ -182,6 +194,31 @@ function findNearestModulePath(segments) {
     return segments[0]
   }
   return segments.slice(0, -1).join("/")
+}
+
+/**
+ * 同一トップレベルモジュール内で、barrel export を持つサブモジュールの境界を跨いでいるかを判定する。
+ * ターゲットがサブモジュール（index.ts を持つディレクトリ）内にあり、
+ * かつソースがそのサブモジュール外にある場合に true を返す。
+ * @param {string} sourceFile
+ * @param {string} targetFile
+ * @param {string} topModuleDir
+ * @returns {boolean}
+ */
+function crossesSubmoduleBoundary(sourceFile, targetFile, topModuleDir) {
+  // ターゲットからトップモジュールまで遡り、barrel export を持つ最寄りのサブモジュールを探す
+  let dir = dirname(targetFile)
+  while (dir !== topModuleDir && dir.startsWith(topModuleDir + sep)) {
+    if (isBarrelExport(dir)) {
+      // ターゲットはこのサブモジュール内にある。ソースもこのサブモジュール内か？
+      if (!sourceFile.startsWith(dir + sep)) {
+        return true
+      }
+      return false
+    }
+    dir = dirname(dir)
+  }
+  return false
 }
 
 export default noModuleInternalImport
