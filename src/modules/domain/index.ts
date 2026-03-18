@@ -5,5 +5,5 @@
  * ビジネスロジックを配置するトップレベルモジュール。
  */
 
-export { registerUser } from "./user"
+export { registerUser, getUserById, getUsers } from "./user"
 export { createTodo } from "./todo"
