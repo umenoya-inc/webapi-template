@@ -22,6 +22,7 @@ export default defineConfig({
   ],
   fmt: {
     semi: false,
+    quoteProps: "preserve",
   },
   lint: {
     options: {

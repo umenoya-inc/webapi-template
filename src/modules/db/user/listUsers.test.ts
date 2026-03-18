@@ -27,12 +27,12 @@ describe("listUsers", () => {
 
   testContract(listUsers, {
     success: {
-      ユーザーが存在しない場合は空配列を返す: async (assert) => {
+      "ユーザーが存在しない場合は空配列を返す": async (assert) => {
         const result = await listUsers(ctx)()
         const ok = assert(result)
         expect(ok.value).toEqual([])
       },
-      作成済みのユーザー一覧を返す: async (assert) => {
+      "作成済みのユーザー一覧を返す": async (assert) => {
         await insertUserRow(ctx, { name: "Alice", email: "alice@example.com" })
         await insertUserRow(ctx, { name: "Bob", email: "bob@example.com" })
 
