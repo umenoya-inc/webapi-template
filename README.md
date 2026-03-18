@@ -2,17 +2,48 @@
 
 Hono + TypeScript + Vite+ による Web API テンプレート。
 
-## モジュール設計方針
+エージェントコーディングに最適化された設計を目指している。型システムとスキーマ検証でランタイムの安全性を最大化し、不正な値がドメインロジックに到達しない構造を取る。エラーは戻り値として明示的に扱い、暗黙の例外フローを排除することで、呼び出し側がエラーケースを網羅的にハンドリングできるようにする。モジュール境界を厳格に保ち、内部実装の変更が外に漏れない構造で、大規模化しても安全にリファクタリングできることを重視する。
 
-本テンプレートでは、`src/modules/` 配下の各モジュールを擬似的なパッケージとして扱い、公開インターフェースと内部実装を分離する。
+## 特徴
 
-- **カプセル化** — 各モジュールは `index.ts` の barrel export で公開APIを制御する。内部実装のリファクタリングは、公開APIを変えない限り他モジュールに影響しない。
-- **依存関係の明示化** — モジュール間のインポートは `@/modules/<module名>` エイリアスに統一する。import文を見るだけで依存方向がわかる。
-- **検索性の担保** — 1ファイル1エクスポート、ファイル名とシンボル名を一致させることで、シンボル名からファイルを即座に特定できる。
+### 設計方針
 
-詳細は [docs/rule/](docs/rule/) を参照。
+- [関数指向のロジック設計](docs/design/function-oriented-logic.md)
+- [Always Valid Domain Model](docs/design/always-valid-domain-model.md)
+- [モジュールの責務分離](docs/design/module-responsibility.md)
 
-## 初回セットアップ
+### ルール
+
+- [1ファイル1エクスポート](docs/rule/one-export-per-file.md)
+- [モジュールの公開API制御](docs/rule/module-barrel-export.md)
+- [Discriminated Unionによるエラーハンドリング](docs/rule/discriminated-union-error-handling.md)
+- [Namespace Import の禁止](docs/rule/no-namespace-import.md)
+- [テーブル定義](docs/rule/table-definition.md)
+- [テストファイル](docs/rule/test-file.md)
+- [DB エラーハンドリング](docs/rule/db-error-handling.md)
+- [JSDoc フォーマット](docs/rule/jsdoc-format.md)
+
+## モジュール構成
+
+- **contract** — Design by Contract パターンを Valibot スキーマで実現する
+- **db** — Drizzle ORM + node-postgres によるDBアクセスを提供する
+  - **user** — ユーザーの永続化と取得を担当する
+- **envvar** — 環境変数を型安全に取得する
+
+## スクリプト
+
+| コマンド          | 実行内容             |
+| ----------------- | -------------------- |
+| `npm run dev`     | `vp dev`             |
+| `npm run build`   | `vp build`           |
+| `npm run preview` | `node dist/index.js` |
+| `npm run lint`    | `vp lint`            |
+| `npm run fmt`     | `vp fmt`             |
+| `npm run check`   | `vp check`           |
+| `npm run test`    | `vp test`            |
+| `npm run docs`    | `typedoc`            |
+
+## セットアップ
 
 ### 1. Vite+ のインストール
 

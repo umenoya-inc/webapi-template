@@ -1,4 +1,5 @@
 /**
+ * @packageDocumentation
  * ## envvar モジュール
  *
  * 環境変数を型安全に取得する。import 時点でバリデーションが実行され、

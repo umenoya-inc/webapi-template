@@ -1,4 +1,5 @@
 /**
+ * @packageDocumentation
  * ## user サブモジュール
  *
  * ユーザーの永続化と取得を担当する。

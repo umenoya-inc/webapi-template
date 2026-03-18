@@ -1,4 +1,5 @@
 /**
+ * @packageDocumentation
  * ## db モジュール
  *
  * Drizzle ORM + node-postgres によるDBアクセスを提供する。

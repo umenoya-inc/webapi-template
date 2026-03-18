@@ -1,4 +1,5 @@
 /**
+ * @packageDocumentation
  * ## contract モジュール
  *
  * Design by Contract パターンを Valibot スキーマで実現する。
