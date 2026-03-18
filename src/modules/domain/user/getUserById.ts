@@ -3,6 +3,13 @@ import type { DbContext } from "@/modules/db"
 import { defineContract } from "@/modules/contract"
 import { User, findUserById } from "@/modules/db/user"
 
+/**
+ * ID を指定してユーザーを取得する。
+ *
+ * - 該当するユーザーが存在する場合、Branded な User を返す
+ * - 該当するユーザーが存在しない場合、not_found エラーを返す
+ * - ID の形式が不正な場合、validation_failed エラーを返す
+ */
 export const getUserById = (
   ctx: DbContext,
   env: {

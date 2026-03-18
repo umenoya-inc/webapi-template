@@ -1,8 +1,8 @@
 import { parse } from "valibot"
-import { describe, expect, it } from "vite-plus/test"
+import { describe, expect } from "vite-plus/test"
 import type { DbContext } from "@/modules/db"
 import { User, createUser } from "@/modules/db/user"
-import { mockContract } from "@/modules/testing"
+import { mockContract, testContract } from "@/modules/testing"
 import { registerUser } from "./registerUser"
 
 const dummyCtx = {} as DbContext
@@ -26,43 +26,32 @@ const createUserMock = mockContract(createUser, {
 })
 
 describe("registerUser", () => {
-  it("ユーザーを登録して User を返す", async () => {
-    const result = await registerUser(dummyCtx, { createUser: createUserMock.success })({
-      name: "Alice",
-      email: "alice@example.com",
-    })
-
-    expect(result.ok).toBe(true)
-    if (!result.ok) expect.unreachable("result should be ok")
-    expect(result.value.name).toBe("Alice")
-    expect(result.value.email).toBe("alice@example.com")
-    expect(result.value.id).toBe(dummyUserId)
-  })
-
-  it("email が重複した場合 duplicate_entry を返す", async () => {
-    const result = await registerUser(dummyCtx, {
-      createUser: createUserMock.duplicate_entry,
-    })({
-      name: "Bob",
-      email: "alice@example.com",
-    })
-
-    expect(result.ok).toBe(false)
-    if (result.ok) expect.unreachable("result should not be ok")
-    expect(result).toMatchObject({
-      reason: "duplicate_entry",
-      field: "email",
-    })
-  })
-
-  it("バリデーションエラー時に validation_failed を返す", async () => {
-    const result = await registerUser(dummyCtx, { createUser: createUserMock.success })({
-      name: "",
-      email: "invalid",
-    })
-
-    expect(result.ok).toBe(false)
-    if (result.ok) expect.unreachable("result should not be ok")
-    expect(result.reason).toBe("validation_failed")
+  testContract(registerUser, {
+    success: async (assert) => {
+      const result = await registerUser(dummyCtx, { createUser: createUserMock.success })({
+        name: "Alice",
+        email: "alice@example.com",
+      })
+      const user = assert(result)
+      expect(user.value.name).toBe("Alice")
+      expect(user.value.email).toBe("alice@example.com")
+      expect(user.value.id).toBe(dummyUserId)
+    },
+    duplicate_entry: async (assert) => {
+      const result = await registerUser(dummyCtx, {
+        createUser: createUserMock.duplicate_entry,
+      })({
+        name: "Bob",
+        email: "alice@example.com",
+      })
+      assert(result)
+    },
+    validation_failed: async (assert) => {
+      const result = await registerUser(dummyCtx, { createUser: createUserMock.success })({
+        name: "",
+        email: "invalid",
+      })
+      assert(result)
+    },
   })
 })

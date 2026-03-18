@@ -1,8 +1,8 @@
 import { parse } from "valibot"
-import { describe, expect, it } from "vite-plus/test"
+import { describe, expect } from "vite-plus/test"
 import type { DbContext } from "@/modules/db"
 import { User, findUserById } from "@/modules/db/user"
-import { mockContract } from "@/modules/testing"
+import { mockContract, testContract } from "@/modules/testing"
 import { getUserById } from "./getUserById"
 
 const dummyCtx = {} as DbContext
@@ -25,34 +25,26 @@ const findUserByIdMock = mockContract(findUserById, {
 })
 
 describe("getUserById", () => {
-  it("ユーザーを取得して User を返す", async () => {
-    const result = await getUserById(dummyCtx, { findUserById: findUserByIdMock.success })({
-      id: dummyUserId,
-    })
-
-    expect(result.ok).toBe(true)
-    if (!result.ok) expect.unreachable("result should be ok")
-    expect(result.value.id).toBe(dummyUserId)
-    expect(result.value.name).toBe("Alice")
-  })
-
-  it("存在しない場合 not_found を返す", async () => {
-    const result = await getUserById(dummyCtx, { findUserById: findUserByIdMock.not_found })({
-      id: dummyUserId,
-    })
-
-    expect(result.ok).toBe(false)
-    if (result.ok) expect.unreachable("result should not be ok")
-    expect(result.reason).toBe("not_found")
-  })
-
-  it("不正な ID 形式の場合 validation_failed を返す", async () => {
-    const result = await getUserById(dummyCtx, { findUserById: findUserByIdMock.success })({
-      id: "not-a-uuid",
-    })
-
-    expect(result.ok).toBe(false)
-    if (result.ok) expect.unreachable("result should not be ok")
-    expect(result.reason).toBe("validation_failed")
+  testContract(getUserById, {
+    success: async (assert) => {
+      const result = await getUserById(dummyCtx, { findUserById: findUserByIdMock.success })({
+        id: dummyUserId,
+      })
+      const user = assert(result)
+      expect(user.value.id).toBe(dummyUserId)
+      expect(user.value.name).toBe("Alice")
+    },
+    not_found: async (assert) => {
+      const result = await getUserById(dummyCtx, { findUserById: findUserByIdMock.not_found })({
+        id: dummyUserId,
+      })
+      assert(result)
+    },
+    validation_failed: async (assert) => {
+      const result = await getUserById(dummyCtx, { findUserById: findUserByIdMock.success })({
+        id: "not-a-uuid",
+      })
+      assert(result)
+    },
   })
 })
