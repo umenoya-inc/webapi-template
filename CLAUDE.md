@@ -10,6 +10,7 @@ TypeScript ファイルを作成・編集する際は、以下のルールを必
 - [テストファイル](docs/rule/test-file.md)
 - [DBエラーハンドリング](docs/rule/db-error-handling.md)
 - [JSDoc フォーマット](docs/rule/jsdoc-format.md)
+- [defineContract の fn 内 as const](docs/rule/contract-fn-as-const.md)
 
 # Design
 

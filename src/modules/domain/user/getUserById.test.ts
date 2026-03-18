@@ -17,6 +17,11 @@ const findUserByIdMock = mockContract(findUserById, {
     ok: false,
     reason: "not_found",
   }),
+  validation_failed: async () => ({
+    ok: false,
+    reason: "validation_failed",
+    fields: {},
+  }),
 })
 
 describe("getUserById", () => {

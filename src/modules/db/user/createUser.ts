@@ -30,8 +30,8 @@ export const createUser = (ctx: DbContext) =>
           return {
             ok: false,
             reason: "duplicate_entry",
-            field: "email" as const,
-          }
+            field: "email",
+          } as const
         }
         throw new Error("Unexpected database error", { cause: result.error.cause })
       }

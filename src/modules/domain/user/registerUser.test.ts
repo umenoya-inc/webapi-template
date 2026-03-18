@@ -16,7 +16,12 @@ const createUserMock = mockContract(createUser, {
   duplicate_entry: async () => ({
     ok: false,
     reason: "duplicate_entry",
-    field: "email" as const,
+    field: "email",
+  }),
+  validation_failed: async () => ({
+    ok: false,
+    reason: "validation_failed",
+    fields: {},
   }),
 })
 
@@ -35,7 +40,9 @@ describe("registerUser", () => {
   })
 
   it("email が重複した場合 duplicate_entry を返す", async () => {
-    const result = await registerUser(dummyCtx, { createUser: createUserMock.duplicate_entry })({
+    const result = await registerUser(dummyCtx, {
+      createUser: createUserMock.duplicate_entry,
+    })({
       name: "Bob",
       email: "alice@example.com",
     })

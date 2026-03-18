@@ -19,19 +19,26 @@ const bob = parse(User, {
 })
 
 const listUsersMock = mockContract(listUsers, {
-  with_users: async () => ({
-    ok: true,
-    value: [alice, bob],
-  }),
-  empty: async () => ({
-    ok: true,
-    value: [],
+  success: {
+    with_users: async () => ({
+      ok: true,
+      value: [alice, bob],
+    }),
+    empty: async () => ({
+      ok: true,
+      value: [],
+    }),
+  },
+  validation_failed: async () => ({
+    ok: false,
+    reason: "validation_failed",
+    fields: {},
   }),
 })
 
 describe("getUsers", () => {
   it("ユーザー一覧を返す", async () => {
-    const result = await getUsers(dummyCtx, { listUsers: listUsersMock.with_users })({})
+    const result = await getUsers(dummyCtx, { listUsers: listUsersMock.success.with_users })({})
 
     expect(result.ok).toBe(true)
     if (!result.ok) expect.unreachable("result should be ok")
@@ -45,7 +52,7 @@ describe("getUsers", () => {
   })
 
   it("ユーザーが存在しない場合は空配列を返す", async () => {
-    const result = await getUsers(dummyCtx, { listUsers: listUsersMock.empty })({})
+    const result = await getUsers(dummyCtx, { listUsers: listUsersMock.success.empty })({})
 
     expect(result.ok).toBe(true)
     if (!result.ok) expect.unreachable("result should be ok")

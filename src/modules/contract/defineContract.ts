@@ -8,17 +8,8 @@ import {
   parse,
   safeParse,
 } from "valibot"
-import type { ReasonedFallible } from "@/types/ReasonedFallible"
 
 type OkResult<T> = { ok: true; value: T }
-type FailureResult = Extract<ReasonedFallible, { ok: false }>
-type FnResult<TRawValue, TFnError extends FailureResult> = OkResult<TRawValue> | TFnError
-
-type ContractResult<
-  TOutputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
-  TFnError extends FailureResult,
-  TInputError,
-> = OkResult<InferOutput<TOutputSchema>> | TFnError | TInputError
 
 type DefaultInputError = {
   ok: false
@@ -26,48 +17,50 @@ type DefaultInputError = {
   fields: Record<string, unknown>
 }
 
+type ExtractFailure<T> = Extract<T, { ok: false }>
+
 type ContractOptionsWithInputError<
   TInputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
   TOutputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
-  TFnError extends FailureResult,
+  TFnReturn,
   TInputError,
 > = {
   input: TInputSchema
   output: TOutputSchema
   onInputError: (issues: [InferIssue<TInputSchema>, ...InferIssue<TInputSchema>[]]) => TInputError
-  fn: (input: InferOutput<TInputSchema>) => Promise<FnResult<InferInput<TOutputSchema>, TFnError>>
+  fn: (input: InferOutput<TInputSchema>) => Promise<TFnReturn>
 }
 
 type ContractOptionsWithoutInputError<
   TInputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
   TOutputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
-  TFnError extends FailureResult,
+  TFnReturn,
 > = {
   input: TInputSchema
   output: TOutputSchema
-  fn: (input: InferOutput<TInputSchema>) => Promise<FnResult<InferInput<TOutputSchema>, TFnError>>
+  fn: (input: InferOutput<TInputSchema>) => Promise<TFnReturn>
 }
 
 export function defineContract<
   TInputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
   TOutputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
-  TFnError extends FailureResult,
+  TFnReturn extends OkResult<InferInput<TOutputSchema>> | { ok: false },
   TInputError,
 >(
-  options: ContractOptionsWithInputError<TInputSchema, TOutputSchema, TFnError, TInputError>,
+  options: ContractOptionsWithInputError<TInputSchema, TOutputSchema, TFnReturn, TInputError>,
 ): (
   input: InferInput<TInputSchema>,
-) => Promise<ContractResult<TOutputSchema, TFnError, TInputError>>
+) => Promise<OkResult<InferOutput<TOutputSchema>> | ExtractFailure<TFnReturn> | TInputError>
 
 export function defineContract<
   TInputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
   TOutputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
-  TFnError extends FailureResult,
+  TFnReturn extends OkResult<InferInput<TOutputSchema>> | { ok: false },
 >(
-  options: ContractOptionsWithoutInputError<TInputSchema, TOutputSchema, TFnError>,
+  options: ContractOptionsWithoutInputError<TInputSchema, TOutputSchema, TFnReturn>,
 ): (
   input: InferInput<TInputSchema>,
-) => Promise<ContractResult<TOutputSchema, TFnError, DefaultInputError>>
+) => Promise<OkResult<InferOutput<TOutputSchema>> | ExtractFailure<TFnReturn> | DefaultInputError>
 
 export function defineContract(options: {
   input: BaseSchema<unknown, unknown, BaseIssue<unknown>>
