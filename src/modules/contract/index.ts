@@ -7,6 +7,7 @@
  * ### エクスポート
  *
  * - `defineContract` — input/output スキーマと（任意で）エラーハンドラを受け取り、契約付き関数を返す。
+ * - `matchContract` — Contract 関数の戻り値に対する exhaustive なパターンマッチ。
  *
  * ### 使い方
  *
@@ -52,3 +53,4 @@
  */
 
 export { defineContract } from "./defineContract"
+export { matchContract } from "./matchContract"
