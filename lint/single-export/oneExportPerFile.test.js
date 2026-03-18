@@ -31,6 +31,16 @@ tester.run("one-export-per-file", oneExportPerFile, {
       ),
       filename: "/project/src/modules/db/user/index.ts",
     },
+    // 関数オーバーロード（同名シグネチャ+実装は1つとみなす）
+    {
+      code: [
+        "export function defineContract(options: { input: any }): any",
+        "export function defineContract(options: { input: any, onInputError: any }): any",
+        "export function defineContract(options: any) { return options }",
+      ].join("\n"),
+      filename: "/project/src/modules/contract/defineContract.ts",
+      languageOptions: { sourceType: "module" },
+    },
     // .testutil.ts のファイル名マッチ
     {
       code: "export const createTestDbContext = async () => {}",

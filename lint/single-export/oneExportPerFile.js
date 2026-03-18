@@ -142,6 +142,7 @@ function getDeclarationName(declaration) {
       return null
     }
     case "FunctionDeclaration":
+    case "TSDeclareFunction":
     case "ClassDeclaration":
     case "TSTypeAliasDeclaration":
     case "TSInterfaceDeclaration":

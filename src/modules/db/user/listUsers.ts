@@ -15,11 +15,6 @@ export const listUsers = (ctx: DbContext) =>
   defineContract({
     input: object({}),
     output: array(User),
-    onInputError: () =>
-      ({
-        ok: false,
-        reason: "validation_failed",
-      }) as const,
     fn: async () => {
       const db = fromDbContext(ctx)
       const rows = await db.select().from(userTable)

@@ -1,4 +1,4 @@
-import { email, flatten, maxLength, minLength, object, pipe, string } from "valibot"
+import { email, maxLength, minLength, object, pipe, string } from "valibot"
 import type { DbContext } from "../DbContext"
 import { dbExecute } from "../error/dbExecute"
 import { fromDbContext } from "../fromDbContext"
@@ -20,12 +20,6 @@ export const createUser = (ctx: DbContext) =>
       email: pipe(string(), email()),
     }),
     output: User,
-    onInputError: (issues) =>
-      ({
-        ok: false,
-        reason: "validation_failed",
-        fields: flatten(issues).nested ?? {},
-      }) as const,
     fn: async (input) => {
       const db = fromDbContext(ctx)
       const result = await dbExecute(() =>

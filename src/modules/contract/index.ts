@@ -5,7 +5,7 @@
  *
  * ### エクスポート
  *
- * - `defineContract` — input/output スキーマとエラーハンドラを受け取り、契約付き関数を返す。
+ * - `defineContract` — input/output スキーマと（任意で）エラーハンドラを受け取り、契約付き関数を返す。
  *
  * ### 使い方
  *
@@ -43,7 +43,8 @@
  * ### 動作
  *
  * - **input**: 常に Valibot スキーマで検証する。失敗時は `onInputError` の返り値を返す。
- *   - `onInputError` の引数は Valibot の issues タプル。`flatten(issues)` でフィールド別に変換可能。
+ *   - `onInputError` は省略可能。省略時は `{ ok: false, reason: "validation_failed", fields: { ... } }` を返す。
+ *   - カスタムする場合の引数は Valibot の issues タプル。`flatten(issues)` でフィールド別に変換可能。
  * - **output**: `fn` が `{ ok: true, value }` を返した場合、`value` を output スキーマで parse する。
  *   TypeScript の型では表現できないドメイン制約（UUID 形式、値の範囲等）のランタイム検証と、
  *   Branded Types への変換を行う。
