@@ -9,6 +9,7 @@ TypeScript ファイルを作成・編集する際は、以下のルールを必
 - [テーブル定義](docs/rule/table-definition.md)
 - [テストファイル](docs/rule/test-file.md)
 - [DBエラーハンドリング](docs/rule/db-error-handling.md)
+- [Branded Entity ID](docs/rule/branded-entity-id.md)
 - [JSDoc フォーマット](docs/rule/jsdoc-format.md)
 - [defineContract の fn 内 as const](docs/rule/contract-fn-as-const.md)
 
