@@ -9,9 +9,11 @@
  *
  * - `defineRoute` — ハンドラ関数から OpenAPI 付きルートハンドラを生成する
  * - `defineRouteContract` — ルート専用コントラクト（defineContract + responses マップ）
+ * - `routeInput` — ルート入力のソース構成を定義する（params / query / headers / body）
  *
  * @dependencies db/**, behavior, contract
  */
 
 export { defineRoute } from "./defineRoute"
 export { defineRouteContract } from "./defineRouteContract"
+export { routeInput } from "./routeInput"

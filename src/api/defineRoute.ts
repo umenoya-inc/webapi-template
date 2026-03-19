@@ -1,9 +1,10 @@
-import type { BaseIssue, BaseSchema } from "valibot"
+import type { BaseIssue, BaseSchema, ObjectEntries, ObjectSchema } from "valibot"
 import type { Context, Env, Handler, Input, MiddlewareHandler } from "hono"
 import type { ContentfulStatusCode } from "hono/utils/http-status"
 import { describeRoute, resolver } from "hono-openapi"
 import { descLabelKey } from "@/behavior"
-import { outputSchemaKey } from "@/contract"
+import { inputSchemaKey, outputSchemaKey } from "@/contract"
+import { inputConfigKey } from "./inputConfigKey"
 import { responsesKey } from "./responsesKey"
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -17,20 +18,30 @@ type Schema = BaseSchema<unknown, unknown, BaseIssue<unknown>>
 type ResponseEntry = { status: number; description?: string }
 type ResponsesMap = Record<string, ResponseEntry>
 
+type InputConfig = {
+  params?: ObjectSchema<ObjectEntries, any>
+  query?: ObjectSchema<ObjectEntries, any>
+  headers?: ObjectSchema<ObjectEntries, any>
+  body?: ObjectSchema<ObjectEntries, any>
+}
+
 /** contract 関数と説明から OpenAPI 付きルートハンドラを生成する。 */
 export function defineRoute(options: RouteOptions): [MiddlewareHandler, Handler] {
   const outputSchema = findSchema(options.fn, outputSchemaKey)
+  const fnInputSchema = findSchema(options.fn, inputSchemaKey)
   const responses = findResponses(options.fn, responsesKey)
+  const inputConfig = findInputConfig(fnInputSchema)
 
   return [
     describeRoute({
       description: options.description,
+      ...buildOpenAPIInput(fnInputSchema, inputConfig),
       responses: buildOpenAPIResponses(outputSchema, responses) as never,
     }),
     async (c: Context<Env, string, Input>) => {
-      const body = await c.req.json()
+      const input = inputConfig ? await extractInput(c, inputConfig) : await c.req.json()
       const contractFn = options.fn()
-      const result = await contractFn(body)
+      const result = await contractFn(input)
       const label = (result as Record<symbol, string>)[descLabelKey]
       const status = responses?.[label]?.status ?? (result.ok ? 200 : 400)
       const { ok: _, ...rest } = result as Record<string, unknown>
@@ -38,6 +49,98 @@ export function defineRoute(options: RouteOptions): [MiddlewareHandler, Handler]
       return c.json(rest, status as ContentfulStatusCode) as Response
     },
   ]
+}
+
+/** input スキーマから routeInput のメタデータを取得する。 */
+function findInputConfig(schema: Schema | undefined): InputConfig | undefined {
+  if (!schema) return undefined
+  return (schema as unknown as Record<symbol, unknown>)[inputConfigKey] as InputConfig | undefined
+}
+
+/** リクエストの各ソースからフィールドを抽出してマージする。 */
+async function extractInput(
+  c: Context<Env, string, Input>,
+  config: InputConfig,
+): Promise<Record<string, unknown>> {
+  let input: Record<string, unknown> = {}
+  if (config.params) {
+    for (const name of Object.keys(config.params.entries)) {
+      input[name] = c.req.param(name)
+    }
+  }
+  if (config.query) {
+    for (const name of Object.keys(config.query.entries)) {
+      input[name] = c.req.query(name)
+    }
+  }
+  if (config.headers) {
+    for (const name of Object.keys(config.headers.entries)) {
+      input[name] = c.req.header(name)
+    }
+  }
+  if (config.body) {
+    const body = await c.req.json()
+    input = { ...input, ...body }
+  }
+  return input
+}
+
+/** OpenAPI の parameters と requestBody を構築する。 */
+function buildOpenAPIInput(
+  inputSchema: Schema | undefined,
+  config: InputConfig | undefined,
+): Record<string, any> {
+  const result: Record<string, any> = {}
+
+  if (config) {
+    const params: any[] = []
+    if (config.params) {
+      for (const [name, fieldSchema] of Object.entries(config.params.entries)) {
+        params.push({
+          name,
+          in: "path",
+          required: true,
+          schema: resolver(fieldSchema as Schema),
+        })
+      }
+    }
+    if (config.query) {
+      for (const [name, fieldSchema] of Object.entries(config.query.entries)) {
+        params.push({
+          name,
+          in: "query",
+          schema: resolver(fieldSchema as Schema),
+        })
+      }
+    }
+    if (config.headers) {
+      for (const [name, fieldSchema] of Object.entries(config.headers.entries)) {
+        params.push({
+          name,
+          in: "header",
+          schema: resolver(fieldSchema as Schema),
+        })
+      }
+    }
+    if (params.length > 0) {
+      result.parameters = params
+    }
+    if (config.body) {
+      result.requestBody = {
+        content: {
+          "application/json": { schema: resolver(config.body as Schema) },
+        },
+      }
+    }
+  } else if (inputSchema) {
+    result.requestBody = {
+      content: {
+        "application/json": { schema: resolver(inputSchema) },
+      },
+    }
+  }
+
+  return result
 }
 
 /** OpenAPI responses オブジェクトを構築する */
