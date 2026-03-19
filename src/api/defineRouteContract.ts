@@ -7,15 +7,6 @@ import { responsesKey } from "./responsesKey"
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-type DefaultInputError = Desc<
-  "入力値が不正",
-  {
-    ok: false
-    reason: "validation_failed"
-    fields: Record<string, unknown>
-  }
->
-
 type ExtractFailure<T> = Extract<T, { ok: false }>
 
 type ReplaceOkValue<T, V> =
@@ -28,12 +19,17 @@ type ReplaceOkValue<T, V> =
 type FullReturn<
   TFnReturn,
   TOutputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
-  TInputError = DefaultInputError,
+  TInputError,
 > = ReplaceOkValue<TFnReturn, InferOutput<TOutputSchema>> | ExtractFailure<TFnReturn> | TInputError
+
+type FullReturnNoInput<
+  TFnReturn,
+  TOutputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
+> = ReplaceOkValue<TFnReturn, InferOutput<TOutputSchema>> | ExtractFailure<TFnReturn>
 
 type ResponseEntry = { status: number; description?: string }
 
-// with custom onInputError
+// input + onInputError（input がある場合 onInputError は必須）
 export function defineRouteContract<
   TInputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
   TOutputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
@@ -54,27 +50,24 @@ export function defineRouteContract<
 ) => Promise<FullReturn<TFnReturn, TOutputSchema, TInputError>>) &
   BehaviorBrand
 
-// with default onInputError
+// no input
 export function defineRouteContract<
-  TInputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
   TOutputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
   TFnReturn extends
     | Desc<string, { ok: true; value: InferInput<TOutputSchema> }>
     | Desc<string, { ok: false }>,
 >(options: {
-  input: TInputSchema
   output: TOutputSchema
-  responses: { [K in DescLabel<FullReturn<TFnReturn, TOutputSchema>>]: ResponseEntry }
-  fn: (input: InferOutput<TInputSchema>) => Promise<TFnReturn>
-}): ((input: InferInput<TInputSchema>) => Promise<FullReturn<TFnReturn, TOutputSchema>>) &
-  BehaviorBrand
+  responses: { [K in DescLabel<FullReturnNoInput<TFnReturn, TOutputSchema>>]: ResponseEntry }
+  fn: () => Promise<TFnReturn>
+}): (() => Promise<FullReturnNoInput<TFnReturn, TOutputSchema>>) & BehaviorBrand
 
 export function defineRouteContract(options: {
-  input: BaseSchema<unknown, unknown, BaseIssue<unknown>>
+  input?: BaseSchema<unknown, unknown, BaseIssue<unknown>>
   output: BaseSchema<unknown, unknown, BaseIssue<unknown>>
   onInputError?: (issues: [BaseIssue<unknown>, ...BaseIssue<unknown>[]]) => unknown
   responses: Record<string, ResponseEntry>
-  fn: (input: unknown) => Promise<unknown>
+  fn: (input?: unknown) => Promise<unknown>
 }) {
   const fn = defineBehavior(
     withSchema({
@@ -84,7 +77,9 @@ export function defineRouteContract(options: {
       fn: options.fn,
     } as any) as any,
   )
-  ;(fn as Record<symbol, unknown>)[inputSchemaKey] = options.input
+  if (options.input) {
+    ;(fn as Record<symbol, unknown>)[inputSchemaKey] = options.input
+  }
   ;(fn as Record<symbol, unknown>)[outputSchemaKey] = options.output
   ;(fn as Record<symbol, unknown>)[responsesKey] = options.responses
   return fn

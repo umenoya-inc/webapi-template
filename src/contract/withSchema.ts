@@ -11,15 +11,6 @@ import {
 import type { Desc } from "@/behavior"
 import { failAs } from "@/behavior"
 
-type DefaultInputError = Desc<
-  "入力値が不正",
-  {
-    ok: false
-    reason: "validation_failed"
-    fields: Record<string, unknown>
-  }
->
-
 type ExtractFailure<T> = Extract<T, { ok: false }>
 
 /** fn の ok:true 返却の Desc ラベルを保持したまま value 型を置換する（分配型、value 以外のフィールドは保持） */
@@ -30,67 +21,23 @@ type ReplaceOkValue<T, V> =
       : never
     : never
 
-type SchemaOptionsWithInputError<
+// input + onInputError（input がある場合 onInputError は必須）
+export function withSchema<
   TInputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
   TOutputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
-  TFnReturn,
+  TFnReturn extends
+    | Desc<string, { ok: true; value: InferInput<TOutputSchema> }>
+    | Desc<string, { ok: false }>,
   TInputError,
-> = {
+>(options: {
   input: TInputSchema
   output: TOutputSchema
   onInputError: (issues: [InferIssue<TInputSchema>, ...InferIssue<TInputSchema>[]]) => TInputError
   fn: (input: InferOutput<TInputSchema>) => Promise<TFnReturn>
-}
-
-type SchemaOptionsWithDefaultInputError<
-  TInputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
-  TOutputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
-  TFnReturn,
-> = {
-  input: TInputSchema
-  output: TOutputSchema
-  fn: (input: InferOutput<TInputSchema>) => Promise<TFnReturn>
-}
-
-type SchemaOptionsWithoutInput<
-  TOutputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
-  TFnReturn,
-> = {
-  output: TOutputSchema
-  fn: () => Promise<TFnReturn>
-}
-
-// input + custom onInputError
-export function withSchema<
-  TInputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
-  TOutputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
-  TFnReturn extends
-    | Desc<string, { ok: true; value: InferInput<TOutputSchema> }>
-    | Desc<string, { ok: false }>,
-  TInputError,
->(
-  options: SchemaOptionsWithInputError<TInputSchema, TOutputSchema, TFnReturn, TInputError>,
-): (
+}): (
   input: InferInput<TInputSchema>,
 ) => Promise<
   ReplaceOkValue<TFnReturn, InferOutput<TOutputSchema>> | ExtractFailure<TFnReturn> | TInputError
->
-
-// input + default onInputError
-export function withSchema<
-  TInputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
-  TOutputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
-  TFnReturn extends
-    | Desc<string, { ok: true; value: InferInput<TOutputSchema> }>
-    | Desc<string, { ok: false }>,
->(
-  options: SchemaOptionsWithDefaultInputError<TInputSchema, TOutputSchema, TFnReturn>,
-): (
-  input: InferInput<TInputSchema>,
-) => Promise<
-  | ReplaceOkValue<TFnReturn, InferOutput<TOutputSchema>>
-  | ExtractFailure<TFnReturn>
-  | DefaultInputError
 >
 
 // no input
@@ -99,9 +46,10 @@ export function withSchema<
   TFnReturn extends
     | Desc<string, { ok: true; value: InferInput<TOutputSchema> }>
     | Desc<string, { ok: false }>,
->(
-  options: SchemaOptionsWithoutInput<TOutputSchema, TFnReturn>,
-): () => Promise<ReplaceOkValue<TFnReturn, InferOutput<TOutputSchema>> | ExtractFailure<TFnReturn>>
+>(options: {
+  output: TOutputSchema
+  fn: () => Promise<TFnReturn>
+}): () => Promise<ReplaceOkValue<TFnReturn, InferOutput<TOutputSchema>> | ExtractFailure<TFnReturn>>
 
 export function withSchema(options: {
   input?: BaseSchema<unknown, unknown, BaseIssue<unknown>>

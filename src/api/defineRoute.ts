@@ -39,9 +39,12 @@ export function defineRoute(options: RouteOptions): [MiddlewareHandler, Handler]
       responses: buildOpenAPIResponses(outputSchema, responses) as never,
     }),
     async (c: Context<Env, string, Input>) => {
-      const input = inputConfig ? await extractInput(c, inputConfig) : await c.req.json()
       const contractFn = options.fn()
-      const result = await contractFn(input)
+      const result = inputConfig
+        ? await contractFn(await extractInput(c, inputConfig))
+        : fnInputSchema
+          ? await contractFn(await c.req.json())
+          : await contractFn()
       const label = (result as Record<symbol, string>)[descLabelKey]
       const status = responses?.[label]?.status ?? (result.ok ? 200 : 400)
       const { ok: _, ...rest } = result as Record<string, unknown>

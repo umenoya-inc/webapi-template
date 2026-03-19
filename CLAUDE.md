@@ -13,6 +13,7 @@ TypeScript ファイルを作成・編集する際は、以下のルールを必
 - [JSDoc フォーマット](docs/rule/jsdoc-format.md)
 - [defineContract の fn 内ルール](docs/rule/contract-fn-rule.md)
 - [API エンドポイント](docs/rule/api-endpoint.md)
+- [ルート入力バリデーションの宣言](docs/rule/route-input-error.md)
 
 # Design
 

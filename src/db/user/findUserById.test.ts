@@ -1,8 +1,9 @@
 import { afterAll, beforeAll, describe, expect } from "vite-plus/test"
+import { string } from "fast-check"
 import type { DbContext } from "../DbContext"
 import { fromDbContext } from "../fromDbContext"
 import { createTestDbContext } from "../testing/createTestDbContext.testutil"
-import { testBehavior } from "@/testing"
+import { propertyCheck, testBehavior } from "@/testing"
 import { findUserById } from "./findUserById"
 import { userTable } from "./userTable"
 
@@ -38,9 +39,15 @@ describe("findUserById", () => {
       const result = await findUserById(ctx)({ id: "00000000-0000-0000-0000-000000000000" })
       assert(result)
     },
-    "入力値が不正": async (assert) => {
-      const result = await findUserById(ctx)({ id: "not-a-uuid" })
-      assert(result)
-    },
+    "入力値が不正": propertyCheck(
+      findUserById,
+      {
+        "IDが不正": { id: string() },
+      },
+      async (assert, input) => {
+        const result = await findUserById(ctx)(input)
+        assert(result)
+      },
+    ),
   })
 })

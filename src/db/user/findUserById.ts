@@ -2,7 +2,7 @@ import { object, pipe, string, uuid } from "valibot"
 import { eq } from "drizzle-orm"
 import type { DbContext } from "../DbContext"
 import { fromDbContext } from "../fromDbContext"
-import { defineContract, failAs, okAs } from "@/contract"
+import { defaultInputError, defineContract, failAs, okAs } from "@/contract"
 import { User } from "./User"
 import { userTable } from "./userTable"
 
@@ -13,6 +13,7 @@ export const findUserById = (ctx: DbContext) =>
       id: pipe(string(), uuid()),
     }),
     output: User,
+    onInputError: defaultInputError(["IDが不正"]),
     fn: async (input) => {
       const db = fromDbContext(ctx)
       const rows = await db.select().from(userTable).where(eq(userTable.id, input.id))
