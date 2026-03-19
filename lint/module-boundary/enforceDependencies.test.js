@@ -84,9 +84,9 @@ tester.run("enforce-dependencies", enforceDependencies, {
       options,
       errors: [{ messageId: "disallowedDependency" }],
     },
-    // routes → contract: 宣言されていないモジュールへのアクセスは不可
+    // routes → envvar: 宣言されていないモジュールへのアクセスは不可
     {
-      code: 'import { defineContract } from "@/contract"',
+      code: 'import { envvar } from "@/envvar"',
       filename: src("routes/userRoute.ts"),
       options,
       errors: [{ messageId: "disallowedDependency" }],

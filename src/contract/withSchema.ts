@@ -22,9 +22,13 @@ type DefaultInputError = Desc<
 
 type ExtractFailure<T> = Extract<T, { ok: false }>
 
-/** fn の ok:true 返却の Desc ラベルを保持したまま value 型を置換する（分配型） */
+/** fn の ok:true 返却の Desc ラベルを保持したまま value 型を置換する（分配型、value 以外のフィールドは保持） */
 type ReplaceOkValue<T, V> =
-  T extends Desc<infer L, { ok: true; value: unknown }> ? Desc<L, { ok: true; value: V }> : never
+  T extends Desc<infer L, infer U>
+    ? U extends { ok: true; value: unknown }
+      ? Desc<L, Omit<U, "value"> & { value: V }>
+      : never
+    : never
 
 type SchemaOptionsWithInputError<
   TInputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
@@ -116,7 +120,8 @@ export function withSchema(options: {
       if (!result.ok) {
         return result
       }
-      return { ok: true, value: parse(options.output, result.value) }
+      const { value, ...rest } = result
+      return { ...rest, value: parse(options.output, value) }
     }
   }
 
@@ -133,6 +138,7 @@ export function withSchema(options: {
       return result
     }
 
-    return { ok: true, value: parse(options.output, result.value) }
+    const { value, ...rest } = result
+    return { ...rest, value: parse(options.output, value) }
   }
 }

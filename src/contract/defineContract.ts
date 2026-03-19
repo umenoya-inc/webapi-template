@@ -2,6 +2,7 @@ import type { BaseIssue, BaseSchema, InferInput, InferIssue, InferOutput } from 
 import type { BehaviorBrand, Desc } from "@/behavior"
 import { defineBehavior } from "@/behavior"
 import { inputSchemaKey } from "./inputSchemaKey"
+import { outputSchemaKey } from "./outputSchemaKey"
 import { withSchema } from "./withSchema"
 
 type DefaultInputError = Desc<
@@ -107,5 +108,6 @@ export function defineContract(options: {
   if (options.input) {
     ;(fn as Record<symbol, unknown>)[inputSchemaKey] = options.input
   }
+  ;(fn as Record<symbol, unknown>)[outputSchemaKey] = options.output
   return fn
 }
