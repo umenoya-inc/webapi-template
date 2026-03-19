@@ -20,6 +20,8 @@ export const findUserById = (ctx: DbContext) =>
         return failAs("IDに該当するユーザーが存在しない", "not_found")
       }
       const row = rows[0]
-      return okAs("IDに該当するユーザーを取得", { id: row.id, name: row.name, email: row.email })
+      return okAs("IDに該当するユーザーを取得", {
+        value: { id: row.id, name: row.name, email: row.email },
+      })
     },
   })

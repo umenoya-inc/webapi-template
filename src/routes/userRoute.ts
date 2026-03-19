@@ -1,7 +1,6 @@
 import { email, maxLength, minLength, object, pipe, string, uuid } from "valibot"
 import { Hono } from "hono"
 import { describeRoute, resolver, validator } from "hono-openapi"
-import { matchBehavior } from "@/behavior"
 import { globalDbContext } from "@/db"
 import { postUser } from "./postUser"
 
@@ -40,10 +39,7 @@ userRoute.post(
   validator("json", CreateUserRequest),
   async (c) => {
     const result = await postUser(globalDbContext)(c.req.valid("json"))
-    return matchBehavior(result, {
-      success: (r) => c.json(r.value, 201),
-      conflict: () => c.json({ error: "email_already_exists" }, 409),
-      bad_request: (r) => c.json({ error: "validation_failed", fields: r.fields }, 400),
-    }) as Response
+    const { ok: _, status, ...body } = result
+    return c.json(body, status) as Response
   },
 )

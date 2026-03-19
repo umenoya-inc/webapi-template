@@ -27,6 +27,8 @@ export const createUser = (ctx: DbContext) =>
         throw new Error("Unexpected database error", { cause: result.error.cause })
       }
       const row = result.value[0]
-      return okAs("ユーザーを新規作成", { id: row.id, name: row.name, email: row.email })
+      return okAs("ユーザーを新規作成", {
+        value: { id: row.id, name: row.name, email: row.email },
+      })
     },
   })

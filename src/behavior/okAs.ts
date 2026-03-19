@@ -10,22 +10,26 @@ import type { InputScenarios } from "./InputScenarios"
  * 第3引数に文字列配列を渡すと、InputScenarios ブランドが付与される。
  * testBehavior の parameterize で、シナリオラベルがパラメータキーとして強制される。
  */
-export function okAs<const TDesc extends string, TValue>(
+export function okAs<const TDesc extends string, TFields extends Record<string, unknown>>(
   _desc: TDesc,
-  value: TValue,
-): Desc<TDesc, { ok: true; value: TValue }>
+  fields: TFields,
+): Desc<TDesc, { ok: true } & TFields>
 
 export function okAs<
   const TDesc extends string,
-  TValue,
+  TFields extends Record<string, unknown>,
   const TScenarios extends readonly string[],
 >(
   _desc: TDesc,
-  value: TValue,
+  fields: TFields,
   scenarios: TScenarios,
-): InputScenarios<Desc<TDesc, { ok: true; value: TValue }>, TScenarios[number]>
+): InputScenarios<Desc<TDesc, { ok: true } & TFields>, TScenarios[number]>
 
-export function okAs(_desc: string, value: unknown, scenarios?: readonly string[]) {
+export function okAs(
+  _desc: string,
+  fields: Record<string, unknown>,
+  scenarios?: readonly string[],
+) {
   void scenarios
-  return { ok: true as const, value }
+  return { ok: true as const, ...fields }
 }

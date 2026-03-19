@@ -13,11 +13,10 @@ export const listUsers = (ctx: DbContext) =>
       const db = fromDbContext(ctx)
       const rows = await db.select().from(userTable)
       if (rows.length === 0) {
-        return okAs("ユーザーが存在しない", [])
+        return okAs("ユーザーが存在しない", { value: [] })
       }
-      return okAs(
-        "登録済みユーザー一覧を取得",
-        rows.map((row) => ({ id: row.id, name: row.name, email: row.email })),
-      )
+      return okAs("登録済みユーザー一覧を取得", {
+        value: rows.map((row) => ({ id: row.id, name: row.name, email: row.email })),
+      })
     },
   })

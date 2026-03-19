@@ -21,6 +21,6 @@ export const registerUser = (
       if (!result.ok) {
         return result
       }
-      return okAs("ユーザーを登録", result.value)
+      return okAs("ユーザーを登録", { value: result.value })
     },
   })

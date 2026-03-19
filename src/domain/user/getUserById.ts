@@ -20,6 +20,6 @@ export const getUserById = (
       if (!result.ok) {
         return result
       }
-      return okAs("IDに該当するユーザーを取得", result.value)
+      return okAs("IDに該当するユーザーを取得", { value: result.value })
     },
   })
