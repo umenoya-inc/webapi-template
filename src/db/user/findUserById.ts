@@ -2,7 +2,7 @@ import { object, pipe, string, uuid } from "valibot"
 import { eq } from "drizzle-orm"
 import type { DbContext } from "../DbContext"
 import { fromDbContext } from "../fromDbContext"
-import { defineContract, failAs, okAs } from "@/modules/contract"
+import { defineContract, failAs, okAs } from "@/contract"
 import { User } from "./User"
 import { userTable } from "./userTable"
 

@@ -43,8 +43,8 @@
  * ### 利用側（route層・ビジネスロジック）
  *
  * ```typescript
- * import { globalDbContext, dbTransaction } from "@/modules/db"
- * import { findUserById } from "@/modules/db/user"
+ * import { globalDbContext, dbTransaction } from "@/db"
+ * import { findUserById } from "@/db/user"
  *
  * // トランザクションなし
  * const result = await findUserById(globalDbContext, "user-1")

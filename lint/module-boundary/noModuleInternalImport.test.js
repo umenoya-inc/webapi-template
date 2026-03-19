@@ -10,6 +10,7 @@ RuleTester.it = it
 // 実プロジェクトのパスを使用する
 const cwd = resolve(import.meta.dirname, "../..")
 const src = (path) => resolve(cwd, "src", path)
+const options = [{ basePath: "src" }]
 
 const tester = new RuleTester({ cwd })
 
@@ -17,54 +18,63 @@ tester.run("no-module-internal-import", noModuleInternalImport, {
   valid: [
     // 別モジュールの barrel export
     {
-      code: 'import { dbContext } from "@/modules/db"',
-      filename: src("modules/envvar/envvar.ts"),
+      code: 'import { dbContext } from "@/db"',
+      filename: src("envvar/envvar.ts"),
+      options,
     },
     // 別モジュールのネストされた barrel export（実際に index.ts が存在する）
     {
-      code: 'import { User } from "@/modules/db/user"',
-      filename: src("modules/envvar/envvar.ts"),
+      code: 'import { User } from "@/db/user"',
+      filename: src("envvar/envvar.ts"),
+      options,
     },
     // 同一モジュール内の相対パス
     {
       code: 'import { userTable } from "./userTable"',
-      filename: src("modules/db/user/createUser.ts"),
+      filename: src("db/user/createUser.ts"),
+      options,
     },
     // 同一モジュール内で別サブモジュールへの相対パス（barrel export なし）
     {
       code: 'import { isDuplicateKeyError } from "../error/isDuplicateKeyError"',
-      filename: src("modules/db/user/createUser.ts"),
+      filename: src("db/user/createUser.ts"),
+      options,
     },
   ],
   invalid: [
     // 別モジュールの内部ファイルに直接アクセス
     {
-      code: 'import { userTable } from "@/modules/db/user/userTable"',
-      filename: src("modules/envvar/envvar.ts"),
+      code: 'import { userTable } from "@/db/user/userTable"',
+      filename: src("envvar/envvar.ts"),
+      options,
       errors: [{ messageId: "noInternalImport" }],
     },
     // 同一モジュール内で alias（barrel export）を使用
     {
-      code: 'import { dbContext } from "@/modules/db"',
-      filename: src("modules/db/user/createUser.ts"),
+      code: 'import { dbContext } from "@/db"',
+      filename: src("db/user/createUser.ts"),
+      options,
       errors: [{ messageId: "noAliasInsideModule" }],
     },
     // 同一モジュール内でネストされた alias を使用
     {
-      code: 'import { User } from "@/modules/db/user"',
-      filename: src("modules/db/error/isDuplicateKeyError.ts"),
+      code: 'import { User } from "@/db/user"',
+      filename: src("db/error/isDuplicateKeyError.ts"),
+      options,
       errors: [{ messageId: "noAliasInsideModule" }],
     },
     // 相対パスで別モジュールにアクセス
     {
       code: 'import { envvar } from "../../envvar/envvar"',
-      filename: src("modules/db/user/createUser.ts"),
+      filename: src("db/user/createUser.ts"),
+      options,
       errors: [{ messageId: "noRelativeOutside" }],
     },
     // 同一モジュール内で barrel export を持つサブモジュールの内部ファイルに相対パスでアクセス
     {
       code: 'import { createTodo } from "../todo/createTodo"',
-      filename: src("modules/domain/user/registerUser.ts"),
+      filename: src("domain/user/registerUser.ts"),
+      options,
       errors: [{ messageId: "noSubmoduleInternalImport" }],
     },
   ],

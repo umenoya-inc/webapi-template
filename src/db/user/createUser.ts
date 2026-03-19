@@ -2,7 +2,7 @@ import { email, maxLength, minLength, object, pipe, string } from "valibot"
 import type { DbContext } from "../DbContext"
 import { dbExecute } from "../error/dbExecute"
 import { fromDbContext } from "../fromDbContext"
-import { defineContract, failAs, okAs } from "@/modules/contract"
+import { defineContract, failAs, okAs } from "@/contract"
 import { User } from "./User"
 import { userTable } from "./userTable"
 

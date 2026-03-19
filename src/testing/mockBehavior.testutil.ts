@@ -10,7 +10,7 @@
  * 戻り値は Desc ブランドなしの素のオブジェクトで記述できる。
  */
 
-import type { BehaviorBrand, DescLabel, ExtractByLabel } from "@/modules/behavior"
+import type { BehaviorBrand, DescLabel, ExtractByLabel } from "@/behavior"
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 

@@ -13,35 +13,43 @@ const noModuleInternalImport = {
     },
     messages: {
       noInternalImport:
-        "モジュールの内部ファイルに直接アクセスしないでください。@/modules/{{ modulePath }} 経由でインポートしてください。",
+        "モジュールの内部ファイルに直接アクセスしないでください。@/{{ modulePath }} 経由でインポートしてください。",
       noRelativeOutside:
-        "相対パスでのモジュール外へのアクセスは禁止されています。@/modules/<module名> 経由でインポートしてください。",
+        "相対パスでのモジュール外へのアクセスは禁止されています。@/<module名> 経由でインポートしてください。",
       noAliasInsideModule:
         "同一モジュール内では相対パスを使用してください。エイリアス経由でのアクセスは禁止されています。",
       noSubmoduleInternalImport:
         "サブモジュールの内部ファイルに直接アクセスしないでください。barrel export 経由でインポートしてください。",
     },
-    schema: [],
+    schema: [
+      {
+        type: "object",
+        properties: {
+          basePath: { type: "string" },
+        },
+        additionalProperties: false,
+      },
+    ],
   },
   create(context) {
     const filename = context.filename
     const cwd = context.cwd
-    const srcDir = resolve(cwd, "src")
-    const modulesDir = resolve(srcDir, "modules")
+    const basePath = context.options[0]?.basePath ?? "src"
+    const srcDir = resolve(cwd, basePath)
 
     return {
       ImportDeclaration(node) {
         const source = node.source.value
 
-        // @/modules/ で始まるインポートをチェック
-        if (source.startsWith("@/modules/")) {
-          checkAliasImport(context, node, source, srcDir, modulesDir, filename)
+        // @/ で始まるインポートをチェック
+        if (source.startsWith("@/")) {
+          checkAliasImport(context, node, source, srcDir, filename)
           return
         }
 
         // 相対パスでモジュール外にアクセスしていないかチェック
         if (source.startsWith("../")) {
-          checkRelativeImport(context, node, source, modulesDir, filename)
+          checkRelativeImport(context, node, source, srcDir, filename)
         }
       },
     }
@@ -49,23 +57,22 @@ const noModuleInternalImport = {
 }
 
 /**
- * @/modules/... 形式のインポートをチェック
+ * @/ 形式のインポートをチェック
  * @param {import("oxlint/plugins-dev").Context} context
  * @param {import("oxlint/plugins-dev").ImportDeclaration} node
  * @param {string} source
  * @param {string} srcDir
- * @param {string} modulesDir
  * @param {string} filename
  */
-function checkAliasImport(context, node, source, srcDir, modulesDir, filename) {
-  // @/modules/ 以降のパスを取得
-  const afterModules = source.slice("@/modules/".length)
-  const segments = afterModules.split("/")
+function checkAliasImport(context, node, source, srcDir, filename) {
+  // @/ 以降のパスを取得
+  const afterAlias = source.slice("@/".length)
+  const segments = afterAlias.split("/")
 
-  // @/modules/<module> のみの場合
+  // @/<module> のみの場合
   if (segments.length <= 1) {
     // 同一モジュール内からの alias アクセスはブロック
-    if (isInsideModule(filename, modulesDir, segments[0])) {
+    if (isInsideModule(filename, srcDir, segments[0])) {
       context.report({
         node,
         messageId: "noAliasInsideModule",
@@ -74,10 +81,10 @@ function checkAliasImport(context, node, source, srcDir, modulesDir, filename) {
     return
   }
 
-  // @/modules/<module>/<path> の場合
+  // @/<module>/<path> の場合
   // 同一モジュール内からの alias アクセスはブロック
   const targetTopModule = segments[0]
-  if (isInsideModule(filename, modulesDir, targetTopModule)) {
+  if (isInsideModule(filename, srcDir, targetTopModule)) {
     context.report({
       node,
       messageId: "noAliasInsideModule",
@@ -86,7 +93,7 @@ function checkAliasImport(context, node, source, srcDir, modulesDir, filename) {
   }
 
   // インポート先がディレクトリ（= barrel export）かファイルかを判定
-  const importPath = resolve(srcDir, source.slice("@/".length))
+  const importPath = resolve(srcDir, afterAlias)
   if (isBarrelExport(importPath)) {
     // ディレクトリの index.ts に解決される → サブモジュールの barrel export なので OK
     return
@@ -107,20 +114,20 @@ function checkAliasImport(context, node, source, srcDir, modulesDir, filename) {
  * @param {import("oxlint/plugins-dev").Context} context
  * @param {import("oxlint/plugins-dev").ImportDeclaration} node
  * @param {string} source
- * @param {string} modulesDir
+ * @param {string} srcDir
  * @param {string} filename
  */
-function checkRelativeImport(context, node, source, modulesDir, filename) {
-  // 現在のファイルが modules 配下でなければ対象外
-  if (!filename.startsWith(modulesDir + sep)) {
+function checkRelativeImport(context, node, source, srcDir, filename) {
+  // 現在のファイルが src 配下でなければ対象外
+  if (!filename.startsWith(srcDir + sep)) {
     return
   }
 
   // 解決先のパスを取得
   const resolvedTarget = resolve(dirname(filename), source)
 
-  // 解決先が modules 配下でなければモジュール外アクセス
-  if (!resolvedTarget.startsWith(modulesDir + sep)) {
+  // 解決先が src 配下でなければモジュール外アクセス
+  if (!resolvedTarget.startsWith(srcDir + sep)) {
     context.report({
       node,
       messageId: "noRelativeOutside",
@@ -129,8 +136,8 @@ function checkRelativeImport(context, node, source, modulesDir, filename) {
   }
 
   // 現在のファイルのトップレベルモジュールを取得
-  const currentModule = getTopModule(filename, modulesDir)
-  const targetModule = getTopModule(resolvedTarget, modulesDir)
+  const currentModule = getTopModule(filename, srcDir)
+  const targetModule = getTopModule(resolvedTarget, srcDir)
 
   // 異なるトップレベルモジュールへの相対パスアクセスは禁止
   if (currentModule !== targetModule) {
@@ -142,7 +149,7 @@ function checkRelativeImport(context, node, source, modulesDir, filename) {
   }
 
   // 同一トップレベルモジュール内で、barrel export を持つサブモジュールの境界を跨いでいないかチェック
-  const topModuleDir = resolve(modulesDir, currentModule)
+  const topModuleDir = resolve(srcDir, currentModule)
   if (crossesSubmoduleBoundary(filename, resolvedTarget, topModuleDir)) {
     context.report({
       node,
@@ -163,23 +170,23 @@ function isBarrelExport(importPath) {
 /**
  * 指定ファイルが特定モジュール内にあるかどうかを判定
  * @param {string} filename
- * @param {string} modulesDir
+ * @param {string} srcDir
  * @param {string} moduleName
  * @returns {boolean}
  */
-function isInsideModule(filename, modulesDir, moduleName) {
-  const moduleDir = resolve(modulesDir, moduleName)
+function isInsideModule(filename, srcDir, moduleName) {
+  const moduleDir = resolve(srcDir, moduleName)
   return filename.startsWith(moduleDir + sep)
 }
 
 /**
  * ファイルパスからトップレベルモジュール名を取得
  * @param {string} filepath
- * @param {string} modulesDir
+ * @param {string} srcDir
  * @returns {string}
  */
-function getTopModule(filepath, modulesDir) {
-  const rel = relative(modulesDir, filepath)
+function getTopModule(filepath, srcDir) {
+  const rel = relative(srcDir, filepath)
   return rel.split(sep)[0]
 }
 

@@ -1,8 +1,8 @@
 import { parse } from "valibot"
 import { describe, expect } from "vite-plus/test"
-import type { DbContext } from "@/modules/db"
-import { User, createUser } from "@/modules/db/user"
-import { mockEnv, mockBehavior, testBehavior } from "@/modules/testing"
+import type { DbContext } from "@/db"
+import { User, createUser } from "@/db/user"
+import { mockEnv, mockBehavior, testBehavior } from "@/testing"
 import { registerUser } from "./registerUser"
 
 const dummyCtx = {} as DbContext

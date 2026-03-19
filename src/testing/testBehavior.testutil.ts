@@ -13,7 +13,7 @@
  */
 
 import { expect, it } from "vite-plus/test"
-import type { BehaviorBrand, DescLabel, ExtractByLabel } from "@/modules/behavior"
+import type { BehaviorBrand, DescLabel, ExtractByLabel } from "@/behavior"
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 

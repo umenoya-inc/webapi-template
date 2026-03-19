@@ -37,9 +37,9 @@ export default defineConfig({
     ],
     overrides: [
       {
-        files: ["src/routes/**/*.ts", "src/modules/**/*.ts"],
+        files: ["src/**/*.ts"],
         rules: {
-          "module-boundary/no-module-internal-import": "error",
+          "module-boundary/no-module-internal-import": ["error", { basePath: "src" }],
           "single-export/one-export-per-file": "error",
           "import-style/no-namespace-import": "error",
           "test-boundary/no-testutil-in-production": "error",

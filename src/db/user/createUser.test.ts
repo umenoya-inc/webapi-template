@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect } from "vite-plus/test"
 import type { DbContext } from "../DbContext"
 import { createTestDbContext } from "../testing/createTestDbContext.testutil"
-import { testBehavior } from "@/modules/testing"
+import { testBehavior } from "@/testing"
 import { createUser } from "./createUser"
 import { userTable } from "./userTable"
 

@@ -1,7 +1,7 @@
 import { email, maxLength, minLength, object, pipe, string } from "valibot"
-import type { DbContext } from "@/modules/db"
-import { defineContract, okAs } from "@/modules/contract"
-import { User, createUser } from "@/modules/db/user"
+import type { DbContext } from "@/db"
+import { defineContract, okAs } from "@/contract"
+import { User, createUser } from "@/db/user"
 
 /** ユーザーを登録する。 */
 export const registerUser = (

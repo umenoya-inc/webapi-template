@@ -1,7 +1,7 @@
 import { object, pipe, string, uuid } from "valibot"
-import type { DbContext } from "@/modules/db"
-import { defineContract, okAs } from "@/modules/contract"
-import { User, findUserById } from "@/modules/db/user"
+import type { DbContext } from "@/db"
+import { defineContract, okAs } from "@/contract"
+import { User, findUserById } from "@/db/user"
 
 /** ID を指定してユーザーを取得する。 */
 export const getUserById = (

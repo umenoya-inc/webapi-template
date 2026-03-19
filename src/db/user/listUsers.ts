@@ -1,7 +1,7 @@
 import { array } from "valibot"
 import type { DbContext } from "../DbContext"
 import { fromDbContext } from "../fromDbContext"
-import { defineContract, okAs } from "@/modules/contract"
+import { defineContract, okAs } from "@/contract"
 import { User } from "./User"
 import { userTable } from "./userTable"
 

@@ -1,7 +1,7 @@
 import { array } from "valibot"
-import type { DbContext } from "@/modules/db"
-import { defineContract } from "@/modules/contract"
-import { User, listUsers } from "@/modules/db/user"
+import type { DbContext } from "@/db"
+import { defineContract } from "@/contract"
+import { User, listUsers } from "@/db/user"
 
 /** ユーザー一覧を取得する。 */
 export const getUsers = (

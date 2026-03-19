@@ -14,15 +14,15 @@
  * ### behavior モジュールからの再エクスポート
  *
  * `defineContract` と併用する `okAs` / `failAs` 等は behavior モジュールから再エクスポートする。
- * 利用側は `@/modules/contract` からまとめてインポートできる。
+ * 利用側は `@/contract` からまとめてインポートできる。
  *
  * ### 使い方
  *
  * ```typescript
- * import type { DbContext } from "@/modules/db"
+ * import type { DbContext } from "@/db"
  * import { object, pipe, string, email, minLength, maxLength } from "valibot"
- * import { defineContract, failAs, okAs } from "@/modules/contract"
- * import { User } from "@/modules/db/user"
+ * import { defineContract, failAs, okAs } from "@/contract"
+ * import { User } from "@/db/user"
  *
  * export const createUser = (ctx: DbContext) =>
  *   defineContract({
@@ -52,8 +52,8 @@
  */
 
 // behavior モジュールからの再エクスポート
-export type { BehaviorBrand, Desc, DescLabel, ExtractByLabel } from "@/modules/behavior"
-export { defineBehavior, failAs, matchBehavior, okAs } from "@/modules/behavior"
+export type { BehaviorBrand, Desc, DescLabel, ExtractByLabel } from "@/behavior"
+export { defineBehavior, failAs, matchBehavior, okAs } from "@/behavior"
 
 // contract 固有のエクスポート
 export { defineContract } from "./defineContract"

@@ -1,4 +1,4 @@
-import type { Fallible } from "@/types/Fallible"
+import type { Fallible } from "@/types"
 import type { DbContext } from "./DbContext"
 import { dbClient } from "./dbClient"
 import { toDbContext } from "./toDbContext"

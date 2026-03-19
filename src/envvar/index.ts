@@ -8,7 +8,7 @@
  * ### 利用
  *
  * ```typescript
- * import { envvar } from "@/modules/envvar"
+ * import { envvar } from "@/envvar"
  *
  * const url = envvar.DATABASE_URL // string（型安全・バリデーション済み）
  * ```
