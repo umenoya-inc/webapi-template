@@ -7,9 +7,9 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-export function parameterize<TParam>(
-  params: Record<string, TParam>,
+export function parameterize<TKeys extends string, TParam>(
+  params: Record<TKeys, TParam>,
   test: (assert: (result: any) => unknown, param: TParam) => Promise<void> | void,
-): { __parameterize: true; params: Record<string, TParam>; test: typeof test } {
+): { __parameterize: true; params: Record<TKeys, TParam>; test: typeof test } {
   return { __parameterize: true, params, test }
 }

@@ -13,7 +13,7 @@
  */
 
 import { expect, it } from "vite-plus/test"
-import type { BehaviorBrand, DescLabel, ExtractByLabel } from "@/behavior"
+import type { BehaviorBrand, DescLabel, ExtractByLabel, ExtractInputScenarios } from "@/behavior"
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -46,10 +46,15 @@ type LabelAssert<F, K extends string> = (result: BehaviorResult<F>) => LabelResu
 
 type TestFn<F, K extends string> = (assert: LabelAssert<F, K>) => Promise<void> | void
 
+/** ラベルに対応するシナリオ文字列を抽出する。未宣言の場合は string にフォールバック */
+type Scenarios<F, K extends string> = [ExtractInputScenarios<BehaviorResult<F>, K>] extends [never]
+  ? string
+  : ExtractInputScenarios<BehaviorResult<F>, K>
+
 /** パラメタライズドテストエントリの構造型 */
 type ParameterizedTestEntry<F, K extends string> = {
   __parameterize: true
-  params: Record<string, BehaviorInput<F>>
+  params: Record<Scenarios<F, K>, BehaviorInput<F>>
   test: (assert: LabelAssert<F, K>, param: BehaviorInput<F>) => Promise<void> | void
 }
 

@@ -15,12 +15,16 @@
  * - `BehaviorBrand` — defineBehavior の戻り値に付与されるブランド型。
  * - `DescLabel` — Desc ブランドからラベル文字列を抽出するヘルパー型。
  * - `ExtractByLabel` — Desc ラベルで union メンバーを抽出するヘルパー型。
+ * - `InputScenarios` — Desc に入力シナリオラベルを付与するブランド型。
+ * - `ExtractInputScenarios` — Desc ラベルに対応するシナリオ文字列を抽出するヘルパー型。
  */
 
 export type { BehaviorBrand } from "./BehaviorBrand"
 export type { Desc } from "./Desc"
 export type { DescLabel } from "./DescLabel"
 export type { ExtractByLabel } from "./ExtractByLabel"
+export type { ExtractInputScenarios } from "./ExtractInputScenarios"
+export type { InputScenarios } from "./InputScenarios"
 export { defineBehavior } from "./defineBehavior"
 export { failAs } from "./failAs"
 export { matchBehavior } from "./matchBehavior"
