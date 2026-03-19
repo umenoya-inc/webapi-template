@@ -56,7 +56,9 @@ type ContractOptionsWithoutInput<
 export function defineContract<
   TInputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
   TOutputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
-  TFnReturn extends { ok: true; value: InferInput<TOutputSchema> } | Desc<string, { ok: false }>,
+  TFnReturn extends
+    | Desc<string, { ok: true; value: InferInput<TOutputSchema> }>
+    | Desc<string, { ok: false }>,
   TInputError,
 >(
   options: ContractOptionsWithInputError<TInputSchema, TOutputSchema, TFnReturn, TInputError>,
@@ -70,7 +72,9 @@ export function defineContract<
 export function defineContract<
   TInputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
   TOutputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
-  TFnReturn extends { ok: true; value: InferInput<TOutputSchema> } | Desc<string, { ok: false }>,
+  TFnReturn extends
+    | Desc<string, { ok: true; value: InferInput<TOutputSchema> }>
+    | Desc<string, { ok: false }>,
 >(
   options: ContractOptionsWithDefaultInputError<TInputSchema, TOutputSchema, TFnReturn>,
 ): (
@@ -82,7 +86,9 @@ export function defineContract<
 // no input
 export function defineContract<
   TOutputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
-  TFnReturn extends { ok: true; value: InferInput<TOutputSchema> } | Desc<string, { ok: false }>,
+  TFnReturn extends
+    | Desc<string, { ok: true; value: InferInput<TOutputSchema> }>
+    | Desc<string, { ok: false }>,
 >(
   options: ContractOptionsWithoutInput<TOutputSchema, TFnReturn>,
 ): () => Promise<{ ok: true; value: InferOutput<TOutputSchema> } | ExtractFailure<TFnReturn>>
@@ -96,7 +102,7 @@ export function defineContract(options: {
   const onInputError =
     options.onInputError ??
     ((issues: [BaseIssue<unknown>, ...BaseIssue<unknown>[]]) =>
-      failAs("validation_failed", "validation_failed", { fields: flatten(issues).nested ?? {} }))
+      failAs("入力値が不正", "validation_failed", { fields: flatten(issues).nested ?? {} }))
 
   if (!options.input) {
     return async () => {

@@ -19,9 +19,6 @@ export const getUsers = (
     output: array(User),
     fn: async () => {
       const result = await env.listUsers(ctx)()
-      if (!result.ok) {
-        return result
-      }
       return okAs("ユーザー一覧を取得", result.value)
     },
   })
