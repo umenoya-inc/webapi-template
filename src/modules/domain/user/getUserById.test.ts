@@ -2,7 +2,7 @@ import { parse } from "valibot"
 import { describe, expect } from "vite-plus/test"
 import type { DbContext } from "@/modules/db"
 import { User, findUserById } from "@/modules/db/user"
-import { mockContract, testContract } from "@/modules/testing"
+import { mockEnv, mockContract, testContract } from "@/modules/testing"
 import { getUserById } from "./getUserById"
 
 const dummyCtx = {} as DbContext
@@ -26,28 +26,28 @@ describe("getUserById", () => {
   })
 
   testContract(getUserById, {
-    "IDに該当するユーザーを取得": {
-      env: { findUserById: findUserByIdMock["IDに該当するユーザーを取得"] },
-      test: async (env, assert) => {
-        const result = await getUserById(dummyCtx, env)({ id: dummyUserId })
-        const user = assert(result)
-        expect(user.value.id).toBe(dummyUserId)
-        expect(user.value.name).toBe("Alice")
-      },
+    "IDに該当するユーザーを取得": async (assert) => {
+      const env = mockEnv(getUserById, {
+        findUserById: findUserByIdMock["IDに該当するユーザーを取得"],
+      })
+      const result = await getUserById(dummyCtx, env)({ id: dummyUserId })
+      const user = assert(result)
+      expect(user.value.id).toBe(dummyUserId)
+      expect(user.value.name).toBe("Alice")
     },
-    "IDに該当するユーザーが存在しない": {
-      env: { findUserById: findUserByIdMock["IDに該当するユーザーが存在しない"] },
-      test: async (env, assert) => {
-        const result = await getUserById(dummyCtx, env)({ id: dummyUserId })
-        assert(result)
-      },
+    "IDに該当するユーザーが存在しない": async (assert) => {
+      const env = mockEnv(getUserById, {
+        findUserById: findUserByIdMock["IDに該当するユーザーが存在しない"],
+      })
+      const result = await getUserById(dummyCtx, env)({ id: dummyUserId })
+      assert(result)
     },
-    "入力値が不正": {
-      env: { findUserById: findUserByIdMock["IDに該当するユーザーを取得"] },
-      test: async (env, assert) => {
-        const result = await getUserById(dummyCtx, env)({ id: "not-a-uuid" })
-        assert(result)
-      },
+    "入力値が不正": async (assert) => {
+      const env = mockEnv(getUserById, {
+        findUserById: findUserByIdMock["IDに該当するユーザーを取得"],
+      })
+      const result = await getUserById(dummyCtx, env)({ id: "not-a-uuid" })
+      assert(result)
     },
   })
 })

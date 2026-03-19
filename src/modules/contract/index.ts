@@ -57,6 +57,7 @@
  *   Branded Types への変換を行う。
  */
 
+export type { ContractBrand } from "./ContractBrand"
 export type { Desc } from "./Desc"
 export type { DescLabel } from "./DescLabel"
 export { defineContract } from "./defineContract"

@@ -10,21 +10,34 @@
  * 戻り値は Desc ブランドなしの素のオブジェクトで記述できる。
  */
 
-import type { DescLabel, ExtractByLabel } from "@/modules/contract"
+import type { ContractBrand, DescLabel, ExtractByLabel } from "@/modules/contract"
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-type ContractInner<F> = F extends (...args: any[]) => infer Inner ? Inner : never
-type ContractInput<F> = ContractInner<F> extends (input: infer I) => any ? I : never
-type ContractResultUnion<F> =
-  ContractInner<F> extends (...args: any[]) => Promise<infer R> ? R : never
+/** ContractBrand を再帰的に探してResult型を抽出する */
+type ExtractContractResult<T> = T extends ContractBrand & ((...args: any[]) => Promise<infer R>)
+  ? R
+  : T extends (...args: any[]) => infer Inner
+    ? ExtractContractResult<Inner>
+    : never
 
-type Labels<F> = DescLabel<ContractResultUnion<F>>
+type ContractResult<F> = ExtractContractResult<F>
+
+/** ContractBrand を再帰的に探して内側の関数のinput型を抽出する */
+type ExtractContractInput<T> = T extends ContractBrand & ((input: infer I) => any)
+  ? I
+  : T extends (...args: any[]) => infer Inner
+    ? ExtractContractInput<Inner>
+    : never
+
+type ContractInput<F> = ExtractContractInput<F>
+
+type Labels<F> = DescLabel<ContractResult<F>>
 
 /** Desc ブランド（symbol キー）を剥がして素のオブジェクト型にする */
 type StripBrand<T> = { [K in keyof T as K extends string ? K : never]: T[K] }
 
-type LabelResult<F, K extends string> = StripBrand<ExtractByLabel<ContractResultUnion<F>, K>>
+type LabelResult<F, K extends string> = StripBrand<ExtractByLabel<ContractResult<F>, K>>
 
 type MockFn<F, K extends string> = [ContractInput<F>] extends [never]
   ? () => Promise<LabelResult<F, K>>
@@ -38,10 +51,7 @@ type MockReturn<F, B> = {
   [K in keyof B]: B[K] extends (...args: any[]) => any ? F : { [N in keyof B[K]]: F }
 }
 
-export const mockContract = <
-  F extends (...args: any[]) => (...args: any[]) => Promise<any>,
-  B extends Behaviors<F>,
->(
+export const mockContract = <F extends (...args: any[]) => any, B extends Behaviors<F>>(
   _fn: F,
   behaviors: B,
 ): MockReturn<F, B> => {

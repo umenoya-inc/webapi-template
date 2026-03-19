@@ -8,6 +8,7 @@ import {
   parse,
   safeParse,
 } from "valibot"
+import type { ContractBrand } from "./ContractBrand"
 import type { Desc } from "./Desc"
 import { failAs } from "./failAs"
 
@@ -66,11 +67,12 @@ export function defineContract<
   TInputError,
 >(
   options: ContractOptionsWithInputError<TInputSchema, TOutputSchema, TFnReturn, TInputError>,
-): (
+): ((
   input: InferInput<TInputSchema>,
 ) => Promise<
   ReplaceOkValue<TFnReturn, InferOutput<TOutputSchema>> | ExtractFailure<TFnReturn> | TInputError
->
+>) &
+  ContractBrand
 
 // input + default onInputError
 export function defineContract<
@@ -81,13 +83,14 @@ export function defineContract<
     | Desc<string, { ok: false }>,
 >(
   options: ContractOptionsWithDefaultInputError<TInputSchema, TOutputSchema, TFnReturn>,
-): (
+): ((
   input: InferInput<TInputSchema>,
 ) => Promise<
   | ReplaceOkValue<TFnReturn, InferOutput<TOutputSchema>>
   | ExtractFailure<TFnReturn>
   | DefaultInputError
->
+>) &
+  ContractBrand
 
 // no input
 export function defineContract<
@@ -97,7 +100,10 @@ export function defineContract<
     | Desc<string, { ok: false }>,
 >(
   options: ContractOptionsWithoutInput<TOutputSchema, TFnReturn>,
-): () => Promise<ReplaceOkValue<TFnReturn, InferOutput<TOutputSchema>> | ExtractFailure<TFnReturn>>
+): (() => Promise<
+  ReplaceOkValue<TFnReturn, InferOutput<TOutputSchema>> | ExtractFailure<TFnReturn>
+>) &
+  ContractBrand
 
 export function defineContract(options: {
   input?: BaseSchema<unknown, unknown, BaseIssue<unknown>>

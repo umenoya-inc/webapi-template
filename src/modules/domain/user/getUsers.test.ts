@@ -2,7 +2,7 @@ import { parse } from "valibot"
 import { describe, expect } from "vite-plus/test"
 import type { DbContext } from "@/modules/db"
 import { User, listUsers } from "@/modules/db/user"
-import { mockContract, testContract } from "@/modules/testing"
+import { mockEnv, mockContract, testContract } from "@/modules/testing"
 import { getUsers } from "./getUsers"
 
 const dummyCtx = {} as DbContext
@@ -31,27 +31,27 @@ describe("getUsers", () => {
   })
 
   testContract(getUsers, {
-    "ユーザーが存在しない": {
-      env: { listUsers: listUsersMock["ユーザーが存在しない"] },
-      test: async (env, assert) => {
-        const result = await getUsers(dummyCtx, env)()
-        const ok = assert(result)
-        expect(ok.value).toEqual([])
-      },
+    "ユーザーが存在しない": async (assert) => {
+      const env = mockEnv(getUsers, {
+        listUsers: listUsersMock["ユーザーが存在しない"],
+      })
+      const result = await getUsers(dummyCtx, env)()
+      const ok = assert(result)
+      expect(ok.value).toEqual([])
     },
-    "登録済みユーザー一覧を取得": {
-      env: { listUsers: listUsersMock["登録済みユーザー一覧を取得"] },
-      test: async (env, assert) => {
-        const result = await getUsers(dummyCtx, env)()
-        const ok = assert(result)
-        expect(ok.value).toHaveLength(2)
-        expect(ok.value).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({ name: "Alice" }),
-            expect.objectContaining({ name: "Bob" }),
-          ]),
-        )
-      },
+    "登録済みユーザー一覧を取得": async (assert) => {
+      const env = mockEnv(getUsers, {
+        listUsers: listUsersMock["登録済みユーザー一覧を取得"],
+      })
+      const result = await getUsers(dummyCtx, env)()
+      const ok = assert(result)
+      expect(ok.value).toHaveLength(2)
+      expect(ok.value).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ name: "Alice" }),
+          expect.objectContaining({ name: "Bob" }),
+        ]),
+      )
     },
   })
 })
