@@ -9,7 +9,11 @@
  * - 検証済みの result を該当 variant の型に絞り込んで返す
  * - assert を呼ばなかった場合、テストは失敗する
  *
- * 各ラベルにはテスト関数1つ（単一テスト）またはオブジェクト（名前付き複数テスト）を指定できる。
+ * テストケースの形式:
+ * - テスト関数: `async (assert) => { ... }`
+ * - 名前付き複数テスト: `{ "テスト名": async (assert) => { ... }, ... }`
+ * - env 宣言付き: `{ env: { ... }, test: async (env, assert) => { ... } }`
+ * - env 宣言 + 名前付き: `{ env: { ... }, test: { "テスト名": async (env, assert) => { ... } } }`
  */
 
 import { expect, it } from "vite-plus/test"
@@ -30,9 +34,25 @@ type LabelResult<F, K extends string> = StripBrand<ExtractByLabel<ContractResult
 
 type LabelAssert<F, K extends string> = (result: ContractResultUnion<F>) => LabelResult<F, K>
 
+/** Contract 関数の第2引数（env）の型を抽出する。env がなければ never */
+type ContractEnv<F> = F extends (ctx: any, env: infer E) => any ? E : never
+
 type TestFn<F, K extends string> = (assert: LabelAssert<F, K>) => Promise<void> | void
 
-type LabelTestEntry<F, K extends string> = TestFn<F, K> | Record<string, TestFn<F, K>>
+type ScenarioTestFn<F, K extends string> = (
+  env: ContractEnv<F>,
+  assert: LabelAssert<F, K>,
+) => Promise<void> | void
+
+type ScenarioEntry<F, K extends string> = {
+  env: ContractEnv<F>
+  test: ScenarioTestFn<F, K> | Record<string, ScenarioTestFn<F, K>>
+}
+
+type LabelTestEntry<F, K extends string> =
+  | TestFn<F, K>
+  | Record<string, TestFn<F, K>>
+  | ScenarioEntry<F, K>
 
 type TestCases<F> = { [K in Labels<F>]: LabelTestEntry<F, K> }
 
@@ -43,6 +63,15 @@ export const testContract = <F extends (...args: any[]) => (...args: any[]) => P
   for (const [key, value] of Object.entries(cases)) {
     if (typeof value === "function") {
       it(key, wrapTest(value as TestFn<F, string>))
+    } else if (typeof value === "object" && value !== null && "env" in value && "test" in value) {
+      const scenario = value as { env: any; test: any }
+      if (typeof scenario.test === "function") {
+        it(key, wrapScenarioTest(scenario.env, scenario.test))
+      } else {
+        for (const [name, fn] of Object.entries(scenario.test as Record<string, any>)) {
+          it(`${key}: ${name}`, wrapScenarioTest(scenario.env, fn as any))
+        }
+      }
     } else {
       for (const [name, fn] of Object.entries(value as Record<string, TestFn<F, string>>)) {
         it(`${key}: ${name}`, wrapTest(fn))
@@ -59,6 +88,22 @@ function wrapTest<F>(fn: TestFn<F, string>): () => Promise<void> {
       return result
     }
     await fn(assert as any)
+    if (!asserted) {
+      expect.unreachable(
+        `assert() が呼ばれていません。テスト内で assert(result) を呼んで variant を検証してください。`,
+      )
+    }
+  }
+}
+
+function wrapScenarioTest<F>(env: any, fn: ScenarioTestFn<F, string>): () => Promise<void> {
+  return async () => {
+    let asserted = false
+    const assert = (result: any) => {
+      asserted = true
+      return result
+    }
+    await fn(env, assert as any)
     if (!asserted) {
       expect.unreachable(
         `assert() が呼ばれていません。テスト内で assert(result) を呼んで variant を検証してください。`,

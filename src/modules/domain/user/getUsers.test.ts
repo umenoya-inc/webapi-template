@@ -18,40 +18,40 @@ const bob = parse(User, {
   email: "bob@example.com",
 })
 
-const listUsersMock = mockContract(listUsers, {
-  "ユーザーが存在しない": async () => ({
-    ok: true,
-    value: [],
-  }),
-  "登録済みユーザー一覧を取得": {
-    with_users: async () => ({
+describe("getUsers", () => {
+  const listUsersMock = mockContract(listUsers, {
+    "ユーザーが存在しない": async () => ({
+      ok: true,
+      value: [],
+    }),
+    "登録済みユーザー一覧を取得": async () => ({
       ok: true,
       value: [alice, bob],
     }),
-  },
-})
+  })
 
-describe("getUsers", () => {
   testContract(getUsers, {
-    "ユーザーが存在しない": async (assert) => {
-      const result = await getUsers(dummyCtx, {
-        listUsers: listUsersMock["ユーザーが存在しない"],
-      })()
-      const ok = assert(result)
-      expect(ok.value).toEqual([])
+    "ユーザーが存在しない": {
+      env: { listUsers: listUsersMock["ユーザーが存在しない"] },
+      test: async (env, assert) => {
+        const result = await getUsers(dummyCtx, env)()
+        const ok = assert(result)
+        expect(ok.value).toEqual([])
+      },
     },
-    "登録済みユーザー一覧を取得": async (assert) => {
-      const result = await getUsers(dummyCtx, {
-        listUsers: listUsersMock["登録済みユーザー一覧を取得"].with_users,
-      })()
-      const ok = assert(result)
-      expect(ok.value).toHaveLength(2)
-      expect(ok.value).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ name: "Alice" }),
-          expect.objectContaining({ name: "Bob" }),
-        ]),
-      )
+    "登録済みユーザー一覧を取得": {
+      env: { listUsers: listUsersMock["登録済みユーザー一覧を取得"] },
+      test: async (env, assert) => {
+        const result = await getUsers(dummyCtx, env)()
+        const ok = assert(result)
+        expect(ok.value).toHaveLength(2)
+        expect(ok.value).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({ name: "Alice" }),
+            expect.objectContaining({ name: "Bob" }),
+          ]),
+        )
+      },
     },
   })
 })
