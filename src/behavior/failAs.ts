@@ -1,5 +1,6 @@
 import type { Desc } from "./Desc"
 import type { InputScenarios } from "./InputScenarios"
+import { descLabelKey } from "./descLabelKey"
 
 /**
  * 説明ラベル付きのエラー値を生成する。
@@ -54,7 +55,7 @@ export function failAs(
   scenarios?: readonly string[],
 ) {
   const fields = Array.isArray(fieldsOrScenarios) ? undefined : fieldsOrScenarios
-  const base = { ok: false as const, reason }
+  const base: Record<string | symbol, unknown> = { ok: false, [descLabelKey]: _desc, reason }
   void scenarios
   if (fields) {
     return Object.assign(base, fields)

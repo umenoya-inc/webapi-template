@@ -1,11 +1,12 @@
 import { email, maxLength, minLength, object, pipe, string, uuid } from "valibot"
 import type { DbContext } from "@/db"
-import { defineContract, failAs, okAs } from "@/contract"
+import { failAs, okAs } from "@/behavior"
 import { registerUser } from "@/domain/user"
+import { defineRouteContract } from "./defineRouteContract"
 
 /** ユーザー作成 API のハンドラロジック。 */
 export const postUser = (ctx: DbContext) =>
-  defineContract({
+  defineRouteContract({
     input: object({
       name: pipe(string(), minLength(1), maxLength(100)),
       email: pipe(string(), email()),
@@ -15,20 +16,21 @@ export const postUser = (ctx: DbContext) =>
       name: string(),
       email: pipe(string(), email()),
     }),
+    responses: {
+      "作成成功": { status: 201, description: "ユーザーを新規作成" },
+      "メールアドレスが重複": { status: 409, description: "メールアドレスが既に使用されている" },
+      "入力値が不正": { status: 400, description: "入力値が不正" },
+    },
     fn: async (input) => {
       const result = await registerUser(ctx)(input)
       if (!result.ok) {
         if (result.reason === "duplicate_entry") {
-          return failAs("メールアドレスが重複", "conflict", { status: 409 as const })
+          return failAs("メールアドレスが重複", "conflict")
         }
-        return failAs("入力値が不正", "bad_request", {
-          status: 400 as const,
-          fields: result.fields,
-        })
+        return failAs("入力値が不正", "bad_request", { fields: result.fields })
       }
       return okAs("作成成功", {
         value: { id: result.value.id, name: result.value.name, email: result.value.email },
-        status: 201 as const,
       })
     },
   })

@@ -1,5 +1,6 @@
 import type { Desc } from "./Desc"
 import type { InputScenarios } from "./InputScenarios"
+import { descLabelKey } from "./descLabelKey"
 
 /**
  * 説明ラベル付きの成功値を生成する。
@@ -31,5 +32,5 @@ export function okAs(
   scenarios?: readonly string[],
 ) {
   void scenarios
-  return { ok: true as const, ...fields }
+  return { ok: true, [descLabelKey]: _desc, ...fields } as { ok: true } & typeof fields
 }
