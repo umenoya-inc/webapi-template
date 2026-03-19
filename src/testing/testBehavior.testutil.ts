@@ -12,8 +12,12 @@
  * 各ラベルにはテスト関数1つ（単一テスト）またはオブジェクト（名前付き複数テスト）を指定できる。
  */
 
+import { assert as fcAssert, asyncProperty } from "fast-check"
+import type { Arbitrary } from "fast-check"
 import { expect, it } from "vite-plus/test"
 import type { BehaviorBrand, DescLabel, ExtractByLabel, ExtractInputScenarios } from "@/behavior"
+import { inputSchemaKey } from "@/contract"
+import { buildArbitrary } from "./buildArbitrary.testutil"
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -58,10 +62,22 @@ type ParameterizedTestEntry<F, K extends string> = {
   test: (assert: LabelAssert<F, K>, param: BehaviorInput<F>) => Promise<void> | void
 }
 
+/** arbitrary オーバーライドの型 */
+type ArbitraryOverrides<T> = { [K in keyof T]?: Arbitrary<T[K]> }
+
+/** プロパティベーステストエントリの構造型 */
+type PropertyTestEntry<F, K extends string> = {
+  __propertyCheck: true
+  fn: (...args: any[]) => any
+  params: Record<Scenarios<F, K>, ArbitraryOverrides<BehaviorInput<F>>>
+  test: (assert: LabelAssert<F, K>, input: BehaviorInput<F>) => Promise<void> | void
+}
+
 type LabelTestEntry<F, K extends string> =
   | TestFn<F, K>
   | Record<string, TestFn<F, K>>
   | ParameterizedTestEntry<F, K>
+  | PropertyTestEntry<F, K>
 
 type TestCases<F> = { [K in Labels<F>]: LabelTestEntry<F, K> }
 
@@ -75,6 +91,13 @@ export const testBehavior = <F extends (...args: any[]) => any>(
     } else if (isParameterized(value)) {
       for (const [name, param] of Object.entries(value.params)) {
         it(`${key}: ${name}`, wrapParamTest(value.test, param))
+      }
+    } else if (isPropertyTest(value)) {
+      for (const [name, overrides] of Object.entries(value.params)) {
+        it(
+          `${key}: ${name}`,
+          wrapPropertyTest(value.fn, value.test, overrides as Record<string, Arbitrary<unknown>>),
+        )
       }
     } else {
       for (const [name, fn] of Object.entries(value as Record<string, TestFn<F, string>>)) {
@@ -94,6 +117,20 @@ function isParameterized(value: unknown): value is {
     value !== null &&
     "__parameterize" in value &&
     (value as any).__parameterize === true
+  )
+}
+
+function isPropertyTest(value: unknown): value is {
+  __propertyCheck: true
+  fn: (...args: any[]) => any
+  params: Record<string, Record<string, Arbitrary<unknown>>>
+  test: (...args: any[]) => any
+} {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "__propertyCheck" in value &&
+    (value as any).__propertyCheck === true
   )
 }
 
@@ -129,5 +166,30 @@ function wrapParamTest(
         `assert() が呼ばれていません。テスト内で assert(result) を呼んで variant を検証してください。`,
       )
     }
+  }
+}
+
+function wrapPropertyTest(
+  contractFn: (...args: any[]) => any,
+  fn: (assert: any, input: any) => Promise<void> | void,
+  overrides: Record<string, Arbitrary<unknown>>,
+): () => Promise<void> {
+  return async () => {
+    const arb = buildArbitrary(contractFn, inputSchemaKey, overrides)
+    await fcAssert(
+      asyncProperty(arb, async (input) => {
+        let asserted = false
+        const assert = (result: any) => {
+          asserted = true
+          return result
+        }
+        await fn(assert, input)
+        if (!asserted) {
+          expect.unreachable(
+            `assert() が呼ばれていません。テスト内で assert(result) を呼んで variant を検証してください。`,
+          )
+        }
+      }),
+    )
   }
 }

@@ -59,4 +59,5 @@ export { defineBehavior, failAs, matchBehavior, okAs } from "@/behavior"
 // contract 固有のエクスポート
 export { defaultInputError } from "./defaultInputError"
 export { defineContract } from "./defineContract"
+export { inputSchemaKey } from "./inputSchemaKey"
 export { withSchema } from "./withSchema"

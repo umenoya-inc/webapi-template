@@ -1,6 +1,7 @@
 import type { BaseIssue, BaseSchema, InferInput, InferIssue, InferOutput } from "valibot"
 import type { BehaviorBrand, Desc } from "@/behavior"
 import { defineBehavior } from "@/behavior"
+import { inputSchemaKey } from "./inputSchemaKey"
 import { withSchema } from "./withSchema"
 
 type DefaultInputError = Desc<
@@ -102,5 +103,9 @@ export function defineContract(options: {
   onInputError?: (issues: [BaseIssue<unknown>, ...BaseIssue<unknown>[]]) => unknown
   fn: (input?: unknown) => Promise<{ ok: true; value: unknown } | { ok: false; reason: string }>
 }) {
-  return defineBehavior(withSchema(options as Parameters<typeof withSchema>[0]) as any)
+  const fn = defineBehavior(withSchema(options as Parameters<typeof withSchema>[0]) as any)
+  if (options.input) {
+    ;(fn as Record<symbol, unknown>)[inputSchemaKey] = options.input
+  }
+  return fn
 }
