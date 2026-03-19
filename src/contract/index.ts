@@ -9,6 +9,7 @@
  * ### エクスポート
  *
  * - `defineContract` — defineBehavior + withSchema の合成。input/output スキーマ付きで関数を定義する。
+ * - `defaultInputError` — デフォルトの onInputError ハンドラにシナリオラベルを付与して返す。
  * - `withSchema` — Valibot スキーマによる入出力検証を関数に適用する。
  *
  * ### behavior モジュールからの再エクスポート
@@ -56,5 +57,6 @@ export type { BehaviorBrand, Desc, DescLabel, ExtractByLabel } from "@/behavior"
 export { defineBehavior, failAs, matchBehavior, okAs } from "@/behavior"
 
 // contract 固有のエクスポート
+export { defaultInputError } from "./defaultInputError"
 export { defineContract } from "./defineContract"
 export { withSchema } from "./withSchema"
