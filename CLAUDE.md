@@ -11,7 +11,7 @@ TypeScript ファイルを作成・編集する際は、以下のルールを必
 - [DBエラーハンドリング](docs/rule/db-error-handling.md)
 - [Branded Entity ID](docs/rule/branded-entity-id.md)
 - [JSDoc フォーマット](docs/rule/jsdoc-format.md)
-- [defineContract の fn 内 failAs / okAs](docs/rule/contract-fn-as-const.md)
+- [defineContract の fn 内ルール](docs/rule/contract-fn-rule.md)
 - [API エンドポイント](docs/rule/api-endpoint.md)
 
 # Design

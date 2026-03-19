@@ -17,14 +17,18 @@ type VariantResult<TResult, K extends string> = K extends "success"
   ? Extract<TResult, { ok: true }>
   : Extract<TResult, { ok: false; reason: K }>
 
-type Handlers<TResult, TReturn> = {
-  [K in VariantKey<TResult>]: (result: VariantResult<TResult, K>) => TReturn
+type Handlers<TResult> = {
+  [K in VariantKey<TResult>]: (result: VariantResult<TResult, K>) => unknown
 }
 
-export const matchBehavior = <TResult extends { ok: boolean }, TReturn>(
+type HandlersReturn<TResult, H extends Handlers<TResult>> = {
+  [K in keyof H]: H[K] extends (...args: any[]) => infer R ? R : never
+}[keyof H]
+
+export const matchBehavior = <TResult extends { ok: boolean }, H extends Handlers<TResult>>(
   result: TResult,
-  handlers: Handlers<TResult, TReturn>,
-): TReturn => {
+  handlers: H,
+): HandlersReturn<TResult, H> => {
   if ((result as any).ok) {
     return (handlers as any).success(result)
   }
