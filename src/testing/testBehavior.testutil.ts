@@ -26,6 +26,15 @@ type ExtractBehaviorResult<T> = T extends BehaviorBrand & ((...args: any[]) => P
 
 type BehaviorResult<F> = ExtractBehaviorResult<F>
 
+/** BehaviorBrand を再帰的に探して内側の関数の input 型を抽出する */
+type ExtractBehaviorInput<T> = T extends BehaviorBrand & ((input: infer I) => any)
+  ? I
+  : T extends (...args: any[]) => infer Inner
+    ? ExtractBehaviorInput<Inner>
+    : never
+
+type BehaviorInput<F> = ExtractBehaviorInput<F>
+
 type Labels<F> = DescLabel<BehaviorResult<F>>
 
 /** Desc ブランド（symbol キー）を剥がして素のオブジェクト型にする */
@@ -37,7 +46,17 @@ type LabelAssert<F, K extends string> = (result: BehaviorResult<F>) => LabelResu
 
 type TestFn<F, K extends string> = (assert: LabelAssert<F, K>) => Promise<void> | void
 
-type LabelTestEntry<F, K extends string> = TestFn<F, K> | Record<string, TestFn<F, K>>
+/** パラメタライズドテストエントリの構造型 */
+type ParameterizedTestEntry<F, K extends string> = {
+  __parameterize: true
+  params: Record<string, BehaviorInput<F>>
+  test: (assert: LabelAssert<F, K>, param: BehaviorInput<F>) => Promise<void> | void
+}
+
+type LabelTestEntry<F, K extends string> =
+  | TestFn<F, K>
+  | Record<string, TestFn<F, K>>
+  | ParameterizedTestEntry<F, K>
 
 type TestCases<F> = { [K in Labels<F>]: LabelTestEntry<F, K> }
 
@@ -48,12 +67,29 @@ export const testBehavior = <F extends (...args: any[]) => any>(
   for (const [key, value] of Object.entries(cases)) {
     if (typeof value === "function") {
       it(key, wrapTest(value as TestFn<F, string>))
+    } else if (isParameterized(value)) {
+      for (const [name, param] of Object.entries(value.params)) {
+        it(`${key}: ${name}`, wrapParamTest(value.test, param))
+      }
     } else {
       for (const [name, fn] of Object.entries(value as Record<string, TestFn<F, string>>)) {
         it(`${key}: ${name}`, wrapTest(fn))
       }
     }
   }
+}
+
+function isParameterized(value: unknown): value is {
+  __parameterize: true
+  params: Record<string, unknown>
+  test: (...args: any[]) => any
+} {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "__parameterize" in value &&
+    (value as any).__parameterize === true
+  )
 }
 
 function wrapTest<F>(fn: TestFn<F, string>): () => Promise<void> {
@@ -64,6 +100,25 @@ function wrapTest<F>(fn: TestFn<F, string>): () => Promise<void> {
       return result
     }
     await fn(assert as any)
+    if (!asserted) {
+      expect.unreachable(
+        `assert() が呼ばれていません。テスト内で assert(result) を呼んで variant を検証してください。`,
+      )
+    }
+  }
+}
+
+function wrapParamTest(
+  fn: (assert: any, param: any) => Promise<void> | void,
+  param: unknown,
+): () => Promise<void> {
+  return async () => {
+    let asserted = false
+    const assert = (result: any) => {
+      asserted = true
+      return result
+    }
+    await fn(assert, param)
     if (!asserted) {
       expect.unreachable(
         `assert() が呼ばれていません。テスト内で assert(result) を呼んで variant を検証してください。`,

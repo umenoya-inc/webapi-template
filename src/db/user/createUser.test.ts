@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect } from "vite-plus/test"
 import type { DbContext } from "../DbContext"
 import { createTestDbContext } from "../testing/createTestDbContext.testutil"
-import { testBehavior } from "@/testing"
+import { parameterize, testBehavior } from "@/testing"
 import { createUser } from "./createUser"
 import { userTable } from "./userTable"
 
@@ -38,12 +38,16 @@ describe("createUser", () => {
       const error = assert(result)
       expect(error.field).toBe("email")
     },
-    "入力値が不正": async (assert) => {
-      const result = await createUser(ctx)({
-        name: "",
-        email: "invalid-email",
-      })
-      assert(result)
-    },
+    "入力値が不正": parameterize(
+      {
+        "nameが空": { name: "", email: "valid@example.com" },
+        "emailが不正": { name: "Alice", email: "invalid" },
+        "name文字数超過": { name: "A".repeat(101), email: "alice@example.com" },
+      },
+      async (assert, input) => {
+        const result = await createUser(ctx)(input)
+        assert(result)
+      },
+    ),
   })
 })
