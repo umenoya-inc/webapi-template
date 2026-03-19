@@ -21,10 +21,13 @@
  * input / output スキーマは通常の引数の感覚でインラインに定義できる。
  * 複雑なスキーマの場合のみ別ファイルに切り出す。
  *
+ * `fn` 内では `okAs` / `failAs` を使って各コードパスに説明ラベルを付与する。
+ * 素のオブジェクトリテラルを返すと型エラーになる。
+ *
  * ```typescript
  * import type { DbContext } from "@/modules/db"
- * import { flatten, minValue, number, object, pipe, string, uuid } from "valibot"
- * import { defineContract } from "@/modules/contract"
+ * import { object, pipe, string, email, minLength, maxLength } from "valibot"
+ * import { defineContract, failAs, okAs } from "@/modules/contract"
  * import { User } from "@/modules/db/user"
  *
  * export const createUser = (ctx: DbContext) =>
@@ -34,15 +37,12 @@
  *       email: pipe(string(), email()),
  *     }),
  *     output: User,
- *     onInputError: (issues) => ({
- *       ok: false,
- *       reason: "validation_failed",
- *       fields: flatten(issues).nested ?? {},
- *     } as const),
  *     fn: async (input) => {
- *       // input は検証済み、ctx はクロージャ経由
- *       // return { ok: true, value: { id, name, email } }
- *       // return { ok: false, reason: "duplicate_entry", field: "email" }
+ *       // ...
+ *       if (duplicateEmail) {
+ *         return failAs("メールアドレスが既存ユーザーと重複", "duplicate_entry", { field: "email" })
+ *       }
+ *       return okAs("ユーザーを新規作成", { id: row.id, name: row.name, email: row.email })
  *     },
  *   })
  * ```
