@@ -1,47 +1,64 @@
-# Desc phantom type による discriminated union への説明埋め込み
+# Desc ブランド型による振る舞いラベリングパターン
 
-## 概要
+## 現状（実装済み）
 
-Discriminated union の各 variant に phantom property で説明文を埋め込む。型の構造的互換性を保ちつつ、IDE ホバーやツールから説明を取り出せるようにする。
+`defineContract` の `fn` 内で `failAs` / `okAs` を使い、各コードパスに Desc ブランド型で説明ラベルを付与する。ラベルは `unique symbol` ブランドとして型に埋め込まれ、ランタイムには影響しない。
 
-## コードイメージ
+### 型による強制
+
+- **エラー返却** — `fn` の戻り値型制約で `Desc<string, { ok: false }>` を要求。`failAs` を使わないと型エラー
+- **成功返却** — 同様に `Desc<string, { ok: true; value: ... }>` を要求。`okAs` を使わないと型エラー
+- **テスト網羅** — `testContract` / `mockContract` のキーが `DescLabel<T>` から導出され、全ラベルのテストが型レベルで強制される
+
+### 実装パターン: コードパス = テストケース
+
+`fn` 内の各コードパスが個別の Desc ラベルを持つと、そのラベルが `testContract` のキーとして要求される。新しいコードパスを追加したらテストも書かないとコンパイルが通らない。
 
 ```typescript
-type Desc<Label extends string, T> = T & { readonly __desc?: Label }
-
-function failAs<D extends string, R extends string>(
-  _desc: D,
-  reason: R,
-): Desc<D, { ok: false; reason: R }> {
-  return { ok: false, reason } as any
+// 実装: 2つのコードパスに異なるラベル
+fn: async () => {
+  const rows = await db.select().from(userTable)
+  if (rows.length === 0) {
+    return okAs("ユーザーが存在しない", [])
+  }
+  return okAs("登録済みユーザー一覧を取得", rows.map(...))
 }
 
-// 使用例
-return failAs("DBにユーザーが存在しない", "not_found")
-
-// 型に説明が現れる:
-// Desc<"DBにユーザーが存在しない", { ok: false; reason: "not_found" }>
+// テスト: 型が両方のラベルを要求する
+testContract(listUsers, {
+  "ユーザーが存在しない": async (assert) => { ... },
+  "登録済みユーザー一覧を取得": async (assert) => { ... },
+})
 ```
 
-## 説明の抽出
+## 適用の指針
+
+### 有効なケース
+
+- **条件付き成功パス** — データの有無で振る舞いが変わるケース（空 vs 非空、デフォルト値 vs 通常値）
+- **段階的な前提条件チェック** — ガード節で順番にチェックするビジネスロジック。各ガードが独立した Desc ラベルになる
+- **エラーの意味の区別** — 同じ `ok: false` でも原因が異なるケース（not_found vs forbidden vs expired）
+
+### 粒度の判断基準
+
+**ラベルを付ける基準**: 呼び出し側にとって意味のある振る舞いの違い
+
+- ✅ 「検索結果なし」 vs 「検索結果あり」 — UI の出し分えなど呼び出し側の判断が変わる
+- ❌ 「検索結果1件」 vs 「検索結果複数件」 — 呼び出し側にとって区別する意味がないことが多い
+
+### 組み合わせ爆発の回避
+
+独立条件の組み合わせが多い場合、個別に分岐せずラベルに条件の詳細を記述してグループ化する。テストを書く側はラベルから再現条件を読み取れる。
 
 ```typescript
-type ExtractDesc<T> = T extends { __desc?: infer D extends string } ? D : never
-
-type Errors = ExtractDesc<Awaited<ReturnType<ReturnType<typeof findUserById>>>>
-// = "DBにユーザーが存在しない" | "入力値が不正"
+// ❌ 3条件 × 2状態 = 8パスに分岐
+// ✅ 意味のあるグループとして記述
+return failAs("必須項目が不足（name, email未入力）", "validation_failed", { ... })
+return failAs("権限不足かつ管理者承認なし", "forbidden", { ... })
 ```
 
-## 利点
+## 今後の発展可能性
 
-- **導入コストが低い** — `as const` の return を `failAs(...)` に置き換えるだけ
-- **Generator 不要** — 既存の defineContract にそのまま載せられる
-- **汎用的** — defineContract に限らず、discriminated union を返すすべての関数に適用可能
-- **ツール連携** — `ExtractDesc` でドキュメント生成、テスト生成の入力に使える
+- **ドキュメント自動生成** — `DescLabel` から振る舞い一覧を抽出し、JSDoc や API ドキュメントに反映
 - **コーディングエージェント支援** — 型シグネチャだけでエラーの意味がわかり、実装を辿る必要が減る
-
-## 課題
-
-- union が大きくなったときのホバー表示の冗長さ
-- `__desc` というプロパティ名の命名規約
-- failAs の引数に渡す説明文の粒度・表現の統一ルール
+- **Generator との組み合わせ** — [procedure パターン](./2026-03-19-procedure-generator-steps.md)と組み合わせると、手続き的なステップの接続点にもラベルが付く
