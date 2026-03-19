@@ -3,9 +3,9 @@ import { globalDbContext } from "@/db"
 import { defineRoute } from "./defineRoute"
 import { postUser } from "./postUser"
 
-export const userRoute = new Hono()
+export const postUserRoute = new Hono()
 
-userRoute.post(
+postUserRoute.post(
   "/",
   ...defineRoute({
     fn: () => postUser(globalDbContext),
