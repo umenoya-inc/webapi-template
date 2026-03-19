@@ -8,8 +8,8 @@ import { userTable } from "./userTable"
 /**
  * ユーザー一覧を取得する。
  *
- * - 登録済みのユーザーを Branded な User の配列として返す
- * - ユーザーが存在しない場合は空配列を返す
+ * - 登録済みのユーザーが存在する場合、Branded な User の配列を返す
+ * - ユーザーが存在しない場合、空配列を返す
  */
 export const listUsers = (ctx: DbContext) =>
   defineContract({
@@ -17,8 +17,11 @@ export const listUsers = (ctx: DbContext) =>
     fn: async () => {
       const db = fromDbContext(ctx)
       const rows = await db.select().from(userTable)
+      if (rows.length === 0) {
+        return okAs("ユーザーが存在しない", [])
+      }
       return okAs(
-        "ユーザー一覧を取得",
+        "登録済みユーザー一覧を取得",
         rows.map((row) => ({ id: row.id, name: row.name, email: row.email })),
       )
     },

@@ -22,7 +22,9 @@ type DefaultInputError = Desc<
 
 type ExtractFailure<T> = Extract<T, { ok: false }>
 
-type ExtractOkLabel<T> = T extends Desc<infer L, { ok: true }> ? L : never
+/** fn の ok:true 返却の Desc ラベルを保持したまま value 型を置換する（分配型） */
+type ReplaceOkValue<T, V> =
+  T extends Desc<infer L, { ok: true; value: unknown }> ? Desc<L, { ok: true; value: V }> : never
 
 type ContractOptionsWithInputError<
   TInputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
@@ -67,9 +69,7 @@ export function defineContract<
 ): (
   input: InferInput<TInputSchema>,
 ) => Promise<
-  | Desc<ExtractOkLabel<TFnReturn>, { ok: true; value: InferOutput<TOutputSchema> }>
-  | ExtractFailure<TFnReturn>
-  | TInputError
+  ReplaceOkValue<TFnReturn, InferOutput<TOutputSchema>> | ExtractFailure<TFnReturn> | TInputError
 >
 
 // input + default onInputError
@@ -84,7 +84,7 @@ export function defineContract<
 ): (
   input: InferInput<TInputSchema>,
 ) => Promise<
-  | Desc<ExtractOkLabel<TFnReturn>, { ok: true; value: InferOutput<TOutputSchema> }>
+  | ReplaceOkValue<TFnReturn, InferOutput<TOutputSchema>>
   | ExtractFailure<TFnReturn>
   | DefaultInputError
 >
@@ -97,10 +97,7 @@ export function defineContract<
     | Desc<string, { ok: false }>,
 >(
   options: ContractOptionsWithoutInput<TOutputSchema, TFnReturn>,
-): () => Promise<
-  | Desc<ExtractOkLabel<TFnReturn>, { ok: true; value: InferOutput<TOutputSchema> }>
-  | ExtractFailure<TFnReturn>
->
+): () => Promise<ReplaceOkValue<TFnReturn, InferOutput<TOutputSchema>> | ExtractFailure<TFnReturn>>
 
 export function defineContract(options: {
   input?: BaseSchema<unknown, unknown, BaseIssue<unknown>>

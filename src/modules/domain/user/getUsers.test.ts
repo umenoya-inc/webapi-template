@@ -19,41 +19,39 @@ const bob = parse(User, {
 })
 
 const listUsersMock = mockContract(listUsers, {
-  "ユーザー一覧を取得": {
+  "ユーザーが存在しない": async () => ({
+    ok: true,
+    value: [],
+  }),
+  "登録済みユーザー一覧を取得": {
     with_users: async () => ({
       ok: true,
       value: [alice, bob],
-    }),
-    empty: async () => ({
-      ok: true,
-      value: [],
     }),
   },
 })
 
 describe("getUsers", () => {
   testContract(getUsers, {
-    "ユーザー一覧を取得": {
-      "ユーザー一覧を返す": async (assert) => {
-        const result = await getUsers(dummyCtx, {
-          listUsers: listUsersMock["ユーザー一覧を取得"].with_users,
-        })()
-        const ok = assert(result)
-        expect(ok.value).toHaveLength(2)
-        expect(ok.value).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({ name: "Alice" }),
-            expect.objectContaining({ name: "Bob" }),
-          ]),
-        )
-      },
-      "ユーザーが存在しない場合は空配列を返す": async (assert) => {
-        const result = await getUsers(dummyCtx, {
-          listUsers: listUsersMock["ユーザー一覧を取得"].empty,
-        })()
-        const ok = assert(result)
-        expect(ok.value).toEqual([])
-      },
+    "ユーザーが存在しない": async (assert) => {
+      const result = await getUsers(dummyCtx, {
+        listUsers: listUsersMock["ユーザーが存在しない"],
+      })()
+      const ok = assert(result)
+      expect(ok.value).toEqual([])
+    },
+    "登録済みユーザー一覧を取得": async (assert) => {
+      const result = await getUsers(dummyCtx, {
+        listUsers: listUsersMock["登録済みユーザー一覧を取得"].with_users,
+      })()
+      const ok = assert(result)
+      expect(ok.value).toHaveLength(2)
+      expect(ok.value).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ name: "Alice" }),
+          expect.objectContaining({ name: "Bob" }),
+        ]),
+      )
     },
   })
 })

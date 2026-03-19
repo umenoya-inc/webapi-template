@@ -26,26 +26,24 @@ describe("listUsers", () => {
   })
 
   testContract(listUsers, {
-    "ユーザー一覧を取得": {
-      "ユーザーが存在しない場合は空配列を返す": async (assert) => {
-        const result = await listUsers(ctx)()
-        const ok = assert(result)
-        expect(ok.value).toEqual([])
-      },
-      "作成済みのユーザー一覧を返す": async (assert) => {
-        await insertUserRow(ctx, { name: "Alice", email: "alice@example.com" })
-        await insertUserRow(ctx, { name: "Bob", email: "bob@example.com" })
+    "ユーザーが存在しない": async (assert) => {
+      const result = await listUsers(ctx)()
+      const ok = assert(result)
+      expect(ok.value).toEqual([])
+    },
+    "登録済みユーザー一覧を取得": async (assert) => {
+      await insertUserRow(ctx, { name: "Alice", email: "alice@example.com" })
+      await insertUserRow(ctx, { name: "Bob", email: "bob@example.com" })
 
-        const result = await listUsers(ctx)()
-        const ok = assert(result)
-        expect(ok.value).toHaveLength(2)
-        expect(ok.value).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({ name: "Alice", email: "alice@example.com" }),
-            expect.objectContaining({ name: "Bob", email: "bob@example.com" }),
-          ]),
-        )
-      },
+      const result = await listUsers(ctx)()
+      const ok = assert(result)
+      expect(ok.value).toHaveLength(2)
+      expect(ok.value).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ name: "Alice", email: "alice@example.com" }),
+          expect.objectContaining({ name: "Bob", email: "bob@example.com" }),
+        ]),
+      )
     },
   })
 })
