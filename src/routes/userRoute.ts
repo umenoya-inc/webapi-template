@@ -3,7 +3,7 @@ import { Hono } from "hono"
 import { describeRoute, resolver, validator } from "hono-openapi"
 import { matchBehavior } from "@/behavior"
 import { globalDbContext } from "@/db"
-import { registerUser } from "@/domain/user"
+import { postUser } from "./postUser"
 
 /** API レスポンス: ユーザー */
 const UserResponse = object({
@@ -39,11 +39,11 @@ userRoute.post(
   }),
   validator("json", CreateUserRequest),
   async (c) => {
-    const result = await registerUser(globalDbContext)(c.req.valid("json"))
+    const result = await postUser(globalDbContext)(c.req.valid("json"))
     return matchBehavior(result, {
-      success: (r) => c.json({ id: r.value.id, name: r.value.name, email: r.value.email }, 201),
-      duplicate_entry: () => c.json({ error: "email_already_exists" }, 409),
-      validation_failed: (r) => c.json({ error: "validation_failed", fields: r.fields }, 400),
+      success: (r) => c.json(r.value, 201),
+      conflict: () => c.json({ error: "email_already_exists" }, 409),
+      bad_request: (r) => c.json({ error: "validation_failed", fields: r.fields }, 400),
     }) as Response
   },
 )
