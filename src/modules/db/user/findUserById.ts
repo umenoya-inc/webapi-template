@@ -2,7 +2,7 @@ import { object, pipe, string, uuid } from "valibot"
 import { eq } from "drizzle-orm"
 import type { DbContext } from "../DbContext"
 import { fromDbContext } from "../fromDbContext"
-import { defineContract } from "@/modules/contract"
+import { defineContract, failAs } from "@/modules/contract"
 import { User } from "./User"
 import { userTable } from "./userTable"
 
@@ -23,10 +23,7 @@ export const findUserById = (ctx: DbContext) =>
       const db = fromDbContext(ctx)
       const rows = await db.select().from(userTable).where(eq(userTable.id, input.id))
       if (rows.length === 0) {
-        return {
-          ok: false,
-          reason: "not_found",
-        } as const
+        return failAs("IDに該当するユーザーが存在しない", "not_found")
       }
       const row = rows[0]
       return {

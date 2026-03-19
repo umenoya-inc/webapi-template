@@ -2,7 +2,7 @@ import { email, maxLength, minLength, object, pipe, string } from "valibot"
 import type { DbContext } from "../DbContext"
 import { dbExecute } from "../error/dbExecute"
 import { fromDbContext } from "../fromDbContext"
-import { defineContract } from "@/modules/contract"
+import { defineContract, failAs } from "@/modules/contract"
 import { User } from "./User"
 import { userTable } from "./userTable"
 
@@ -27,11 +27,7 @@ export const createUser = (ctx: DbContext) =>
       )
       if (!result.ok) {
         if (result.error.kind === "unique_violation") {
-          return {
-            ok: false,
-            reason: "duplicate_entry",
-            field: "email",
-          } as const
+          return failAs("メールアドレスが既存ユーザーと重複", "duplicate_entry", { field: "email" })
         }
         throw new Error("Unexpected database error", { cause: result.error.cause })
       }
