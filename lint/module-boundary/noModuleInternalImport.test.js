@@ -72,8 +72,8 @@ tester.run("no-module-internal-import", noModuleInternalImport, {
     },
     // 同一モジュール内で barrel export を持つサブモジュールの内部ファイルに相対パスでアクセス
     {
-      code: 'import { createTodo } from "../todo/createTodo"',
-      filename: src("domain/user/registerUser.ts"),
+      code: 'import { userTable } from "../user/userTable"',
+      filename: src("db/error/dbExecute.ts"),
       options,
       errors: [{ messageId: "noSubmoduleInternalImport" }],
     },

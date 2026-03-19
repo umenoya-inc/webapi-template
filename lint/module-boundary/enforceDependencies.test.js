@@ -14,40 +14,28 @@ const tester = new RuleTester({ cwd })
 
 tester.run("enforce-dependencies", enforceDependencies, {
   valid: [
-    // domain → db/**: サブモジュールへのアクセスも許可
+    // api → db/**: サブモジュールへのアクセスも許可
     {
-      code: 'import { findUserById } from "@/db/user"',
-      filename: src("domain/user/getUserById.ts"),
+      code: 'import { createUser } from "@/db/user"',
+      filename: src("api/user/postUser.ts"),
       options,
     },
-    // domain → db/**: トップレベルも許可
+    // api → db: トップレベルも許可
     {
       code: 'import { globalDbContext } from "@/db"',
-      filename: src("domain/user/getUserById.ts"),
+      filename: src("api/user/postUserRoute.ts"),
       options,
     },
-    // domain → contract/**: サブモジュールも許可
+    // api → behavior: トップレベルのみ許可
     {
-      code: 'import { defineContract } from "@/contract"',
-      filename: src("domain/user/registerUser.ts"),
+      code: 'import { failAs } from "@/behavior"',
+      filename: src("api/user/postUser.ts"),
       options,
     },
-    // routes → domain/**: サブモジュールへのアクセス許可
+    // api → contract: トップレベルのみ許可
     {
-      code: 'import { registerUser } from "@/domain/user"',
-      filename: src("routes/userRoute.ts"),
-      options,
-    },
-    // routes → db: トップレベルのみ許可
-    {
-      code: 'import { globalDbContext } from "@/db"',
-      filename: src("routes/userRoute.ts"),
-      options,
-    },
-    // routes → behavior: トップレベルのみ許可
-    {
-      code: 'import { matchBehavior } from "@/behavior"',
-      filename: src("routes/userRoute.ts"),
+      code: 'import { defaultInputError } from "@/contract"',
+      filename: src("api/user/postUser.ts"),
       options,
     },
     // 同一モジュール内は常にOK
@@ -70,24 +58,10 @@ tester.run("enforce-dependencies", enforceDependencies, {
     },
   ],
   invalid: [
-    // routes → db/user: db はトップレベルのみ許可、サブモジュールは不可
-    {
-      code: 'import { createUser } from "@/db/user"',
-      filename: src("routes/userRoute.ts"),
-      options,
-      errors: [{ messageId: "disallowedDependency" }],
-    },
-    // routes → behavior/failAs: behavior はトップレベルのみ許可
-    {
-      code: 'import { failAs } from "@/behavior/failAs"',
-      filename: src("routes/userRoute.ts"),
-      options,
-      errors: [{ messageId: "disallowedDependency" }],
-    },
-    // routes → envvar: 宣言されていないモジュールへのアクセスは不可
+    // api → envvar: 宣言されていないモジュールへのアクセスは不可
     {
       code: 'import { envvar } from "@/envvar"',
-      filename: src("routes/userRoute.ts"),
+      filename: src("api/user/postUser.ts"),
       options,
       errors: [{ messageId: "disallowedDependency" }],
     },

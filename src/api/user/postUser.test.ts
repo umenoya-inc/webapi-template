@@ -1,14 +1,15 @@
+import { constant, string } from "fast-check"
 import { parse } from "valibot"
 import { describe, expect } from "vite-plus/test"
 import type { DbContext } from "@/db"
 import { User, createUser } from "@/db/user"
-import { mockEnv, mockBehavior, testBehavior } from "@/testing"
-import { registerUser } from "./registerUser"
+import { mockBehavior, mockEnv, propertyCheck, testBehavior } from "@/testing"
+import { postUser } from "./postUser"
 
 const dummyCtx = {} as DbContext
 const dummyUserId = "00000000-0000-0000-0000-000000000001"
 
-describe("registerUser", () => {
+describe("postUser", () => {
   const createUserMock = mockBehavior(createUser, {
     "ユーザーを新規作成": async (input) => ({
       ok: true,
@@ -26,28 +27,28 @@ describe("registerUser", () => {
     }),
   })
 
-  testBehavior(registerUser, {
-    "ユーザーを登録": async (assert) => {
-      const env = mockEnv(registerUser, {
+  testBehavior(postUser, {
+    "作成成功": async (assert) => {
+      const env = mockEnv(postUser, {
         createUser: createUserMock["ユーザーを新規作成"],
       })
-      const result = await registerUser(
+      const result = await postUser(
         dummyCtx,
         env,
       )({
         name: "Alice",
         email: "alice@example.com",
       })
-      const user = assert(result)
-      expect(user.value.name).toBe("Alice")
-      expect(user.value.email).toBe("alice@example.com")
-      expect(user.value.id).toBe(dummyUserId)
+      const ok = assert(result)
+      expect(ok.value.name).toBe("Alice")
+      expect(ok.value.email).toBe("alice@example.com")
+      expect(ok.value.id).toBe(dummyUserId)
     },
-    "メールアドレスが既存ユーザーと重複": async (assert) => {
-      const env = mockEnv(registerUser, {
+    "メールアドレスが重複": async (assert) => {
+      const env = mockEnv(postUser, {
         createUser: createUserMock["メールアドレスが既存ユーザーと重複"],
       })
-      const result = await registerUser(
+      const result = await postUser(
         dummyCtx,
         env,
       )({
@@ -56,18 +57,17 @@ describe("registerUser", () => {
       })
       assert(result)
     },
-    "入力値が不正": async (assert) => {
-      const env = mockEnv(registerUser, {
-        createUser: createUserMock["ユーザーを新規作成"],
-      })
-      const result = await registerUser(
-        dummyCtx,
-        env,
-      )({
-        name: "",
-        email: "invalid",
-      })
-      assert(result)
-    },
+    "入力値が不正": propertyCheck(
+      postUser,
+      {
+        "nameが空": { name: constant("") },
+        "emailが不正": { email: string() },
+        "name文字数超過": { name: string({ minLength: 101 }) },
+      },
+      async (assert, input) => {
+        const result = await postUser(dummyCtx)(input)
+        assert(result)
+      },
+    ),
   })
 })

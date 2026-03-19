@@ -12,7 +12,7 @@ TypeScript ファイルを作成・編集する際は、以下のルールを必
 - [Branded Entity ID](docs/rule/branded-entity-id.md)
 - [JSDoc フォーマット](docs/rule/jsdoc-format.md)
 - [defineContract の fn 内 failAs / okAs](docs/rule/contract-fn-as-const.md)
-- [ルートファイル](docs/rule/route-file.md)
+- [API ファイル](docs/rule/route-file.md)
 
 # Design
 
@@ -39,7 +39,7 @@ TypeScript ファイルを作成・編集する際は、以下のルールを必
 
 - コードチェック: `npx vp check --fix`
 - テスト: `npx vp test`
-- テスト（フィルタ付き）: `npx vp test run src/modules/db/user/`
+- テスト（フィルタ付き）: `npx vp test run src/db/user/`
 - ビルド: `npx vp build`
 - 開発サーバー: `npx vp dev`
 

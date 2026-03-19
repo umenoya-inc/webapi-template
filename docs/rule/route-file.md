@@ -5,7 +5,7 @@
 ルートはハンドラロジックとルート定義の2ファイルで構成する。対称性のある名前で対にする。
 
 ```
-src/routes/
+src/api/
 ├── postUser.ts          # ハンドラロジック（defineRouteContract）
 ├── postUserRoute.ts     # ルート定義（defineRoute）
 ├── getUserById.ts

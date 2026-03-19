@@ -1,14 +1,13 @@
 import { email, maxLength, minLength, object, pipe, string, uuid } from "valibot"
-import type { DbContext } from "@/db"
 import { failAs, okAs } from "@/behavior"
 import { defaultInputError } from "@/contract"
-import { registerUser } from "@/domain/user"
-import { defineRouteContract } from "./defineRouteContract"
+import { createUser } from "@/db/user"
+import { defineRouteContract } from "../defineRouteContract"
 
 /** ユーザー作成 API のハンドラロジック。 */
 export const postUser = (
-  ctx: DbContext,
-  env: { registerUser: typeof registerUser } = { registerUser },
+  ctx: Parameters<typeof createUser>[0],
+  env: { createUser: typeof createUser } = { createUser },
 ) =>
   defineRouteContract({
     input: object({
@@ -27,7 +26,7 @@ export const postUser = (
       "入力値が不正": { status: 400, description: "入力値が不正" },
     },
     fn: async (input) => {
-      const result = await env.registerUser(ctx)(input)
+      const result = await env.createUser(ctx)(input)
       if (!result.ok) {
         if (result.reason === "duplicate_entry") {
           return failAs("メールアドレスが重複", "conflict")

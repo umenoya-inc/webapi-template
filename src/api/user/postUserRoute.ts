@@ -1,6 +1,6 @@
 import { Hono } from "hono"
 import { globalDbContext } from "@/db"
-import { defineRoute } from "./defineRoute"
+import { defineRoute } from "../defineRoute"
 import { postUser } from "./postUser"
 
 export const postUserRoute = new Hono()

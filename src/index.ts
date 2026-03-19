@@ -1,7 +1,7 @@
 import { Hono } from "hono"
 import { openAPIRouteHandler } from "hono-openapi"
-import { healthRoute } from "./routes/healthRoute"
-import { postUserRoute } from "./routes/postUserRoute"
+import { healthRoute } from "./api/healthRoute"
+import { postUserRoute } from "./api/user/postUserRoute"
 
 const app = new Hono()
 
