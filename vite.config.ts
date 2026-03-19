@@ -39,7 +39,10 @@ export default defineConfig({
       {
         files: ["src/**/*.ts"],
         rules: {
-          "module-boundary/no-module-internal-import": ["error", { basePath: "src" }],
+          "module-boundary/no-module-internal-import": [
+            "error",
+            { basePath: "src", aliasPrefix: "@/" },
+          ],
           "single-export/one-export-per-file": "error",
           "import-style/no-namespace-import": "error",
           "test-boundary/no-testutil-in-production": "error",

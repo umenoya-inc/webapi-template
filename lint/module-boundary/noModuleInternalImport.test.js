@@ -10,7 +10,7 @@ RuleTester.it = it
 // 実プロジェクトのパスを使用する
 const cwd = resolve(import.meta.dirname, "../..")
 const src = (path) => resolve(cwd, "src", path)
-const options = [{ basePath: "src" }]
+const options = [{ basePath: "src", aliasPrefix: "@/" }]
 
 const tester = new RuleTester({ cwd })
 

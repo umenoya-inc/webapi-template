@@ -26,6 +26,7 @@ const noModuleInternalImport = {
         type: "object",
         properties: {
           basePath: { type: "string" },
+          aliasPrefix: { type: "string" },
         },
         additionalProperties: false,
       },
@@ -35,15 +36,16 @@ const noModuleInternalImport = {
     const filename = context.filename
     const cwd = context.cwd
     const basePath = context.options[0]?.basePath ?? "src"
+    const aliasPrefix = context.options[0]?.aliasPrefix ?? "@/"
     const srcDir = resolve(cwd, basePath)
 
     return {
       ImportDeclaration(node) {
         const source = node.source.value
 
-        // @/ で始まるインポートをチェック
-        if (source.startsWith("@/")) {
-          checkAliasImport(context, node, source, srcDir, filename)
+        // エイリアスプレフィックスで始まるインポートをチェック
+        if (source.startsWith(aliasPrefix)) {
+          checkAliasImport(context, node, source, srcDir, aliasPrefix, filename)
           return
         }
 
@@ -57,16 +59,17 @@ const noModuleInternalImport = {
 }
 
 /**
- * @/ 形式のインポートをチェック
+ * エイリアス形式のインポートをチェック
  * @param {import("oxlint/plugins-dev").Context} context
  * @param {import("oxlint/plugins-dev").ImportDeclaration} node
  * @param {string} source
  * @param {string} srcDir
+ * @param {string} aliasPrefix
  * @param {string} filename
  */
-function checkAliasImport(context, node, source, srcDir, filename) {
-  // @/ 以降のパスを取得
-  const afterAlias = source.slice("@/".length)
+function checkAliasImport(context, node, source, srcDir, aliasPrefix, filename) {
+  // エイリアスプレフィックス以降のパスを取得
+  const afterAlias = source.slice(aliasPrefix.length)
   const segments = afterAlias.split("/")
 
   // @/<module> のみの場合
