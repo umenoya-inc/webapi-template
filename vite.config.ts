@@ -34,7 +34,6 @@ export default defineConfig({
       "./lint/single-export/index.js",
       "./lint/import-style/index.js",
       "./lint/test-boundary/index.js",
-      "./lint/contract-style/index.js",
     ],
     overrides: [
       {
@@ -44,7 +43,6 @@ export default defineConfig({
           "single-export/one-export-per-file": "error",
           "import-style/no-namespace-import": "error",
           "test-boundary/no-testutil-in-production": "error",
-          "contract-style/require-fn-as-const": "error",
         },
       },
     ],

@@ -2,7 +2,7 @@ import { email, maxLength, minLength, object, pipe, string } from "valibot"
 import type { DbContext } from "../DbContext"
 import { dbExecute } from "../error/dbExecute"
 import { fromDbContext } from "../fromDbContext"
-import { defineContract, failAs } from "@/modules/contract"
+import { defineContract, failAs, okAs } from "@/modules/contract"
 import { User } from "./User"
 import { userTable } from "./userTable"
 
@@ -32,9 +32,6 @@ export const createUser = (ctx: DbContext) =>
         throw new Error("Unexpected database error", { cause: result.error.cause })
       }
       const row = result.value[0]
-      return {
-        ok: true,
-        value: { id: row.id, name: row.name, email: row.email },
-      } as const
+      return okAs("ユーザーを新規作成", { id: row.id, name: row.name, email: row.email })
     },
   })

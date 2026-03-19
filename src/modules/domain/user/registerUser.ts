@@ -1,6 +1,6 @@
 import { email, maxLength, minLength, object, pipe, string } from "valibot"
 import type { DbContext } from "@/modules/db"
-import { defineContract } from "@/modules/contract"
+import { defineContract, okAs } from "@/modules/contract"
 import { User, createUser } from "@/modules/db/user"
 
 /**
@@ -27,6 +27,6 @@ export const registerUser = (
       if (!result.ok) {
         return result
       }
-      return { ok: true, value: result.value } as const
+      return okAs("ユーザーを登録", result.value)
     },
   })

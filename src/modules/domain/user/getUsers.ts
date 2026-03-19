@@ -1,6 +1,6 @@
 import { array } from "valibot"
 import type { DbContext } from "@/modules/db"
-import { defineContract } from "@/modules/contract"
+import { defineContract, okAs } from "@/modules/contract"
 import { User, listUsers } from "@/modules/db/user"
 
 /**
@@ -22,6 +22,6 @@ export const getUsers = (
       if (!result.ok) {
         return result
       }
-      return { ok: true, value: result.value } as const
+      return okAs("ユーザー一覧を取得", result.value)
     },
   })

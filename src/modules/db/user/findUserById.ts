@@ -2,7 +2,7 @@ import { object, pipe, string, uuid } from "valibot"
 import { eq } from "drizzle-orm"
 import type { DbContext } from "../DbContext"
 import { fromDbContext } from "../fromDbContext"
-import { defineContract, failAs } from "@/modules/contract"
+import { defineContract, failAs, okAs } from "@/modules/contract"
 import { User } from "./User"
 import { userTable } from "./userTable"
 
@@ -26,9 +26,6 @@ export const findUserById = (ctx: DbContext) =>
         return failAs("IDに該当するユーザーが存在しない", "not_found")
       }
       const row = rows[0]
-      return {
-        ok: true,
-        value: { id: row.id, name: row.name, email: row.email },
-      } as const
+      return okAs("IDに該当するユーザーを取得", { id: row.id, name: row.name, email: row.email })
     },
   })

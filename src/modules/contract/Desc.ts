@@ -1,7 +1,10 @@
+declare const descBrand: unique symbol
+
 /**
- * エラー値に説明ラベルを付与するファントム型。
+ * 値に説明ラベルを付与するブランド型。
  *
  * ランタイムには影響せず、型レベルでのみ意味を持つ。
- * failAs と組み合わせて使用する。
+ * failAs / okAs の戻り値型として使われ、
+ * defineContract の fn 内で素のオブジェクトリテラル返却を型エラーにする。
  */
-export type Desc<Label extends string, T> = T & { readonly __desc?: Label }
+export type Desc<Label extends string, T> = T & { readonly [descBrand]: Label }

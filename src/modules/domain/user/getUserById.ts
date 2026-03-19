@@ -1,6 +1,6 @@
 import { object, pipe, string, uuid } from "valibot"
 import type { DbContext } from "@/modules/db"
-import { defineContract } from "@/modules/contract"
+import { defineContract, okAs } from "@/modules/contract"
 import { User, findUserById } from "@/modules/db/user"
 
 /**
@@ -26,6 +26,6 @@ export const getUserById = (
       if (!result.ok) {
         return result
       }
-      return { ok: true, value: result.value } as const
+      return okAs("IDに該当するユーザーを取得", result.value)
     },
   })

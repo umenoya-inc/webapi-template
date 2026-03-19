@@ -29,9 +29,12 @@ type VariantKey<T> = T extends { ok: true }
 
 type VariantKeys<F> = VariantKey<ContractResultUnion<F>>
 
+/** Desc ブランド（symbol キー）を剥がして素のオブジェクト型にする */
+type StripBrand<T> = { [K in keyof T as K extends string ? K : never]: T[K] }
+
 type VariantResult<F, K extends string> = K extends "success"
-  ? Extract<ContractResultUnion<F>, { ok: true }>
-  : Extract<ContractResultUnion<F>, { ok: false; reason: K }>
+  ? StripBrand<Extract<ContractResultUnion<F>, { ok: true }>>
+  : StripBrand<Extract<ContractResultUnion<F>, { ok: false; reason: K }>>
 
 type VariantAssert<F, K extends string> = (result: ContractResultUnion<F>) => VariantResult<F, K>
 

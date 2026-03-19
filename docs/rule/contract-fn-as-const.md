@@ -1,14 +1,16 @@
-# defineContract の fn 内エラー返却に as const を付ける
+# defineContract の fn 内で failAs / okAs を使う
 
-`defineContract` の `fn` 内でエラーオブジェクトを返す際は、オブジェクトリテラルに `as const` を付ける。
+`defineContract` の `fn` 内でオブジェクトリテラルを返す際は、`failAs` / `okAs` を使用する。
 
 ## 目的
 
-`as const` がないと `reason` が `string` に widening され、戻り値の型から具体的なエラーケースを型レベルで識別できなくなる。`as const` を付けることで `reason` のリテラル型が保持され、呼び出し側での型安全な分岐や、テストにおける振る舞い別モックの自動導出が可能になる。
+`failAs` / `okAs` は `Desc` ブランド型を付与し、リテラル型を保持する。`defineContract` は `fn` の戻り値に `Desc` ブランドを要求するため、素のオブジェクトリテラルを返すと型エラーになる。これにより、説明ラベルの付与とリテラル型の保持が型レベルで強制される。
 
 ## 例
 
 ```typescript
+import { defineContract, failAs, okAs } from "@/modules/contract"
+
 export const createUser = (ctx: DbContext) =>
   defineContract({
     input: object({ ... }),
@@ -16,27 +18,25 @@ export const createUser = (ctx: DbContext) =>
     fn: async (input) => {
       // ...
       if (error) {
-        // ✅ as const でリテラル型を保持
-        return {
-          ok: false,
-          reason: "duplicate_entry",
-          field: "email",
-        } as const
+        // ✅ failAs で説明付きエラー値を返す
+        return failAs("メールアドレスが既存ユーザーと重複", "duplicate_entry", { field: "email" })
       }
-      // ✅ 成功ケースも as const
-      return {
-        ok: true,
-        value: { id: row.id, name: row.name, email: row.email },
-      } as const
+      // ✅ okAs で説明付き成功値を返す
+      return okAs("ユーザーを新規作成", { id: row.id, name: row.name, email: row.email })
     },
   })
 ```
 
 ```typescript
-// ❌ as const なし — reason: "duplicate_entry" が reason: string に広がる
+// ❌ 素のオブジェクトリテラル — Desc ブランドがないため型エラー
 return {
   ok: false,
   reason: "duplicate_entry",
   field: "email",
-}
+} as const
+```
+
+```typescript
+// ✅ 他の Contract からの結果をそのまま返す場合は failAs / okAs 不要
+return result
 ```

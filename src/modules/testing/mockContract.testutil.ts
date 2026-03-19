@@ -7,6 +7,7 @@
  *
  * 各 variant には関数1つ（単一モック）またはオブジェクト（名前付きバリエーション）を指定できる。
  * モック実装は `(input) => Promise<Result>` のシグネチャで、ctx のボイラープレートは不要。
+ * 戻り値は Desc ブランドなしの素のオブジェクトで記述できる。
  */
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -24,9 +25,12 @@ type VariantKey<T> = T extends { ok: true }
 
 type VariantKeys<F> = VariantKey<ContractResultUnion<F>>
 
+/** Desc ブランド（symbol キー）を剥がして素のオブジェクト型にする */
+type StripBrand<T> = { [K in keyof T as K extends string ? K : never]: T[K] }
+
 type VariantResult<F, K extends string> = K extends "success"
-  ? Extract<ContractResultUnion<F>, { ok: true }>
-  : Extract<ContractResultUnion<F>, { ok: false; reason: K }>
+  ? StripBrand<Extract<ContractResultUnion<F>, { ok: true }>>
+  : StripBrand<Extract<ContractResultUnion<F>, { ok: false; reason: K }>>
 
 type MockFn<F, K extends string> = [ContractInput<F>] extends [never]
   ? () => Promise<VariantResult<F, K>>

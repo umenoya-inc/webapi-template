@@ -9,7 +9,8 @@
  * - `defineContract` — input/output スキーマと（任意で）エラーハンドラを受け取り、契約付き関数を返す。
  * - `matchContract` — Contract 関数の戻り値に対する exhaustive なパターンマッチ。
  * - `failAs` — 説明ラベル付きのエラー値を生成する。`as const` の代わりに使用する。
- * - `Desc` — エラー値に説明ラベルを付与するファントム型。`failAs` の戻り値型として使われる。
+ * - `okAs` — 説明ラベル付きの成功値を生成する。`as const` の代わりに使用する。
+ * - `Desc` — 値に説明ラベルを付与するファントム型。`failAs` / `okAs` の戻り値型として使われる。
  *
  * ### 使い方
  *
@@ -58,3 +59,4 @@ export type { Desc } from "./Desc"
 export { defineContract } from "./defineContract"
 export { failAs } from "./failAs"
 export { matchContract } from "./matchContract"
+export { okAs } from "./okAs"

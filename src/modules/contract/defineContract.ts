@@ -8,14 +8,17 @@ import {
   parse,
   safeParse,
 } from "valibot"
+import type { Desc } from "./Desc"
+import { failAs } from "./failAs"
 
-type OkResult<T> = { ok: true; value: T }
-
-type DefaultInputError = {
-  ok: false
-  reason: "validation_failed"
-  fields: Record<string, unknown>
-}
+type DefaultInputError = Desc<
+  "validation_failed",
+  {
+    ok: false
+    reason: "validation_failed"
+    fields: Record<string, unknown>
+  }
+>
 
 type ExtractFailure<T> = Extract<T, { ok: false }>
 
@@ -53,32 +56,36 @@ type ContractOptionsWithoutInput<
 export function defineContract<
   TInputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
   TOutputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
-  TFnReturn extends OkResult<InferInput<TOutputSchema>> | { ok: false },
+  TFnReturn extends { ok: true; value: InferInput<TOutputSchema> } | Desc<string, { ok: false }>,
   TInputError,
 >(
   options: ContractOptionsWithInputError<TInputSchema, TOutputSchema, TFnReturn, TInputError>,
 ): (
   input: InferInput<TInputSchema>,
-) => Promise<OkResult<InferOutput<TOutputSchema>> | ExtractFailure<TFnReturn> | TInputError>
+) => Promise<
+  { ok: true; value: InferOutput<TOutputSchema> } | ExtractFailure<TFnReturn> | TInputError
+>
 
 // input + default onInputError
 export function defineContract<
   TInputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
   TOutputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
-  TFnReturn extends OkResult<InferInput<TOutputSchema>> | { ok: false },
+  TFnReturn extends { ok: true; value: InferInput<TOutputSchema> } | Desc<string, { ok: false }>,
 >(
   options: ContractOptionsWithDefaultInputError<TInputSchema, TOutputSchema, TFnReturn>,
 ): (
   input: InferInput<TInputSchema>,
-) => Promise<OkResult<InferOutput<TOutputSchema>> | ExtractFailure<TFnReturn> | DefaultInputError>
+) => Promise<
+  { ok: true; value: InferOutput<TOutputSchema> } | ExtractFailure<TFnReturn> | DefaultInputError
+>
 
 // no input
 export function defineContract<
   TOutputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
-  TFnReturn extends OkResult<InferInput<TOutputSchema>> | { ok: false },
+  TFnReturn extends { ok: true; value: InferInput<TOutputSchema> } | Desc<string, { ok: false }>,
 >(
   options: ContractOptionsWithoutInput<TOutputSchema, TFnReturn>,
-): () => Promise<OkResult<InferOutput<TOutputSchema>> | ExtractFailure<TFnReturn>>
+): () => Promise<{ ok: true; value: InferOutput<TOutputSchema> } | ExtractFailure<TFnReturn>>
 
 export function defineContract(options: {
   input?: BaseSchema<unknown, unknown, BaseIssue<unknown>>
@@ -88,11 +95,8 @@ export function defineContract(options: {
 }) {
   const onInputError =
     options.onInputError ??
-    ((issues: [BaseIssue<unknown>, ...BaseIssue<unknown>[]]) => ({
-      ok: false as const,
-      reason: "validation_failed" as const,
-      fields: flatten(issues).nested ?? {},
-    }))
+    ((issues: [BaseIssue<unknown>, ...BaseIssue<unknown>[]]) =>
+      failAs("validation_failed", "validation_failed", { fields: flatten(issues).nested ?? {} }))
 
   if (!options.input) {
     return async () => {
