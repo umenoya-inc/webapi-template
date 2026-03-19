@@ -9,16 +9,16 @@ const dummyCtx = {} as DbContext
 const dummyUserId = "00000000-0000-0000-0000-000000000001"
 
 const createUserMock = mockContract(createUser, {
-  success: async (input) => ({
+  "ユーザーを新規作成": async (input) => ({
     ok: true,
     value: parse(User, { id: dummyUserId, name: input.name, email: input.email }),
   }),
-  duplicate_entry: async () => ({
+  "メールアドレスが既存ユーザーと重複": async () => ({
     ok: false,
     reason: "duplicate_entry",
     field: "email",
   }),
-  validation_failed: async () => ({
+  "入力値が不正": async () => ({
     ok: false,
     reason: "validation_failed",
     fields: {},
@@ -27,8 +27,10 @@ const createUserMock = mockContract(createUser, {
 
 describe("registerUser", () => {
   testContract(registerUser, {
-    success: async (assert) => {
-      const result = await registerUser(dummyCtx, { createUser: createUserMock.success })({
+    "ユーザーを登録": async (assert) => {
+      const result = await registerUser(dummyCtx, {
+        createUser: createUserMock["ユーザーを新規作成"],
+      })({
         name: "Alice",
         email: "alice@example.com",
       })
@@ -37,17 +39,19 @@ describe("registerUser", () => {
       expect(user.value.email).toBe("alice@example.com")
       expect(user.value.id).toBe(dummyUserId)
     },
-    duplicate_entry: async (assert) => {
+    "メールアドレスが既存ユーザーと重複": async (assert) => {
       const result = await registerUser(dummyCtx, {
-        createUser: createUserMock.duplicate_entry,
+        createUser: createUserMock["メールアドレスが既存ユーザーと重複"],
       })({
         name: "Bob",
         email: "alice@example.com",
       })
       assert(result)
     },
-    validation_failed: async (assert) => {
-      const result = await registerUser(dummyCtx, { createUser: createUserMock.success })({
+    "入力値が不正": async (assert) => {
+      const result = await registerUser(dummyCtx, {
+        createUser: createUserMock["ユーザーを新規作成"],
+      })({
         name: "",
         email: "invalid",
       })

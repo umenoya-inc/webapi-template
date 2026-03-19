@@ -12,7 +12,7 @@ import type { Desc } from "./Desc"
 import { failAs } from "./failAs"
 
 type DefaultInputError = Desc<
-  "validation_failed",
+  "入力値が不正",
   {
     ok: false
     reason: "validation_failed"
@@ -21,6 +21,8 @@ type DefaultInputError = Desc<
 >
 
 type ExtractFailure<T> = Extract<T, { ok: false }>
+
+type ExtractOkLabel<T> = T extends Desc<infer L, { ok: true }> ? L : never
 
 type ContractOptionsWithInputError<
   TInputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
@@ -65,7 +67,9 @@ export function defineContract<
 ): (
   input: InferInput<TInputSchema>,
 ) => Promise<
-  { ok: true; value: InferOutput<TOutputSchema> } | ExtractFailure<TFnReturn> | TInputError
+  | Desc<ExtractOkLabel<TFnReturn>, { ok: true; value: InferOutput<TOutputSchema> }>
+  | ExtractFailure<TFnReturn>
+  | TInputError
 >
 
 // input + default onInputError
@@ -80,7 +84,9 @@ export function defineContract<
 ): (
   input: InferInput<TInputSchema>,
 ) => Promise<
-  { ok: true; value: InferOutput<TOutputSchema> } | ExtractFailure<TFnReturn> | DefaultInputError
+  | Desc<ExtractOkLabel<TFnReturn>, { ok: true; value: InferOutput<TOutputSchema> }>
+  | ExtractFailure<TFnReturn>
+  | DefaultInputError
 >
 
 // no input
@@ -91,7 +97,10 @@ export function defineContract<
     | Desc<string, { ok: false }>,
 >(
   options: ContractOptionsWithoutInput<TOutputSchema, TFnReturn>,
-): () => Promise<{ ok: true; value: InferOutput<TOutputSchema> } | ExtractFailure<TFnReturn>>
+): () => Promise<
+  | Desc<ExtractOkLabel<TFnReturn>, { ok: true; value: InferOutput<TOutputSchema> }>
+  | ExtractFailure<TFnReturn>
+>
 
 export function defineContract(options: {
   input?: BaseSchema<unknown, unknown, BaseIssue<unknown>>

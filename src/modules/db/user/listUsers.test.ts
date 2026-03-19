@@ -26,7 +26,7 @@ describe("listUsers", () => {
   })
 
   testContract(listUsers, {
-    success: {
+    "ユーザー一覧を取得": {
       "ユーザーが存在しない場合は空配列を返す": async (assert) => {
         const result = await listUsers(ctx)()
         const ok = assert(result)

@@ -2,13 +2,15 @@
  * defineContract ベースの関数に対する振る舞い別モックを定義する。
  *
  * 第1引数は型推論のアンカーとして使う（実行はしない）。
- * 第2引数に variant キーとモック実装を渡す。variant キーは戻り値の union 型から導出され、
- * ok: true → "success"、ok: false → reason の値がキーになる。全 variant の網羅が必須。
+ * 第2引数に Desc ラベルとモック実装を渡す。ラベルは戻り値の Desc 型から導出され、
+ * 全ラベルの網羅が必須。
  *
- * 各 variant には関数1つ（単一モック）またはオブジェクト（名前付きバリエーション）を指定できる。
+ * 各ラベルには関数1つ（単一モック）またはオブジェクト（名前付きバリエーション）を指定できる。
  * モック実装は `(input) => Promise<Result>` のシグネチャで、ctx のボイラープレートは不要。
  * 戻り値は Desc ブランドなしの素のオブジェクトで記述できる。
  */
+
+import type { DescLabel, ExtractByLabel } from "@/modules/contract"
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -17,28 +19,20 @@ type ContractInput<F> = ContractInner<F> extends (input: infer I) => any ? I : n
 type ContractResultUnion<F> =
   ContractInner<F> extends (...args: any[]) => Promise<infer R> ? R : never
 
-type VariantKey<T> = T extends { ok: true }
-  ? "success"
-  : T extends { ok: false; reason: infer R extends string }
-    ? R
-    : never
-
-type VariantKeys<F> = VariantKey<ContractResultUnion<F>>
+type Labels<F> = DescLabel<ContractResultUnion<F>>
 
 /** Desc ブランド（symbol キー）を剥がして素のオブジェクト型にする */
 type StripBrand<T> = { [K in keyof T as K extends string ? K : never]: T[K] }
 
-type VariantResult<F, K extends string> = K extends "success"
-  ? StripBrand<Extract<ContractResultUnion<F>, { ok: true }>>
-  : StripBrand<Extract<ContractResultUnion<F>, { ok: false; reason: K }>>
+type LabelResult<F, K extends string> = StripBrand<ExtractByLabel<ContractResultUnion<F>, K>>
 
 type MockFn<F, K extends string> = [ContractInput<F>] extends [never]
-  ? () => Promise<VariantResult<F, K>>
-  : (input: ContractInput<F>) => Promise<VariantResult<F, K>>
+  ? () => Promise<LabelResult<F, K>>
+  : (input: ContractInput<F>) => Promise<LabelResult<F, K>>
 
-type VariantEntry<F, K extends string> = MockFn<F, K> | Record<string, MockFn<F, K>>
+type LabelEntry<F, K extends string> = MockFn<F, K> | Record<string, MockFn<F, K>>
 
-type Behaviors<F> = { [K in VariantKeys<F>]: VariantEntry<F, K> }
+type Behaviors<F> = { [K in Labels<F>]: LabelEntry<F, K> }
 
 type MockReturn<F, B> = {
   [K in keyof B]: B[K] extends (...args: any[]) => any ? F : { [N in keyof B[K]]: F }

@@ -20,7 +20,7 @@ describe("createUser", () => {
   })
 
   testContract(createUser, {
-    success: async (assert) => {
+    "ユーザーを新規作成": async (assert) => {
       const result = await createUser(ctx)({
         name: "Alice",
         email: "alice@example.com",
@@ -30,7 +30,7 @@ describe("createUser", () => {
       expect(user.value.email).toBe("alice@example.com")
       expect(user.value.id).toBeDefined()
     },
-    duplicate_entry: async (assert) => {
+    "メールアドレスが既存ユーザーと重複": async (assert) => {
       const result = await createUser(ctx)({
         name: "Bob",
         email: "alice@example.com",
@@ -38,7 +38,7 @@ describe("createUser", () => {
       const error = assert(result)
       expect(error.field).toBe("email")
     },
-    validation_failed: async (assert) => {
+    "入力値が不正": async (assert) => {
       const result = await createUser(ctx)({
         name: "",
         email: "invalid-email",

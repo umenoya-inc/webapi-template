@@ -11,6 +11,8 @@
  * - `failAs` — 説明ラベル付きのエラー値を生成する。`as const` の代わりに使用する。
  * - `okAs` — 説明ラベル付きの成功値を生成する。`as const` の代わりに使用する。
  * - `Desc` — 値に説明ラベルを付与するファントム型。`failAs` / `okAs` の戻り値型として使われる。
+ * - `DescLabel` — Desc ブランドからラベル文字列を抽出するヘルパー型。
+ * - `ExtractByLabel` — Desc ラベルで union メンバーを抽出するヘルパー型。
  *
  * ### 使い方
  *
@@ -56,7 +58,9 @@
  */
 
 export type { Desc } from "./Desc"
+export type { DescLabel } from "./DescLabel"
 export { defineContract } from "./defineContract"
+export type { ExtractByLabel } from "./ExtractByLabel"
 export { failAs } from "./failAs"
 export { matchContract } from "./matchContract"
 export { okAs } from "./okAs"

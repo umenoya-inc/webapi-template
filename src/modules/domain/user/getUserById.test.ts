@@ -9,15 +9,15 @@ const dummyCtx = {} as DbContext
 const dummyUserId = "00000000-0000-0000-0000-000000000001"
 
 const findUserByIdMock = mockContract(findUserById, {
-  success: async (input) => ({
+  "IDに該当するユーザーを取得": async (input) => ({
     ok: true,
     value: parse(User, { id: input.id, name: "Alice", email: "alice@example.com" }),
   }),
-  not_found: async () => ({
+  "IDに該当するユーザーが存在しない": async () => ({
     ok: false,
     reason: "not_found",
   }),
-  validation_failed: async () => ({
+  "入力値が不正": async () => ({
     ok: false,
     reason: "validation_failed",
     fields: {},
@@ -26,22 +26,28 @@ const findUserByIdMock = mockContract(findUserById, {
 
 describe("getUserById", () => {
   testContract(getUserById, {
-    success: async (assert) => {
-      const result = await getUserById(dummyCtx, { findUserById: findUserByIdMock.success })({
+    "IDに該当するユーザーを取得": async (assert) => {
+      const result = await getUserById(dummyCtx, {
+        findUserById: findUserByIdMock["IDに該当するユーザーを取得"],
+      })({
         id: dummyUserId,
       })
       const user = assert(result)
       expect(user.value.id).toBe(dummyUserId)
       expect(user.value.name).toBe("Alice")
     },
-    not_found: async (assert) => {
-      const result = await getUserById(dummyCtx, { findUserById: findUserByIdMock.not_found })({
+    "IDに該当するユーザーが存在しない": async (assert) => {
+      const result = await getUserById(dummyCtx, {
+        findUserById: findUserByIdMock["IDに該当するユーザーが存在しない"],
+      })({
         id: dummyUserId,
       })
       assert(result)
     },
-    validation_failed: async (assert) => {
-      const result = await getUserById(dummyCtx, { findUserById: findUserByIdMock.success })({
+    "入力値が不正": async (assert) => {
+      const result = await getUserById(dummyCtx, {
+        findUserById: findUserByIdMock["IDに該当するユーザーを取得"],
+      })({
         id: "not-a-uuid",
       })
       assert(result)

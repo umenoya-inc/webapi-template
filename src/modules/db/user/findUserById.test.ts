@@ -26,7 +26,7 @@ describe("findUserById", () => {
   })
 
   testContract(findUserById, {
-    success: async (assert) => {
+    "IDに該当するユーザーを取得": async (assert) => {
       const [inserted] = await insertUserRow(ctx, { name: "Alice", email: "alice@example.com" })
       const result = await findUserById(ctx)({ id: inserted.id })
       const user = assert(result)
@@ -34,11 +34,11 @@ describe("findUserById", () => {
       expect(user.value.name).toBe("Alice")
       expect(user.value.email).toBe("alice@example.com")
     },
-    not_found: async (assert) => {
+    "IDに該当するユーザーが存在しない": async (assert) => {
       const result = await findUserById(ctx)({ id: "00000000-0000-0000-0000-000000000000" })
       assert(result)
     },
-    validation_failed: async (assert) => {
+    "入力値が不正": async (assert) => {
       const result = await findUserById(ctx)({ id: "not-a-uuid" })
       assert(result)
     },

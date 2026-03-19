@@ -6,7 +6,7 @@ import type { Desc } from "./Desc"
  * as const の代わりにリテラル型を保持しつつ、
  * Desc ファントム型で説明を型に埋め込む。
  */
-export function okAs<TDesc extends string, TValue>(
+export function okAs<const TDesc extends string, TValue>(
   _desc: TDesc,
   value: TValue,
 ): Desc<TDesc, { ok: true; value: TValue }> {
