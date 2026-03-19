@@ -1,52 +1,71 @@
 # モジュールの責務分離
 
+## アーキテクチャ概要
+
+```
+src/
+├── api/           # API ハンドラ + ルート定義（ドメインロジックを含む）
+├── db/            # テーブル定義・ドメインモデル・CRUD 操作
+├── behavior/      # 振る舞いパスの型表現基盤（インフラ）
+├── contract/      # Valibot スキーマ検証付き関数定義（インフラ）
+├── testing/       # テスト・モックユーティリティ（インフラ）
+├── envvar/        # 環境変数（インフラ）
+└── index.ts       # Hono アプリケーションのエントリポイント
+```
+
 ## db モジュール
 
-`src/modules/db/` は CRUD レベルの DB 操作に徹する。ビジネスロジックは含めない。
+`src/db/` はデータアクセスとドメインモデルを担う。
 
-- サブモジュール（`db/user/`, `db/order/` 等）にテーブル定義・ドメインモデル・操作関数を配置する
-- 操作関数は単一テーブルへの INSERT / SELECT / UPDATE / DELETE が中心
-- テストは PGlite を使った実 DB テスト（`*.testutil.ts` で DbContext を生成）
-
-## ビジネスロジックモジュール
-
-`src/modules/user/`, `src/modules/todo/` 等のトップレベルモジュールにビジネスロジックを実装する。
-
-- `defineContract` + `env` パターンで DB 操作関数を依存注入する
-- 複数の DB 操作を組み合わせたワークフロー、条件分岐、権限チェック等をここに書く
-- テストは `env` 経由で db モジュールの公開関数をモックする。実 DB にはアクセスしない
-
-## 例
+- サブモジュール（`db/user/`, `db/todo/` 等）にテーブル定義・ドメインモデル・操作関数を配置する
+- 操作関数は `defineContract` で定義し、`okAs` / `failAs` でビジネス的な意味のあるラベルを付与する
+- DB エラー（unique_violation 等）をビジネスエラーに翻訳するのもここの責務
+- テストは PGlite を使った実 DB テスト
 
 ```
-src/modules/
-├── db/                  # CRUD 操作（実 DB テスト）
-│   ├── user/
-│   │   ├── User.ts
-│   │   ├── userTable.ts
-│   │   ├── createUser.ts
-│   │   ├── createUser.test.ts      # PGlite で実 DB テスト
-│   │   └── findUserById.ts
-│   └── todo/
-│       ├── Todo.ts
-│       ├── todoTable.ts
-│       └── saveTodo.ts
-├── user/                # ユーザー関連のビジネスロジック
-│   ├── registerUser.ts
-│   └── registerUser.test.ts        # db 関数をモックしてテスト
-└── todo/                # ToDo 関連のビジネスロジック
-    ├── createTodo.ts
-    └── createTodo.test.ts           # db 関数をモックしてテスト
+src/db/
+├── user/
+│   ├── User.ts              # ドメインモデル（Valibot スキーマ + Branded Type）
+│   ├── UserId.ts            # Branded Entity ID
+│   ├── userTable.ts         # Drizzle テーブル定義
+│   ├── createUser.ts        # defineContract で CRUD + エラー判断
+│   ├── createUser.test.ts   # PGlite で実 DB テスト
+│   ├── findUserById.ts
+│   └── index.ts             # barrel export
+└── index.ts
 ```
+
+## api モジュール
+
+`src/api/` は API ハンドラとルート定義を担う。ドメインロジック（複数の DB 操作の組み合わせ、条件分岐等）もここに含む。
+
+- ドメインごとにサブモジュール（`api/user/` 等）を作る
+- ハンドラ（`postUser.ts`）は `defineRouteContract` で定義。`responses` マップでステータスコードを宣言し、`fn` 内でビジネスロジックを記述する
+- ルート定義（`postUserRoute.ts`）は `defineRoute` で Hono インスタンスを生成する薄いアダプタ
+- ハンドラとルート定義は対称的な名前でペアにする
+- DB 操作は `env` パターンで注入し、テスト時にモック可能にする
+
+```
+src/api/
+├── user/
+│   ├── postUser.ts          # defineRouteContract（ハンドラロジック）
+│   ├── postUser.test.ts     # testBehavior でテスト（DB はモック）
+│   ├── postUserRoute.ts     # defineRoute（ルート定義）
+│   └── index.ts
+├── defineRoute.ts           # ルート生成ユーティリティ
+├── defineRouteContract.ts   # ルート専用コントラクト
+└── index.ts
+```
+
+### なぜ独立したドメイン層を持たないのか
+
+`defineRouteContract` のハンドラはビジネスロジックそのもので、HTTP メタデータ（`responses` のステータスコード）は `fn` の外に宣言される。ハンドラの `fn` を剥がせば純粋なドメイン関数と等価であり、独立したドメイン層を設けるとパススルー関数が量産される。
+
+複数のハンドラから共有されるロジックが出てきた場合は、api モジュール内にユーティリティとして切り出せばよく、層としてのアクセス制御は不要。
 
 ## テスト方針
 
-| モジュール | テスト対象       | DB                       |
-| ---------- | ---------------- | ------------------------ |
-| `db/*`     | CRUD 操作        | PGlite（実 DB）          |
-| それ以外   | ビジネスロジック | モック（`env` 差し替え） |
-
-## 参考
-
-- [Separation of Concerns](https://en.wikipedia.org/wiki/Separation_of_concerns) — CRUD 操作とビジネスロジックを異なるモジュールに分離する基本原則
-- [Dependency Inversion Principle](https://en.wikipedia.org/wiki/Dependency_inversion_principle) — `env` パターンで具象への直接依存を避け、テスト時にモック可能にする考え方
+| モジュール | テスト対象        | DB                       |
+| ---------- | ----------------- | ------------------------ |
+| `db/*`     | CRUD + エラー判断 | PGlite（実 DB）          |
+| `api/*`    | ハンドラロジック  | モック（`env` 差し替え） |

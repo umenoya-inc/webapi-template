@@ -12,7 +12,7 @@ TypeScript ファイルを作成・編集する際は、以下のルールを必
 - [Branded Entity ID](docs/rule/branded-entity-id.md)
 - [JSDoc フォーマット](docs/rule/jsdoc-format.md)
 - [defineContract の fn 内 failAs / okAs](docs/rule/contract-fn-as-const.md)
-- [API ファイル](docs/rule/route-file.md)
+- [API エンドポイント](docs/rule/api-endpoint.md)
 
 # Design
 
