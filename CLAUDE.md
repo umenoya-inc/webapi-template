@@ -21,6 +21,7 @@ TypeScript ファイルを作成・編集する際は、以下のルールを必
 - [Always Valid Domain Model](docs/design/always-valid-domain-model.md)
 - [モジュールの責務分離](docs/design/module-responsibility.md)
 - [index.ts によるモジュールアクセス制御](docs/design/module-access-control.md)
+- [型によるテスト網羅の強制](docs/design/type-enforced-test-coverage.md)
 
 # Infrastructure
 
