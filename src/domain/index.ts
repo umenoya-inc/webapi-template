@@ -4,7 +4,7 @@
  *
  * ビジネスロジックを配置するトップレベルモジュール。
  *
- * @dependencies db, contract
+ * @dependencies db/**, contract/**
  */
 
 export {}

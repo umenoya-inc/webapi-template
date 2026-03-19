@@ -4,7 +4,7 @@
  *
  * HTTP ルートハンドラを定義する。
  *
- * @dependencies domain
+ * @dependencies domain/**, db, behavior
  */
 
 export { healthRoute } from "./healthRoute"

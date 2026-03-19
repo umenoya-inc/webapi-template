@@ -14,10 +14,40 @@ const tester = new RuleTester({ cwd })
 
 tester.run("enforce-dependencies", enforceDependencies, {
   valid: [
-    // domain → db: domain/index.ts に @dependencies db がある場合
+    // domain → db/**: サブモジュールへのアクセスも許可
     {
       code: 'import { findUserById } from "@/db/user"',
       filename: src("domain/user/getUserById.ts"),
+      options,
+    },
+    // domain → db/**: トップレベルも許可
+    {
+      code: 'import { globalDbContext } from "@/db"',
+      filename: src("domain/user/getUserById.ts"),
+      options,
+    },
+    // domain → contract/**: サブモジュールも許可
+    {
+      code: 'import { defineContract } from "@/contract"',
+      filename: src("domain/user/registerUser.ts"),
+      options,
+    },
+    // routes → domain/**: サブモジュールへのアクセス許可
+    {
+      code: 'import { registerUser } from "@/domain/user"',
+      filename: src("routes/userRoute.ts"),
+      options,
+    },
+    // routes → db: トップレベルのみ許可
+    {
+      code: 'import { globalDbContext } from "@/db"',
+      filename: src("routes/userRoute.ts"),
+      options,
+    },
+    // routes → behavior: トップレベルのみ許可
+    {
+      code: 'import { matchBehavior } from "@/behavior"',
+      filename: src("routes/userRoute.ts"),
       options,
     },
     // 同一モジュール内は常にOK
@@ -40,9 +70,26 @@ tester.run("enforce-dependencies", enforceDependencies, {
     },
   ],
   invalid: [
-    // domain → db は許可されているが、db → domain は許可されていない
-    // ※ db/index.ts に @dependencies で domain が宣言されていない場合
-    // ただし db は @dependencies を宣言していないのでこのテストは valid になる
-    // 実際にテストするには @dependencies を宣言したモジュールが必要
+    // routes → db/user: db はトップレベルのみ許可、サブモジュールは不可
+    {
+      code: 'import { createUser } from "@/db/user"',
+      filename: src("routes/userRoute.ts"),
+      options,
+      errors: [{ messageId: "disallowedDependency" }],
+    },
+    // routes → behavior/failAs: behavior はトップレベルのみ許可
+    {
+      code: 'import { failAs } from "@/behavior/failAs"',
+      filename: src("routes/userRoute.ts"),
+      options,
+      errors: [{ messageId: "disallowedDependency" }],
+    },
+    // routes → contract: 宣言されていないモジュールへのアクセスは不可
+    {
+      code: 'import { defineContract } from "@/contract"',
+      filename: src("routes/userRoute.ts"),
+      options,
+      errors: [{ messageId: "disallowedDependency" }],
+    },
   ],
 })

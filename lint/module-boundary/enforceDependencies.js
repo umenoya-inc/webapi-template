@@ -47,9 +47,9 @@ const enforceDependencies = {
         const sourceModule = getTopModule(filename, baseDir)
         if (!sourceModule) return
 
-        // インポート先のトップレベルモジュールを特定
-        const afterAlias = source.slice(aliasPrefix.length)
-        const targetModule = afterAlias.split("/")[0]
+        // インポート先のパスを取得（エイリアス以降）
+        const importPath = source.slice(aliasPrefix.length)
+        const targetModule = importPath.split("/")[0]
 
         // 同一モジュール内は対象外
         if (sourceModule === targetModule) return
@@ -60,7 +60,7 @@ const enforceDependencies = {
         // @dependencies が宣言されていない場合は制約なし（オプトイン）
         if (allowedDeps === null) return
 
-        if (!allowedDeps.includes(targetModule)) {
+        if (!allowedDeps.some((pattern) => matchDependency(pattern, importPath))) {
           context.report({
             node,
             messageId: "disallowedDependency",
@@ -120,6 +120,33 @@ function readDependencies(baseDir, moduleName) {
     .filter(Boolean)
   depsCache.set(cacheKey, deps)
   return deps
+}
+
+/**
+ * 依存パターンとインポートパスのマッチング
+ *
+ * - "db"      → "db" のみ（トップレベルのみ）
+ * - "db/*"    → "db" と "db/user" （直下のサブモジュールまで）
+ * - "db/**"   → "db" と "db/user" と "db/user/nested" ...（全階層）
+ *
+ * @param {string} pattern
+ * @param {string} importPath
+ * @returns {boolean}
+ */
+function matchDependency(pattern, importPath) {
+  if (pattern.endsWith("/**")) {
+    const prefix = pattern.slice(0, -3)
+    return importPath === prefix || importPath.startsWith(prefix + "/")
+  }
+  if (pattern.endsWith("/*")) {
+    const prefix = pattern.slice(0, -2)
+    if (importPath === prefix) return true
+    if (!importPath.startsWith(prefix + "/")) return false
+    // 直下のみ: prefix 以降にスラッシュが1つだけ
+    const rest = importPath.slice(prefix.length + 1)
+    return !rest.includes("/")
+  }
+  return importPath === pattern
 }
 
 export default enforceDependencies
