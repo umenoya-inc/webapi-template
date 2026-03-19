@@ -43,6 +43,7 @@ export default defineConfig({
             "error",
             { basePath: "src", aliasPrefix: "@/" },
           ],
+          "module-boundary/enforce-dependencies": ["error", { basePath: "src", aliasPrefix: "@/" }],
           "single-export/one-export-per-file": "error",
           "import-style/no-namespace-import": "error",
           "test-boundary/no-testutil-in-production": "error",
