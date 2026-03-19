@@ -8,3 +8,4 @@
  */
 
 export { healthRoute } from "./healthRoute"
+export { userRoute } from "./userRoute"
