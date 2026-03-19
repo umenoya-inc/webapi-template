@@ -25,9 +25,9 @@ src/modules/db/
 │   └── createUser.test.ts
 ```
 
-## testContract による振る舞い別テスト
+## testBehavior による振る舞い別テスト
 
-`defineContract` ベースの関数は `testContract` を使ってテストする。テストケースのキーは実装の Desc ラベルから導出され、全ラベルの網羅が型レベルで強制される。
+`defineContract` ベースの関数は `testBehavior` を使ってテストする。テストケースのキーは実装の Desc ラベルから導出され、全ラベルの網羅が型レベルで強制される。
 
 ### DB 層のテスト
 
@@ -38,7 +38,7 @@ import { afterAll, beforeAll, describe, expect } from "vite-plus/test"
 import type { DbContext } from "../DbContext"
 import { fromDbContext } from "../fromDbContext"
 import { createTestDbContext } from "../testing/createTestDbContext.testutil"
-import { testContract } from "@/modules/testing"
+import { testBehavior } from "@/modules/testing"
 import { findUserById } from "./findUserById"
 import { userTable } from "./userTable"
 
@@ -63,7 +63,7 @@ describe("findUserById", () => {
 
   // キーは実装の okAs / failAs ラベルから導出される
   // ラベルが不足するとコンパイルエラー
-  testContract(findUserById, {
+  testBehavior(findUserById, {
     "IDに該当するユーザーを取得": async (assert) => {
       const [inserted] = await insertUserRow(ctx, { name: "Alice", email: "alice@example.com" })
       const result = await findUserById(ctx)({ id: inserted.id })
@@ -83,24 +83,24 @@ describe("findUserById", () => {
 })
 ```
 
-### Domain 層のテスト（mockContract + mockEnv）
+### Domain 層のテスト（mockBehavior + mockEnv）
 
-Domain 層の関数（env を持つ）は、依存を `mockContract` でモック化し、`mockEnv` で型安全に env を構築してテストする。`mockContract` は `describe` 内に配置する。
+Domain 層の関数（env を持つ）は、依存を `mockBehavior` でモック化し、`mockEnv` で型安全に env を構築してテストする。`mockBehavior` は `describe` 内に配置する。
 
 ```typescript
 import { parse } from "valibot"
 import { describe, expect } from "vite-plus/test"
 import type { DbContext } from "@/modules/db"
 import { User, findUserById } from "@/modules/db/user"
-import { mockEnv, mockContract, testContract } from "@/modules/testing"
+import { mockEnv, mockBehavior, testBehavior } from "@/modules/testing"
 import { getUserById } from "./getUserById"
 
 const dummyCtx = {} as DbContext
 const dummyUserId = "00000000-0000-0000-0000-000000000001"
 
 describe("getUserById", () => {
-  // mockContract: 全 Desc ラベルに対応するモック実装を定義（網羅必須）
-  const findUserByIdMock = mockContract(findUserById, {
+  // mockBehavior: 全 Desc ラベルに対応するモック実装を定義（網羅必須）
+  const findUserByIdMock = mockBehavior(findUserById, {
     "IDに該当するユーザーを取得": async (input) => ({
       ok: true,
       value: parse(User, { id: input.id, name: "Alice", email: "alice@example.com" }),
@@ -116,7 +116,7 @@ describe("getUserById", () => {
     }),
   })
 
-  testContract(getUserById, {
+  testBehavior(getUserById, {
     "IDに該当するユーザーを取得": async (assert) => {
       // mockEnv: Contract 関数の末尾引数型と一致するか検証される
       const env = mockEnv(getUserById, {
@@ -150,7 +150,7 @@ describe("getUserById", () => {
 1つの Desc ラベルに対して複数のテストケースがある場合は、オブジェクトで名前を付ける。
 
 ```typescript
-testContract(listUsers, {
+testBehavior(listUsers, {
   "ユーザーが存在しない": async (assert) => {
     const result = await listUsers(ctx)()
     const ok = assert(result)
@@ -161,4 +161,70 @@ testContract(listUsers, {
     "名前順にソートされている": async (assert) => { ... },
   },
 })
+```
+
+### parameterize（パラメタライズドテスト）
+
+同じ振る舞いパスに対して複数の入力パターンをテストする場合は `parameterize` を使う。各エントリが個別テストとして実行される。
+
+実装側で `InputScenarios`（`failAs` / `okAs` の最終引数に文字列配列）を宣言している場合、params のキーはそのシナリオラベルと一致する必要がある。宣言がない場合はキーは自由。
+
+```typescript
+import { parameterize, testBehavior } from "@/testing"
+
+testBehavior(createUser, {
+  // ...
+  "入力値が不正": parameterize(
+    {
+      "nameが空": { name: "", email: "valid@example.com" },
+      "emailが不正": { name: "Alice", email: "invalid" },
+      "name文字数超過": { name: "A".repeat(101), email: "alice@example.com" },
+    },
+    async (assert, input) => {
+      const result = await createUser(ctx)(input)
+      assert(result)
+    },
+  ),
+})
+```
+
+### propertyCheck（プロパティベーステスト）
+
+スキーマから入力を自動生成してプロパティベーステストを行う場合は `propertyCheck` を使う。params の値は fast-check の arbitrary によるフィールド単位のオーバーライド。指定しないフィールドは Valibot スキーマから自動生成される。
+
+```typescript
+import { constant, string } from "fast-check"
+import { propertyCheck, testBehavior } from "@/testing"
+
+testBehavior(createUser, {
+  // ...
+  "入力値が不正": propertyCheck(
+    createUser,
+    {
+      "nameが空": { name: constant("") },
+      "emailが不正": { email: string() },
+      "name文字数超過": { name: string({ minLength: 101 }) },
+    },
+    async (assert, input) => {
+      const result = await createUser(ctx)(input)
+      assert(result)
+    },
+  ),
+})
+```
+
+### defaultInputError（入力シナリオ付きデフォルトエラー）
+
+`defineContract` の `onInputError` にシナリオラベルを宣言する場合は `defaultInputError` を使う。デフォルトのバリデーションエラー応答にシナリオラベルが付与され、`parameterize` / `propertyCheck` のキーとして型レベルで強制される。
+
+```typescript
+import { defaultInputError, defineContract, failAs, okAs } from "@/contract"
+
+export const createUser = (ctx: DbContext) =>
+  defineContract({
+    input: object({ ... }),
+    output: User,
+    onInputError: defaultInputError(["nameが空", "emailが不正", "name文字数超過"]),
+    fn: async (input) => { ... },
+  })
 ```

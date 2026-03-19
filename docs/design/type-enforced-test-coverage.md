@@ -1,12 +1,12 @@
 # 型によるテスト網羅の強制
 
-実装の各コードパスに Desc ラベルを付与し、`testContract` がそのラベル集合を exhaustive なキーとして要求することで、テストケースの網羅をコンパイル時に強制する。
+実装の各コードパスに Desc ラベルを付与し、`testBehavior` がそのラベル集合を exhaustive なキーとして要求することで、テストケースの網羅をコンパイル時に強制する。
 
 ## 原則
 
 - `defineContract` の `fn` 内で `okAs` / `failAs` を使い、各コードパスに説明ラベルを付与する
 - ラベルは「呼び出し側にとって意味のある振る舞いの違い」を基準に分ける
-- `testContract` のキーは Desc ラベルから導出され、全ラベルの網羅が必須
+- `testBehavior` のキーは Desc ラベルから導出され、全ラベルの網羅が必須
 - 実装にコードパスを追加したらテストも書かないとコンパイルが通らない
 
 ## 例
@@ -35,7 +35,7 @@ export const listUsers = (ctx: DbContext) =>
 
 ```typescript
 // 各ラベルに対応するテストケースがないとコンパイルエラー
-testContract(listUsers, {
+testBehavior(listUsers, {
   "ユーザーが存在しない": async (assert) => {
     const result = await listUsers(ctx)()
     const ok = assert(result)
@@ -87,8 +87,27 @@ return failAs("権限不足かつ管理者承認なし", "forbidden", { ... })
 1. `okAs` / `failAs` が `Desc<Label, T>` ブランド型を返す
 2. `defineContract` の `fn` 戻り値型制約が `Desc` を要求し、素のオブジェクトリテラルを拒否する
 3. 外部戻り値型に各ラベルが `Desc` として保持される（`ReplaceOkValue` で分配）
-4. `testContract` が `DescLabel<ContractResultUnion<F>>` を exhaustive なキーとして要求する
-5. `mockContract` も同じキーを使い、モック定義の網羅を強制する
+4. `testBehavior` が `DescLabel<ContractResultUnion<F>>` を exhaustive なキーとして要求する
+5. `mockBehavior` も同じキーを使い、モック定義の網羅を強制する
+
+## InputScenarios による入力パターンの網羅
+
+`okAs` / `failAs` の最終引数に文字列配列を渡すと、`InputScenarios` ブランドが `Desc` に付与される。`testBehavior` の `parameterize` / `propertyCheck` で、そのシナリオラベルがパラメータキーとして型レベルで強制される。
+
+```typescript
+// 実装側: シナリオを宣言
+onInputError: defaultInputError(["nameが空", "emailが不正", "name文字数超過"]),
+
+// テスト側: キーの過不足がコンパイルエラーになる
+"入力値が不正": parameterize({
+  "nameが空": { ... },       // 必須
+  "emailが不正": { ... },    // 必須
+  "name文字数超過": { ... }, // 必須
+  // "存在しないキー" → コンパイルエラー
+}, async (assert, input) => { ... }),
+```
+
+シナリオ宣言はオプショナル。宣言がないラベルでは `parameterize` / `propertyCheck` のキーは自由（`string` フォールバック）。
 
 ## 既存アプローチとの違い
 
@@ -97,4 +116,4 @@ return failAs("権限不足かつ管理者承認なし", "forbidden", { ... })
 | コードカバレッジ               | ランタイム       | 実行された行・分岐                       |
 | Mutation testing               | ランタイム       | テストが変更を検出するか                 |
 | 型付きエラー（Effect, ZIO）    | コンパイル時     | プロダクションコードのエラーハンドリング |
-| **Desc ラベル + testContract** | **コンパイル時** | **テストケースの振る舞い網羅**           |
+| **Desc ラベル + testBehavior** | **コンパイル時** | **テストケースの振る舞い網羅**           |
