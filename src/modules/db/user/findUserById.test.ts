@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect } from "vite-plus/test"
 import type { DbContext } from "../DbContext"
 import { fromDbContext } from "../fromDbContext"
 import { createTestDbContext } from "../testing/createTestDbContext.testutil"
-import { testContract } from "@/modules/testing"
+import { testBehavior } from "@/modules/testing"
 import { findUserById } from "./findUserById"
 import { userTable } from "./userTable"
 
@@ -25,7 +25,7 @@ describe("findUserById", () => {
     await cleanup?.()
   })
 
-  testContract(findUserById, {
+  testBehavior(findUserById, {
     "IDに該当するユーザーを取得": async (assert) => {
       const [inserted] = await insertUserRow(ctx, { name: "Alice", email: "alice@example.com" })
       const result = await findUserById(ctx)({ id: inserted.id })

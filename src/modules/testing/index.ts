@@ -2,12 +2,12 @@
  * @packageDocumentation
  * ## testing モジュール
  *
- * defineContract ベースの関数に対するテスト・モック用ユーティリティを提供する。
+ * defineBehavior / defineContract ベースの関数に対するテスト・モック用ユーティリティを提供する。
  *
  * ### エクスポート
  *
- * - `testContract` — 振る舞い別テストを網羅的に定義する。キーは実装の Desc ラベルから導出され、全ラベルの網羅が型レベルで強制される。
- * - `mockContract` — 振る舞い別モックを定義する。キーは `testContract` と同じ Desc ラベル。全ラベルの網羅が必須。
+ * - `testBehavior` — 振る舞い別テストを網羅的に定義する。キーは実装の Desc ラベルから導出され、全ラベルの網羅が型レベルで強制される。
+ * - `mockBehavior` — 振る舞い別モックを定義する。キーは `testBehavior` と同じ Desc ラベル。全ラベルの網羅が必須。
  * - `mockEnv` — Contract 関数の末尾引数（env）に渡すモックオブジェクトを型安全に構築する。
  *
  * ### テストの書き方
@@ -16,6 +16,6 @@
  * 詳細は [テストファイルルール](../../docs/rule/test-file.md) を参照。
  */
 
+export { mockBehavior } from "./mockBehavior.testutil"
 export { mockEnv } from "./mockEnv.testutil"
-export { mockContract } from "./mockContract.testutil"
-export { testContract } from "./testContract.testutil"
+export { testBehavior } from "./testBehavior.testutil"

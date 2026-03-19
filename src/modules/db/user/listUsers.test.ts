@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect } from "vite-plus/test"
 import type { DbContext } from "../DbContext"
 import { fromDbContext } from "../fromDbContext"
 import { createTestDbContext } from "../testing/createTestDbContext.testutil"
-import { testContract } from "@/modules/testing"
+import { testBehavior } from "@/modules/testing"
 import { listUsers } from "./listUsers"
 import { userTable } from "./userTable"
 
@@ -25,7 +25,7 @@ describe("listUsers", () => {
     await cleanup?.()
   })
 
-  testContract(listUsers, {
+  testBehavior(listUsers, {
     "ユーザーが存在しない": async (assert) => {
       const result = await listUsers(ctx)()
       const ok = assert(result)

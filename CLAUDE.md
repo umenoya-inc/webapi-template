@@ -27,9 +27,10 @@ TypeScript ファイルを作成・編集する際は、以下のルールを必
 
 共通モジュールを利用・拡張する際は、各モジュールの `index.ts` のコードドキュメントを参照すること。
 
+- [Behavior](src/modules/behavior/index.ts) — 振る舞いパスの型表現、テスト網羅強制、Desc ラベル
+- [Contract](src/modules/contract/index.ts) — Valibot スキーマによる入出力検証付き関数定義（behavior の上に構築）
 - [DBアクセス](src/modules/db/index.ts) — DbContext, トランザクション, DB操作関数の追加方法
 - [環境変数](src/modules/envvar/index.ts) — 型安全な環境変数の取得・追加方法
-- [Design by Contract](src/modules/contract/index.ts) — Valibot スキーマによる入出力検証付き関数定義
 
 # Commands
 

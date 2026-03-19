@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect } from "vite-plus/test"
 import type { DbContext } from "../DbContext"
 import { createTestDbContext } from "../testing/createTestDbContext.testutil"
-import { testContract } from "@/modules/testing"
+import { testBehavior } from "@/modules/testing"
 import { createUser } from "./createUser"
 import { userTable } from "./userTable"
 
@@ -19,7 +19,7 @@ describe("createUser", () => {
     await cleanup?.()
   })
 
-  testContract(createUser, {
+  testBehavior(createUser, {
     "ユーザーを新規作成": async (assert) => {
       const result = await createUser(ctx)({
         name: "Alice",

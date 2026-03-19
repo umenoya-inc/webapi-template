@@ -2,27 +2,21 @@
  * @packageDocumentation
  * ## contract モジュール
  *
- * Design by Contract パターンを Valibot スキーマで実現する。
+ * Valibot スキーマによる入出力検証付き関数定義を提供する。
+ * 振る舞いパスの型表現（Desc, okAs, failAs 等）は behavior モジュールに委譲し、
+ * スキーマ検証を上乗せする。
  *
  * ### エクスポート
  *
- * - `defineContract` — input/output スキーマと（任意で）エラーハンドラを受け取り、契約付き関数を返す。
- * - `matchContract` — Contract 関数の戻り値に対する exhaustive なパターンマッチ。
- * - `failAs` — 説明ラベル付きのエラー値を生成する。`as const` の代わりに使用する。
- * - `okAs` — 説明ラベル付きの成功値を生成する。`as const` の代わりに使用する。
- * - `Desc` — 値に説明ラベルを付与するファントム型。`failAs` / `okAs` の戻り値型として使われる。
- * - `DescLabel` — Desc ブランドからラベル文字列を抽出するヘルパー型。
- * - `ExtractByLabel` — Desc ラベルで union メンバーを抽出するヘルパー型。
+ * - `defineContract` — defineBehavior + withSchema の合成。input/output スキーマ付きで関数を定義する。
+ * - `withSchema` — Valibot スキーマによる入出力検証を関数に適用する。
+ *
+ * ### behavior モジュールからの再エクスポート
+ *
+ * `defineContract` と併用する `okAs` / `failAs` 等は behavior モジュールから再エクスポートする。
+ * 利用側は `@/modules/contract` からまとめてインポートできる。
  *
  * ### 使い方
- *
- * 検証対象外の引数（DbContext, env 等）はカリー化で外側に出し、
- * `defineContract` には検証対象の input のみを渡す。
- * input / output スキーマは通常の引数の感覚でインラインに定義できる。
- * 複雑なスキーマの場合のみ別ファイルに切り出す。
- *
- * `fn` 内では `okAs` / `failAs` を使って各コードパスに説明ラベルを付与する。
- * 素のオブジェクトリテラルを返すと型エラーになる。
  *
  * ```typescript
  * import type { DbContext } from "@/modules/db"
@@ -57,11 +51,10 @@
  *   Branded Types への変換を行う。
  */
 
-export type { ContractBrand } from "./ContractBrand"
-export type { Desc } from "./Desc"
-export type { DescLabel } from "./DescLabel"
+// behavior モジュールからの再エクスポート
+export type { BehaviorBrand, Desc, DescLabel, ExtractByLabel } from "@/modules/behavior"
+export { defineBehavior, failAs, matchBehavior, okAs } from "@/modules/behavior"
+
+// contract 固有のエクスポート
 export { defineContract } from "./defineContract"
-export type { ExtractByLabel } from "./ExtractByLabel"
-export { failAs } from "./failAs"
-export { matchContract } from "./matchContract"
-export { okAs } from "./okAs"
+export { withSchema } from "./withSchema"

@@ -2,7 +2,7 @@ import { parse } from "valibot"
 import { describe, expect } from "vite-plus/test"
 import type { DbContext } from "@/modules/db"
 import { User, listUsers } from "@/modules/db/user"
-import { mockEnv, mockContract, testContract } from "@/modules/testing"
+import { mockEnv, mockBehavior, testBehavior } from "@/modules/testing"
 import { getUsers } from "./getUsers"
 
 const dummyCtx = {} as DbContext
@@ -19,7 +19,7 @@ const bob = parse(User, {
 })
 
 describe("getUsers", () => {
-  const listUsersMock = mockContract(listUsers, {
+  const listUsersMock = mockBehavior(listUsers, {
     "ユーザーが存在しない": async () => ({
       ok: true,
       value: [],
@@ -30,7 +30,7 @@ describe("getUsers", () => {
     }),
   })
 
-  testContract(getUsers, {
+  testBehavior(getUsers, {
     "ユーザーが存在しない": async (assert) => {
       const env = mockEnv(getUsers, {
         listUsers: listUsersMock["ユーザーが存在しない"],

@@ -2,14 +2,14 @@ import { parse } from "valibot"
 import { describe, expect } from "vite-plus/test"
 import type { DbContext } from "@/modules/db"
 import { User, createUser } from "@/modules/db/user"
-import { mockEnv, mockContract, testContract } from "@/modules/testing"
+import { mockEnv, mockBehavior, testBehavior } from "@/modules/testing"
 import { registerUser } from "./registerUser"
 
 const dummyCtx = {} as DbContext
 const dummyUserId = "00000000-0000-0000-0000-000000000001"
 
 describe("registerUser", () => {
-  const createUserMock = mockContract(createUser, {
+  const createUserMock = mockBehavior(createUser, {
     "ユーザーを新規作成": async (input) => ({
       ok: true,
       value: parse(User, { id: dummyUserId, name: input.name, email: input.email }),
@@ -26,7 +26,7 @@ describe("registerUser", () => {
     }),
   })
 
-  testContract(registerUser, {
+  testBehavior(registerUser, {
     "ユーザーを登録": async (assert) => {
       const env = mockEnv(registerUser, {
         createUser: createUserMock["ユーザーを新規作成"],

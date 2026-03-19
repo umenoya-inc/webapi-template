@@ -2,14 +2,14 @@ import { parse } from "valibot"
 import { describe, expect } from "vite-plus/test"
 import type { DbContext } from "@/modules/db"
 import { User, findUserById } from "@/modules/db/user"
-import { mockEnv, mockContract, testContract } from "@/modules/testing"
+import { mockEnv, mockBehavior, testBehavior } from "@/modules/testing"
 import { getUserById } from "./getUserById"
 
 const dummyCtx = {} as DbContext
 const dummyUserId = "00000000-0000-0000-0000-000000000001"
 
 describe("getUserById", () => {
-  const findUserByIdMock = mockContract(findUserById, {
+  const findUserByIdMock = mockBehavior(findUserById, {
     "IDに該当するユーザーを取得": async (input) => ({
       ok: true,
       value: parse(User, { id: input.id, name: "Alice", email: "alice@example.com" }),
@@ -25,7 +25,7 @@ describe("getUserById", () => {
     }),
   })
 
-  testContract(getUserById, {
+  testBehavior(getUserById, {
     "IDに該当するユーザーを取得": async (assert) => {
       const env = mockEnv(getUserById, {
         findUserById: findUserByIdMock["IDに該当するユーザーを取得"],

@@ -1,5 +1,5 @@
 /**
- * defineContract ベースの関数に対する振る舞い別テストを網羅的に定義する。
+ * defineBehavior / defineContract ベースの関数に対する振る舞い別テストを網羅的に定義する。
  *
  * 第1引数は型推論のアンカーとして使う（実行はしない）。
  * 第2引数に Desc ラベルとテストケースを渡す。ラベルは戻り値の Desc 型から導出され、
@@ -13,27 +13,27 @@
  */
 
 import { expect, it } from "vite-plus/test"
-import type { ContractBrand, DescLabel, ExtractByLabel } from "@/modules/contract"
+import type { BehaviorBrand, DescLabel, ExtractByLabel } from "@/modules/behavior"
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/** ContractBrand を再帰的に探してResult型を抽出する */
-type ExtractContractResult<T> = T extends ContractBrand & ((...args: any[]) => Promise<infer R>)
+/** BehaviorBrand を再帰的に探して Result 型を抽出する */
+type ExtractBehaviorResult<T> = T extends BehaviorBrand & ((...args: any[]) => Promise<infer R>)
   ? R
   : T extends (...args: any[]) => infer Inner
-    ? ExtractContractResult<Inner>
+    ? ExtractBehaviorResult<Inner>
     : never
 
-type ContractResult<F> = ExtractContractResult<F>
+type BehaviorResult<F> = ExtractBehaviorResult<F>
 
-type Labels<F> = DescLabel<ContractResult<F>>
+type Labels<F> = DescLabel<BehaviorResult<F>>
 
 /** Desc ブランド（symbol キー）を剥がして素のオブジェクト型にする */
 type StripBrand<T> = { [K in keyof T as K extends string ? K : never]: T[K] }
 
-type LabelResult<F, K extends string> = StripBrand<ExtractByLabel<ContractResult<F>, K>>
+type LabelResult<F, K extends string> = StripBrand<ExtractByLabel<BehaviorResult<F>, K>>
 
-type LabelAssert<F, K extends string> = (result: ContractResult<F>) => LabelResult<F, K>
+type LabelAssert<F, K extends string> = (result: BehaviorResult<F>) => LabelResult<F, K>
 
 type TestFn<F, K extends string> = (assert: LabelAssert<F, K>) => Promise<void> | void
 
@@ -41,7 +41,7 @@ type LabelTestEntry<F, K extends string> = TestFn<F, K> | Record<string, TestFn<
 
 type TestCases<F> = { [K in Labels<F>]: LabelTestEntry<F, K> }
 
-export const testContract = <F extends (...args: any[]) => any>(
+export const testBehavior = <F extends (...args: any[]) => any>(
   _fn: F,
   cases: TestCases<F>,
 ): void => {

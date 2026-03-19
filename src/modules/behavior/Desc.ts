@@ -5,6 +5,6 @@ declare const descBrand: unique symbol
  *
  * ランタイムには影響せず、型レベルでのみ意味を持つ。
  * failAs / okAs の戻り値型として使われ、
- * defineContract の fn 内で素のオブジェクトリテラル返却を型エラーにする。
+ * defineBehavior の fn 内で素のオブジェクトリテラル返却を型エラーにする。
  */
 export type Desc<Label extends string, T> = T & { readonly [descBrand]: Label }

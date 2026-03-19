@@ -10,8 +10,8 @@ Hono + TypeScript + Vite+ による Web API テンプレート。
 
 - [Always Valid Domain Model](docs/design/always-valid-domain-model.md)
 - [関数指向のロジック設計](docs/design/function-oriented-logic.md)
-- [モジュールの責務分離](docs/design/module-responsibility.md)
 - [index.ts によるモジュールアクセス制御](docs/design/module-access-control.md)
+- [モジュールの責務分離](docs/design/module-responsibility.md)
 - [型によるテスト網羅の強制](docs/design/type-enforced-test-coverage.md)
 
 ### ルール
@@ -29,13 +29,14 @@ Hono + TypeScript + Vite+ による Web API テンプレート。
 
 ## モジュール構成
 
-- **contract** — Design by Contract パターンを Valibot スキーマで実現する
+- **behavior** — 振る舞いパスの型表現とテスト網羅強制の基盤を提供する
+- **contract** — Valibot スキーマによる入出力検証付き関数定義を提供する
 - **db** — Drizzle ORM + node-postgres によるDBアクセスを提供する
   - **user** — ユーザーの永続化と取得を担当する
 - **domain** — ビジネスロジックを配置するトップレベルモジュール
   - **user** — ユーザー管理のビジネスロジックを提供する
 - **envvar** — 環境変数を型安全に取得する
-- **testing** — defineContract ベースの関数に対するテスト・モック用ユーティリティを提供する
+- **testing** — defineBehavior / defineContract ベースの関数に対するテスト・モック用ユーティリティを提供する
 
 ## スクリプト
 
