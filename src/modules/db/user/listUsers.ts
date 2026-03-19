@@ -5,12 +5,7 @@ import { defineContract, okAs } from "@/modules/contract"
 import { User } from "./User"
 import { userTable } from "./userTable"
 
-/**
- * ユーザー一覧を取得する。
- *
- * - 登録済みのユーザーが存在する場合、Branded な User の配列を返す
- * - ユーザーが存在しない場合、空配列を返す
- */
+/** ユーザー一覧を取得する。 */
 export const listUsers = (ctx: DbContext) =>
   defineContract({
     output: array(User),

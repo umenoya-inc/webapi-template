@@ -3,13 +3,7 @@ import type { DbContext } from "@/modules/db"
 import { defineContract, okAs } from "@/modules/contract"
 import { User, createUser } from "@/modules/db/user"
 
-/**
- * ユーザーを登録する。
- *
- * - 正常に登録された場合、Branded な User を返す
- * - email が重複した場合、duplicate_entry エラーを返す
- * - 入力値が不正な場合、validation_failed エラーを返す
- */
+/** ユーザーを登録する。 */
 export const registerUser = (
   ctx: DbContext,
   env: {

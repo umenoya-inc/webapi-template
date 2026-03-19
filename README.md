@@ -8,27 +8,34 @@ Hono + TypeScript + Vite+ による Web API テンプレート。
 
 ### 設計方針
 
-- [関数指向のロジック設計](docs/design/function-oriented-logic.md)
 - [Always Valid Domain Model](docs/design/always-valid-domain-model.md)
+- [関数指向のロジック設計](docs/design/function-oriented-logic.md)
 - [モジュールの責務分離](docs/design/module-responsibility.md)
+- [index.ts によるモジュールアクセス制御](docs/design/module-access-control.md)
+- [型によるテスト網羅の強制](docs/design/type-enforced-test-coverage.md)
 
 ### ルール
 
 - [1ファイル1エクスポート](docs/rule/one-export-per-file.md)
 - [モジュールの公開API制御](docs/rule/module-barrel-export.md)
 - [Discriminated Unionによるエラーハンドリング](docs/rule/discriminated-union-error-handling.md)
-- [Namespace Import の禁止](docs/rule/no-namespace-import.md)
+- [Namespace Importの禁止](docs/rule/no-namespace-import.md)
 - [テーブル定義](docs/rule/table-definition.md)
 - [テストファイル](docs/rule/test-file.md)
-- [DB エラーハンドリング](docs/rule/db-error-handling.md)
+- [DBエラーハンドリング](docs/rule/db-error-handling.md)
+- [Branded Entity ID](docs/rule/branded-entity-id.md)
 - [JSDoc フォーマット](docs/rule/jsdoc-format.md)
+- [defineContract の fn 内で failAs / okAs を使う](docs/rule/contract-fn-as-const.md)
 
 ## モジュール構成
 
 - **contract** — Design by Contract パターンを Valibot スキーマで実現する
 - **db** — Drizzle ORM + node-postgres によるDBアクセスを提供する
   - **user** — ユーザーの永続化と取得を担当する
+- **domain** — ビジネスロジックを配置するトップレベルモジュール
+  - **user** — ユーザー管理のビジネスロジックを提供する
 - **envvar** — 環境変数を型安全に取得する
+- **testing** — defineContract ベースの関数に対するテスト・モック用ユーティリティを提供する
 
 ## スクリプト
 
