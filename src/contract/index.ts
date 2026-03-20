@@ -12,17 +12,13 @@
  * - `defaultInputError` — デフォルトの onInputError ハンドラにシナリオラベルを付与して返す。
  * - `withSchema` — Valibot スキーマによる入出力検証を関数に適用する。
  *
- * ### behavior モジュールからの再エクスポート
- *
- * `defineContract` と併用する `okAs` / `failAs` 等は behavior モジュールから再エクスポートする。
- * 利用側は `@/contract` からまとめてインポートできる。
- *
  * ### 使い方
  *
  * ```typescript
  * import type { DbContext } from "@/db"
  * import { object, pipe, string, email, minLength, maxLength } from "valibot"
- * import { defineContract, failAs, okAs } from "@/contract"
+ * import { failAs, okAs } from "@/behavior"
+ * import { defineContract } from "@/contract"
  * import { User } from "@/db/user"
  *
  * export const createUser = (ctx: DbContext) =>
@@ -52,11 +48,6 @@
  *   Branded Types への変換を行う。
  */
 
-// behavior モジュールからの再エクスポート
-export type { BehaviorBrand, Desc, DescLabel, ExtractByLabel } from "@/behavior"
-export { defineBehavior, failAs, matchBehavior, okAs } from "@/behavior"
-
-// contract 固有のエクスポート
 export { defaultInputError } from "./defaultInputError"
 export { defineContract } from "./defineContract"
 export { inputSchemaKey } from "./inputSchemaKey"

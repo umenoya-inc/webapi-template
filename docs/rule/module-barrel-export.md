@@ -1,31 +1,46 @@
 # モジュールの公開API制御
 
-`src/modules/` 配下の各モジュールは、他のモジュールに公開する定義を `index.ts` の barrel export に集約する。
-他のモジュールからは `@/modules/<module名>` エイリアス経由でのみアクセスし、内部ファイルを直接インポートしてはならない。
+`src/` 配下の各モジュールは、他のモジュールに公開する定義を `index.ts` の barrel export に集約する。
+他のモジュールからは `@/<module名>` エイリアス経由でのみアクセスし、内部ファイルを直接インポートしてはならない。
 モジュールはネスト可能で、各階層の `index.ts` が公開APIとなる。
 
 ## 目的
 
-モジュールをカプセル化し、公開インターフェースと内部実装を分離する。内部のリファクタリングが公開APIを変えない限り他モジュールに影響しないことを保証する。また、`@/modules/` エイリアスによりモジュール間の依存方向をimport文から一目で把握できるようにする。
+モジュールをカプセル化し、公開インターフェースと内部実装を分離する。内部のリファクタリングが公開APIを変えない限り他モジュールに影響しないことを保証する。また、`@/` エイリアスによりモジュール間の依存方向をimport文から一目で把握できるようにする。
 
 ## 例
 
 ```typescript
 // ✅ エイリアス経由でモジュールのbarrel exportからインポート
-import { userStore } from "@/modules/user"
+import { DbContext } from "@/db"
 
 // ✅ ネストされたサブモジュールのbarrel export経由でインポート
-import { profileStore } from "@/modules/user/profile"
+import { createUser } from "@/db/user"
 
 // ❌ 相対パスでモジュールにアクセス
-import { userStore } from "../user"
+import { DbContext } from "../db"
 
 // ❌ モジュールの内部ファイルに直接アクセス
-import { userStore } from "@/modules/user/userStore"
+import { DbContext } from "@/db/DbContext"
 
 // ❌ サブモジュールの内部ファイルに直接アクセス
-import { profileStore } from "@/modules/user/profile/profileStore"
+import { createUser } from "@/db/user/createUser"
 ```
+
+## 再エクスポートの禁止
+
+`index.ts` は自モジュール内のシンボルだけを公開する。他モジュールのシンボルを再エクスポートしてはならない。
+
+```typescript
+// ❌ 他モジュールの再エクスポート
+export { failAs, okAs } from "@/behavior"
+
+// ✅ 利用側がそれぞれのモジュールから直接インポートする
+import { failAs, okAs } from "@/behavior"
+import { defineContract } from "@/contract"
+```
+
+同じシンボルの入手経路が複数になると、どちらから import すべきか曖昧になり、依存グラフも追いにくくなる。利用側の import 行が増えるが、依存先が明示されるメリットの方が大きい。
 
 ## 同一モジュール内
 
