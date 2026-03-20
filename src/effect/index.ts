@@ -23,12 +23,12 @@
  *
  * ```typescript
  * import type { DbContext } from "@/db"
- * import { defineEffect } from "@/effect"
+ * import { requiredContext, defineEffect } from "@/effect"
  * import { defineContract } from "@/contract"
  *
  * // leaf Effect — context のみ
  * export const createUser = defineEffect(
- *   { context: {} as { db: DbContext } },
+ *   { context: requiredContext<{ db: DbContext }>() },
  *   (context) => defineContract({ ... })
  * )
  *
@@ -55,6 +55,7 @@ export type { ProvideContext } from "./ProvideContext"
 export type { ProvideService } from "./ProvideService"
 export type { ResolvedService } from "./ResolvedService"
 export type { UnionToIntersection } from "./UnionToIntersection"
+export { requiredContext } from "./requiredContext"
 export { defineEffect } from "./defineEffect"
 export { effectDepsKey } from "./effectDepsKey"
 export { resolveEffects } from "./resolveEffects"
