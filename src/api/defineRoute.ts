@@ -11,6 +11,7 @@ import { responsesKey } from "./responsesKey"
 
 type RouteOptions = {
   fn: (...args: any[]) => any
+  resolve?: (c: Context<Env, string, Input>) => unknown
   description: string
 }
 
@@ -39,7 +40,8 @@ export function defineRoute(options: RouteOptions): [MiddlewareHandler, Handler]
       responses: buildOpenAPIResponses(outputSchema, responses) as never,
     }),
     async (c: Context<Env, string, Input>) => {
-      const contractFn = options.fn()
+      const resolved = options.resolve?.(c)
+      const contractFn = resolved !== undefined ? options.fn(resolved) : options.fn()
       const result = inputConfig
         ? await contractFn(await extractInput(c, inputConfig))
         : fnInputSchema
