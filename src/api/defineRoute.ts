@@ -10,13 +10,7 @@ import { responsesKey } from "./responsesKey"
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-type FnRouteOptions = {
-  fn: (...args: any[]) => any
-  resolve?: (c: Context<Env, string, Input>) => unknown
-  description: string
-}
-
-type EffectRouteOptions = {
+type RouteOptions = {
   effect: (...args: any[]) => any
   provide: (c: Context<Env, string, Input>) => {
     service: Record<string, unknown>
@@ -24,8 +18,6 @@ type EffectRouteOptions = {
   }
   description: string
 }
-
-type RouteOptions = FnRouteOptions | EffectRouteOptions
 
 type Schema = BaseSchema<unknown, unknown, BaseIssue<unknown>>
 type ResponseEntry = { status: number; description?: string }
@@ -38,44 +30,8 @@ type InputConfig = {
   body?: ObjectSchema<ObjectEntries, any>
 }
 
-/** contract 関数と説明から OpenAPI 付きルートハンドラを生成する。 */
+/** Effect と provide から OpenAPI 付きルートハンドラを生成する。 */
 export function defineRoute(options: RouteOptions): [MiddlewareHandler, Handler] {
-  if ("effect" in options) {
-    return defineEffectRoute(options)
-  }
-  return defineFnRoute(options)
-}
-
-function defineFnRoute(options: FnRouteOptions): [MiddlewareHandler, Handler] {
-  const outputSchema = findSchema(options.fn, outputSchemaKey)
-  const fnInputSchema = findSchema(options.fn, inputSchemaKey)
-  const responses = findResponses(options.fn, responsesKey)
-  const inputConfig = findInputConfig(fnInputSchema)
-
-  return [
-    describeRoute({
-      description: options.description,
-      ...buildOpenAPIInput(fnInputSchema, inputConfig),
-      responses: buildOpenAPIResponses(outputSchema, responses) as never,
-    }),
-    async (c: Context<Env, string, Input>) => {
-      const resolved = options.resolve?.(c)
-      const contractFn = resolved !== undefined ? options.fn(resolved) : options.fn()
-      const result = inputConfig
-        ? await contractFn(await extractInput(c, inputConfig))
-        : fnInputSchema
-          ? await contractFn(await c.req.json())
-          : await contractFn()
-      const label = (result as Record<symbol, string>)[descLabelKey]
-      const status = responses?.[label]?.status ?? (result.ok ? 200 : 400)
-      const { ok: _, ...rest } = result as Record<string, unknown>
-      delete rest[descLabelKey as unknown as string]
-      return c.json(rest, status as ContentfulStatusCode) as Response
-    },
-  ]
-}
-
-function defineEffectRoute(options: EffectRouteOptions): [MiddlewareHandler, Handler] {
   const contractFn = findEffectContractFn(options.effect)
   const outputSchema = contractFn ? findSchema(contractFn, outputSchemaKey) : undefined
   const fnInputSchema = contractFn ? findSchema(contractFn, inputSchemaKey) : undefined

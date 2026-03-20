@@ -29,14 +29,14 @@ describe("findUserById", () => {
   testBehavior(findUserById, {
     "IDに該当するユーザーを取得": async (assert) => {
       const [inserted] = await insertUserRow(ctx, { name: "Alice", email: "alice@example.com" })
-      const result = await findUserById(ctx)({ id: inserted.id })
+      const result = await findUserById({ db: ctx })({ id: inserted.id })
       const user = assert(result)
       expect(user.value.id).toBe(inserted.id)
       expect(user.value.name).toBe("Alice")
       expect(user.value.email).toBe("alice@example.com")
     },
     "IDに該当するユーザーが存在しない": async (assert) => {
-      const result = await findUserById(ctx)({ id: "00000000-0000-0000-0000-000000000000" })
+      const result = await findUserById({ db: ctx })({ id: "00000000-0000-0000-0000-000000000000" })
       assert(result)
     },
     "入力値が不正": propertyCheck(
@@ -45,7 +45,7 @@ describe("findUserById", () => {
         "IDが不正": { id: string() },
       },
       async (assert, input) => {
-        const result = await findUserById(ctx)(input)
+        const result = await findUserById({ db: ctx })(input)
         assert(result)
       },
     ),

@@ -4,11 +4,12 @@ import type { DbContext } from "../DbContext"
 import { fromDbContext } from "../fromDbContext"
 import { failAs, okAs } from "@/behavior"
 import { defaultInputError, defineContract } from "@/contract"
+import { defineEffect } from "@/effect"
 import { User } from "./User"
 import { userTable } from "./userTable"
 
 /** ID を指定してユーザーを取得する。 */
-export const findUserById = (ctx: DbContext) =>
+export const findUserById = defineEffect({ context: {} as { db: DbContext } }, (context) =>
   defineContract({
     input: object({
       id: pipe(string(), uuid()),
@@ -16,7 +17,7 @@ export const findUserById = (ctx: DbContext) =>
     output: User,
     onInputError: defaultInputError(["IDが不正"]),
     fn: async (input) => {
-      const db = fromDbContext(ctx)
+      const db = fromDbContext(context.db)
       const rows = await db.select().from(userTable).where(eq(userTable.id, input.id))
       if (rows.length === 0) {
         return failAs("IDに該当するユーザーが存在しない", "not_found")
@@ -26,4 +27,5 @@ export const findUserById = (ctx: DbContext) =>
         value: { id: row.id, name: row.name, email: row.email },
       })
     },
-  })
+  }),
+)

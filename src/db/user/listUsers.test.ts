@@ -27,7 +27,7 @@ describe("listUsers", () => {
 
   testBehavior(listUsers, {
     "ユーザーが存在しない": async (assert) => {
-      const result = await listUsers(ctx)()
+      const result = await listUsers({ db: ctx })()
       const ok = assert(result)
       expect(ok.value).toEqual([])
     },
@@ -35,7 +35,7 @@ describe("listUsers", () => {
       await insertUserRow(ctx, { name: "Alice", email: "alice@example.com" })
       await insertUserRow(ctx, { name: "Bob", email: "bob@example.com" })
 
-      const result = await listUsers(ctx)()
+      const result = await listUsers({ db: ctx })()
       const ok = assert(result)
       expect(ok.value).toHaveLength(2)
       expect(ok.value).toEqual(

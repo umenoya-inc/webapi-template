@@ -2,7 +2,7 @@ import { parse } from "valibot"
 import { describe, expect } from "vite-plus/test"
 import type { DbContext } from "@/db"
 import { User, listUsers as dbListUsers } from "@/db/user"
-import { mockBehavior, mockEnv, testBehavior } from "@/testing"
+import { mockBehavior, mockService, testBehavior } from "@/testing"
 import { listUsers } from "./listUsers"
 
 const dummyCtx = {} as DbContext
@@ -32,10 +32,10 @@ describe("listUsers", () => {
 
   testBehavior(listUsers, {
     "一覧取得成功": async (assert) => {
-      const env = mockEnv(listUsers, {
+      const service = mockService(listUsers, {
         listUsers: listUsersMock["登録済みユーザー一覧を取得"],
       })
-      const result = await listUsers(dummyCtx, env)()
+      const result = await listUsers(service)({ db: dummyCtx })()
       const ok = assert(result)
       expect(ok.value).toHaveLength(2)
       expect(ok.value[0].name).toBe("Alice")
