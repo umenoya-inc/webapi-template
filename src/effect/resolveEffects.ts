@@ -1,3 +1,4 @@
+import { EffectChainError } from "./EffectChainError"
 import { effectDepsKey } from "./effectDepsKey"
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -23,24 +24,47 @@ export function resolveEffects(service: ServiceMap): ResolvedMap {
       | undefined
     const childService = deps?.service
 
-    let result: (context: any) => any
+    let unwrapped: (context: any) => any
     if (childService && Object.keys(childService).length > 0) {
       const resolvedChildren: ResolvedMap = {}
       for (const [childKey, childEffect] of Object.entries(childService)) {
         resolvedChildren[childKey] = resolve(childKey, service[childKey] ?? childEffect)
       }
-      result = effect(resolvedChildren)
+      unwrapped = effect(resolvedChildren)
     } else {
-      result = effect as (context: any) => any
+      unwrapped = effect as (context: any) => any
     }
 
     resolving.delete(key)
-    resolved[key] = result
-    return result
+    resolved[key] = wrapWithChainError(key, unwrapped)
+    return resolved[key]
   }
 
   for (const [key, effect] of Object.entries(service)) {
     resolve(key, effect)
   }
   return resolved
+}
+
+function wrapWithChainError(
+  effectName: string,
+  contextFn: (context: any) => any,
+): (context: any) => any {
+  return (context: any) => {
+    const contractFn = contextFn(context)
+    if (typeof contractFn !== "function") return contractFn
+    return (...args: any[]) => {
+      try {
+        const ret = contractFn(...args)
+        if (ret && typeof (ret as Promise<unknown>).catch === "function") {
+          return (ret as Promise<unknown>).catch((e: unknown) => {
+            throw new EffectChainError(effectName, e)
+          })
+        }
+        return ret
+      } catch (e) {
+        throw new EffectChainError(effectName, e)
+      }
+    }
+  }
 }

@@ -1,0 +1,50 @@
+import { describe, expect, it } from "vite-plus/test"
+import { EffectChainError } from "./EffectChainError"
+import { defineEffect } from "./defineEffect"
+import { requiredContext } from "./requiredContext"
+import { resolveEffects } from "./resolveEffects"
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+describe("resolveEffects", () => {
+  it("leaf Effect のエラーに Effect 名が付与される", async () => {
+    const failing = defineEffect({ context: requiredContext<{ db: unknown }>() }, (_context) => {
+      return async () => {
+        throw new Error("DB connection failed")
+      }
+    })
+
+    const resolved = resolveEffects({ failing } as any)
+    await expect(resolved.failing({})()).rejects.toThrow(EffectChainError)
+    await expect(resolved.failing({})()).rejects.toThrow(
+      "Effect chain [failing]: DB connection failed",
+    )
+  })
+
+  it("ネストした Effect チェーンのエラーに経路情報が付与される", async () => {
+    const inner = defineEffect({ context: requiredContext<{ db: unknown }>() }, (_context) => {
+      return async () => {
+        throw new Error("Unexpected error")
+      }
+    })
+
+    const outer = defineEffect({ service: { inner } } as any, (service: any) => (_context: any) => {
+      return async () => {
+        return await service.inner(_context)()
+      }
+    })
+
+    const resolved = resolveEffects({ inner, outer } as any)
+    try {
+      await resolved.outer({})()
+      expect.unreachable("should have thrown")
+    } catch (e) {
+      expect(e).toBeInstanceOf(EffectChainError)
+      const err = e as EffectChainError
+      expect(err.chain).toEqual(["outer", "inner"])
+      expect(err.message).toBe("Effect chain [outer → inner]: Unexpected error")
+      expect(err.cause).toBeInstanceOf(Error)
+      expect((err.cause as Error).message).toBe("Unexpected error")
+    }
+  })
+})
