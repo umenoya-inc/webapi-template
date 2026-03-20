@@ -2,7 +2,7 @@
 
 Hono + TypeScript + Vite+ による Web API テンプレート。
 
-エージェントコーディングに最適化された設計を目指している。関数の振る舞いパス（成功・失敗の分岐）を型レベルのラベルとして宣言し、テストケースの網羅・層間の分岐ハンドリング・OpenAPI ドキュメント生成をすべて型で強制する。実装を書けば仕様が型に載り、型がテストとドキュメントの不足を検出する。スタブ実装 → 型チェック → テスト → 本実装の TDD フローにより、型が通った時点で層間の整合性が保証される。
+エージェントコーディングに最適化された設計を目指している。関数の振る舞いパス（成功・失敗の分岐）を型レベルのラベルとして宣言し、テストケースの網羅・層間の分岐ハンドリング・OpenAPI ドキュメント生成をすべて型で強制する。軽量 Effect System により副作用の依存関係を型レベルで合成し、DB 層から API ハンドラまで一貫した仕組みでテストと依存注入を実現する。実装を書けば仕様が型に載り、型がテストとドキュメントの不足を検出する。
 
 ## 特徴
 
@@ -24,9 +24,11 @@ Hono + TypeScript + Vite+ による Web API テンプレート。
 - [JSDoc フォーマット](docs/rule/jsdoc-format.md)
 - [Namespace Import の禁止](docs/rule/no-namespace-import.md)
 - [defineContract の fn 内ルール](docs/rule/contract-fn-rule.md)
+- [defineEffect による副作用の宣言](docs/rule/define-effect.md)
 - [テーブル定義](docs/rule/table-definition.md)
 - [テストファイル](docs/rule/test-file.md)
 - [入力バリデーションシナリオの宣言](docs/rule/route-input-error.md)
+- [名前のある型は直接書く](docs/rule/no-indirect-type-derivation.md)
 - [モジュールの公開API制御](docs/rule/module-barrel-export.md)
 
 ## モジュール構成
@@ -37,8 +39,9 @@ Hono + TypeScript + Vite+ による Web API テンプレート。
 - **contract** — Valibot スキーマによる入出力検証付き関数定義を提供する
 - **db** — Drizzle ORM + node-postgres によるDBアクセスを提供する
   - **user** — ユーザーの永続化と取得を担当する
+- **effect** — 軽量 Effect System。副作用の依存宣言・自動合成・型レベルでの context 導出を提供する
 - **envvar** — 環境変数を型安全に取得する
-- **testing** — defineBehavior / defineContract ベースの関数に対するテスト・モック用ユーティリティを提供する
+- **testing** — defineBehavior / defineContract / defineEffect ベースの関数に対するテスト・モック用ユーティリティを提供する
 
 ## スクリプト
 
