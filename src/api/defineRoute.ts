@@ -4,7 +4,7 @@ import type { ContentfulStatusCode } from "hono/utils/http-status"
 import { describeRoute, resolver } from "hono-openapi"
 import { descLabelKey } from "@/behavior"
 import { inputSchemaKey, outputSchemaKey } from "@/contract"
-import { effectDepsKey, resolveEffects } from "@/effect"
+import { EffectChainError, effectDepsKey, resolveEffects } from "@/effect"
 import { inputConfigKey } from "./inputConfigKey"
 import { responsesKey } from "./responsesKey"
 
@@ -45,19 +45,35 @@ export function defineRoute(options: RouteOptions): [MiddlewareHandler, Handler]
       responses: buildOpenAPIResponses(outputSchema, responses) as never,
     }),
     async (c: Context<Env, string, Input>) => {
-      const { service, context } = options.provide(c)
-      const resolvedService = resolveEffects(service as Record<string, any>)
-      const effectFn = options.effect(resolvedService)(context)
-      const result = inputConfig
-        ? await effectFn(await extractInput(c, inputConfig))
-        : fnInputSchema
-          ? await effectFn(await c.req.json())
-          : await effectFn()
-      const label = (result as Record<symbol, string>)[descLabelKey]
-      const status = responses?.[label]?.status ?? (result.ok ? 200 : 400)
-      const { ok: _, ...rest } = result as Record<string, unknown>
-      delete rest[descLabelKey as unknown as string]
-      return c.json(rest, status as ContentfulStatusCode) as Response
+      try {
+        const { service, context } = options.provide(c)
+        const resolvedService = resolveEffects(service as Record<string, any>)
+        const effectFn = options.effect(resolvedService)(context)
+        const result = inputConfig
+          ? await effectFn(await extractInput(c, inputConfig))
+          : fnInputSchema
+            ? await effectFn(await c.req.json())
+            : await effectFn()
+        const label = (result as Record<symbol, string>)[descLabelKey]
+        const status = responses?.[label]?.status ?? (result.ok ? 200 : 400)
+        const { ok: _, ...rest } = result as Record<string, unknown>
+        delete rest[descLabelKey as unknown as string]
+        return c.json(rest, status as ContentfulStatusCode) as Response
+      } catch (e) {
+        const request = { method: c.req.method, path: c.req.path }
+        if (e instanceof EffectChainError) {
+          console.error("Unhandled effect error:", {
+            ...request,
+            chain: e.chain,
+            inputs: e.inputs,
+            message: e.message,
+            cause: e.cause,
+          })
+        } else {
+          console.error("Unhandled error:", { ...request, error: e })
+        }
+        return c.json({ error: "Internal Server Error" }, 500)
+      }
     },
   ]
 }
