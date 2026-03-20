@@ -23,20 +23,20 @@ describe("resolveEffects", () => {
 
   it("ネストした Effect チェーンのエラーに経路情報が付与される", async () => {
     const inner = defineEffect({ context: requiredContext<{ db: unknown }>() }, (_context) => {
-      return async () => {
+      return async (_input: { id: string }) => {
         throw new Error("Unexpected error")
       }
     })
 
     const outer = defineEffect({ service: { inner } } as any, (service: any) => (_context: any) => {
-      return async () => {
-        return await service.inner(_context)()
+      return async (input: { userId: string }) => {
+        return await service.inner(_context)({ id: input.userId })
       }
     })
 
     const resolved = resolveEffects({ inner, outer } as any)
     try {
-      await resolved.outer({})()
+      await resolved.outer({})({ userId: "user-1" })
       expect.unreachable("should have thrown")
     } catch (e) {
       expect(e).toBeInstanceOf(EffectChainError)
@@ -45,6 +45,49 @@ describe("resolveEffects", () => {
       expect(err.message).toBe("Effect chain [outer → inner]: Unexpected error")
       expect(err.cause).toBeInstanceOf(Error)
       expect((err.cause as Error).message).toBe("Unexpected error")
+    }
+  })
+
+  it("エラーに各 Effect への入力値が記録される", async () => {
+    const inner = defineEffect({ context: requiredContext<{ db: unknown }>() }, (_context) => {
+      return async (_input: { id: string }) => {
+        throw new Error("not found")
+      }
+    })
+
+    const outer = defineEffect({ service: { inner } } as any, (service: any) => (_context: any) => {
+      return async (input: { userId: string }) => {
+        return await service.inner(_context)({ id: input.userId })
+      }
+    })
+
+    const resolved = resolveEffects({ inner, outer } as any)
+    try {
+      await resolved.outer({})({ userId: "user-1" })
+      expect.unreachable("should have thrown")
+    } catch (e) {
+      const err = e as EffectChainError
+      expect(err.inputs).toEqual({
+        outer: { userId: "user-1" },
+        inner: { id: "user-1" },
+      })
+    }
+  })
+
+  it("引数なしの Effect では input が undefined になる", async () => {
+    const noInput = defineEffect({ context: requiredContext<{ db: unknown }>() }, (_context) => {
+      return async () => {
+        throw new Error("failed")
+      }
+    })
+
+    const resolved = resolveEffects({ noInput } as any)
+    try {
+      await resolved.noInput({})()
+      expect.unreachable("should have thrown")
+    } catch (e) {
+      const err = e as EffectChainError
+      expect(err.inputs).toEqual({ noInput: undefined })
     }
   })
 })

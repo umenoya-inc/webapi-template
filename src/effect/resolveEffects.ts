@@ -54,16 +54,17 @@ function wrapWithChainError(
     const contractFn = contextFn(context)
     if (typeof contractFn !== "function") return contractFn
     return (...args: any[]) => {
+      const input = args.length === 1 ? args[0] : args.length === 0 ? undefined : args
       try {
         const ret = contractFn(...args)
         if (ret && typeof (ret as Promise<unknown>).catch === "function") {
           return (ret as Promise<unknown>).catch((e: unknown) => {
-            throw new EffectChainError(effectName, e)
+            throw new EffectChainError(effectName, input, e)
           })
         }
         return ret
       } catch (e) {
-        throw new EffectChainError(effectName, e)
+        throw new EffectChainError(effectName, input, e)
       }
     }
   }
