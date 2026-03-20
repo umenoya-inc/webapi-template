@@ -25,12 +25,12 @@ src/api/
 
 ## ハンドラロジック（defineRouteContract）
 
-ハンドラは `defineRouteContract` で定義する。DB 操作の呼び出し、ビジネスロジック、レスポンスのステータスコード宣言をすべて含む。
+ハンドラは `defineRouteContract` で定義する。
 
-- `input` — リクエストボディの Valibot スキーマ（API レベル）
+- `input` — リクエストの Valibot スキーマ（API レベル）
 - `output` — 成功レスポンスの Valibot スキーマ（API レベル）
-- `responses` — Desc ラベルをキーとするステータスコードと説明のマップ。全ラベルの網羅が型で強制される。OpenAPI ドキュメントにも反映される
-- `fn` — ハンドラロジック。`okAs` / `failAs` でラベル付きの結果を返す。ステータスコードは `responses` に定義するため `fn` 内には書かない
+- `responses` — Desc ラベルをキーとするステータスコードと説明のマップ。全ラベルの網羅が型で強制される
+- `fn` — ハンドラロジック。ステータスコードは `responses` に定義するため `fn` 内には書かない
 - DB 操作は `env` パターンで注入し、テスト時にモック可能にする
 
 ```typescript

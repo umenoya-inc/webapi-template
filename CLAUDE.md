@@ -1,6 +1,7 @@
 # Rules
 
 TypeScript ファイルを作成・編集する際は、以下のルールを必ず適用すること。
+rule と design の区分基準は [rule と design の区分基準](docs/rule/rule-vs-design.md) を参照。
 
 - [1ファイル1エクスポート](docs/rule/one-export-per-file.md)
 - [モジュールの公開API制御](docs/rule/module-barrel-export.md)
