@@ -8,7 +8,7 @@ import { descLabelKey } from "./descLabelKey"
  * as const の代わりにリテラル型を保持しつつ、
  * Desc ファントム型で説明を型に埋め込む。
  *
- * 第3引数に文字列配列を渡すと、InputScenarios ブランドが付与される。
+ * 第1引数にオブジェクト `{ desc, scenarios }` を渡すと、InputScenarios ブランドが付与される。
  * testBehavior の parameterize で、シナリオラベルがパラメータキーとして強制される。
  */
 export function okAs<const TDesc extends string, TFields extends Record<string, unknown>>(
@@ -21,16 +21,14 @@ export function okAs<
   TFields extends Record<string, unknown>,
   const TScenarios extends readonly string[],
 >(
-  _desc: TDesc,
+  _desc: { desc: TDesc; scenarios: TScenarios },
   fields: TFields,
-  scenarios: TScenarios,
 ): InputScenarios<Desc<TDesc, { ok: true } & TFields>, TScenarios[number]>
 
 export function okAs(
-  _desc: string,
+  _desc: string | { desc: string; scenarios: readonly string[] },
   fields: Record<string, unknown>,
-  scenarios?: readonly string[],
 ) {
-  void scenarios
-  return { ok: true, [descLabelKey]: _desc, ...fields } as { ok: true } & typeof fields
+  const label = typeof _desc === "string" ? _desc : _desc.desc
+  return { ok: true, [descLabelKey]: label, ...fields } as { ok: true } & typeof fields
 }

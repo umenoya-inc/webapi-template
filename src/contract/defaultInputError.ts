@@ -25,5 +25,7 @@ export function defaultInputError<const TScenarios extends readonly string[]>(
   issues: [BaseIssue<unknown>, ...BaseIssue<unknown>[]],
 ) => InputScenarios<DefaultInputError, TScenarios[number]> {
   return (issues) =>
-    failAs("入力値が不正", "validation_failed", { fields: flatten(issues).nested ?? {} }, scenarios)
+    failAs({ desc: "入力値が不正", scenarios }, "validation_failed", {
+      fields: flatten(issues).nested ?? {},
+    })
 }

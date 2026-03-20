@@ -8,23 +8,13 @@ import { descLabelKey } from "./descLabelKey"
  * as const の代わりにリテラル型を保持しつつ、
  * Desc ファントム型で説明を型に埋め込む。
  *
- * 最終引数に文字列配列を渡すと、InputScenarios ブランドが付与される。
+ * 第1引数にオブジェクト `{ desc, scenarios }` を渡すと、InputScenarios ブランドが付与される。
  * testBehavior の parameterize で、シナリオラベルがパラメータキーとして強制される。
  */
 export function failAs<TDesc extends string, TReason extends string>(
   _desc: TDesc,
   reason: TReason,
 ): Desc<TDesc, { ok: false; reason: TReason }>
-
-export function failAs<
-  TDesc extends string,
-  TReason extends string,
-  const TScenarios extends readonly string[],
->(
-  _desc: TDesc,
-  reason: TReason,
-  scenarios: TScenarios,
-): InputScenarios<Desc<TDesc, { ok: false; reason: TReason }>, TScenarios[number]>
 
 export function failAs<
   TDesc extends string,
@@ -39,24 +29,30 @@ export function failAs<
 export function failAs<
   TDesc extends string,
   TReason extends string,
+  const TScenarios extends readonly string[],
+>(
+  _desc: { desc: TDesc; scenarios: TScenarios },
+  reason: TReason,
+): InputScenarios<Desc<TDesc, { ok: false; reason: TReason }>, TScenarios[number]>
+
+export function failAs<
+  TDesc extends string,
+  TReason extends string,
   const TFields extends Record<string, unknown>,
   const TScenarios extends readonly string[],
 >(
-  _desc: TDesc,
+  _desc: { desc: TDesc; scenarios: TScenarios },
   reason: TReason,
   fields: TFields,
-  scenarios: TScenarios,
 ): InputScenarios<Desc<TDesc, { ok: false; reason: TReason } & TFields>, TScenarios[number]>
 
 export function failAs(
-  _desc: string,
+  _desc: string | { desc: string; scenarios: readonly string[] },
   reason: string,
-  fieldsOrScenarios?: Record<string, unknown> | readonly string[],
-  scenarios?: readonly string[],
+  fields?: Record<string, unknown>,
 ) {
-  const fields = Array.isArray(fieldsOrScenarios) ? undefined : fieldsOrScenarios
-  const base: Record<string | symbol, unknown> = { ok: false, [descLabelKey]: _desc, reason }
-  void scenarios
+  const label = typeof _desc === "string" ? _desc : _desc.desc
+  const base: Record<string | symbol, unknown> = { ok: false, [descLabelKey]: label, reason }
   if (fields) {
     return Object.assign(base, fields)
   }
