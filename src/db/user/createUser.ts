@@ -4,11 +4,12 @@ import { dbExecute } from "../error/dbExecute"
 import { fromDbContext } from "../fromDbContext"
 import { failAs, okAs } from "@/behavior"
 import { defaultInputError, defineContract } from "@/contract"
+import { defineEffect } from "@/effect"
 import { User } from "./User"
 import { userTable } from "./userTable"
 
 /** ユーザーを新規作成する。 */
-export const createUser = (ctx: DbContext) =>
+export const createUser = defineEffect({ context: {} as { db: DbContext } }, (context) =>
   defineContract({
     input: object({
       name: pipe(string(), minLength(1), maxLength(100)),
@@ -17,7 +18,7 @@ export const createUser = (ctx: DbContext) =>
     output: User,
     onInputError: defaultInputError(["nameが空", "emailが不正", "name文字数超過"]),
     fn: async (input) => {
-      const db = fromDbContext(ctx)
+      const db = fromDbContext(context.db)
       const result = await dbExecute(() =>
         db.insert(userTable).values({ name: input.name, email: input.email }).returning(),
       )
@@ -32,4 +33,5 @@ export const createUser = (ctx: DbContext) =>
         value: { id: row.id, name: row.name, email: row.email },
       })
     },
-  })
+  }),
+)

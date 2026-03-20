@@ -11,6 +11,7 @@
  * - `propertyCheck` — testBehavior の各ラベルに対し、スキーマ由来の arbitrary でプロパティベーステストを定義する。
  * - `mockBehavior` — 振る舞い別モックを定義する。キーは `testBehavior` と同じ Desc ラベル。全ラベルの網羅が必須。
  * - `mockEnv` — Contract 関数の末尾引数（env）に渡すモックオブジェクトを型安全に構築する。
+ * - `mockService` — Effect 用のモック service を構築する。直接依存の Fn のみ要求し、`(context) => Fn` にラップして返す。
  *
  * ### テストの書き方
  *
@@ -20,6 +21,7 @@
 
 export { mockBehavior } from "./mockBehavior.testutil"
 export { mockEnv } from "./mockEnv.testutil"
+export { mockService } from "./mockService.testutil"
 export { parameterize } from "./parameterize.testutil"
 export { propertyCheck } from "./propertyCheck.testutil"
 export { testBehavior } from "./testBehavior.testutil"

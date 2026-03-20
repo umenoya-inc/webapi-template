@@ -4,16 +4,28 @@ import type { ContentfulStatusCode } from "hono/utils/http-status"
 import { describeRoute, resolver } from "hono-openapi"
 import { descLabelKey } from "@/behavior"
 import { inputSchemaKey, outputSchemaKey } from "@/contract"
+import { effectDepsKey, resolveEffects } from "@/effect"
 import { inputConfigKey } from "./inputConfigKey"
 import { responsesKey } from "./responsesKey"
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-type RouteOptions = {
+type FnRouteOptions = {
   fn: (...args: any[]) => any
   resolve?: (c: Context<Env, string, Input>) => unknown
   description: string
 }
+
+type EffectRouteOptions = {
+  effect: (...args: any[]) => any
+  provide: (c: Context<Env, string, Input>) => {
+    service: Record<string, unknown>
+    context: Record<string, unknown>
+  }
+  description: string
+}
+
+type RouteOptions = FnRouteOptions | EffectRouteOptions
 
 type Schema = BaseSchema<unknown, unknown, BaseIssue<unknown>>
 type ResponseEntry = { status: number; description?: string }
@@ -28,6 +40,13 @@ type InputConfig = {
 
 /** contract 関数と説明から OpenAPI 付きルートハンドラを生成する。 */
 export function defineRoute(options: RouteOptions): [MiddlewareHandler, Handler] {
+  if ("effect" in options) {
+    return defineEffectRoute(options)
+  }
+  return defineFnRoute(options)
+}
+
+function defineFnRoute(options: FnRouteOptions): [MiddlewareHandler, Handler] {
   const outputSchema = findSchema(options.fn, outputSchemaKey)
   const fnInputSchema = findSchema(options.fn, inputSchemaKey)
   const responses = findResponses(options.fn, responsesKey)
@@ -54,6 +73,69 @@ export function defineRoute(options: RouteOptions): [MiddlewareHandler, Handler]
       return c.json(rest, status as ContentfulStatusCode) as Response
     },
   ]
+}
+
+function defineEffectRoute(options: EffectRouteOptions): [MiddlewareHandler, Handler] {
+  const contractFn = findEffectContractFn(options.effect)
+  const outputSchema = contractFn ? findSchema(contractFn, outputSchemaKey) : undefined
+  const fnInputSchema = contractFn ? findSchema(contractFn, inputSchemaKey) : undefined
+  const responses = contractFn ? findResponses(contractFn, responsesKey) : undefined
+  const inputConfig = findInputConfig(fnInputSchema)
+
+  return [
+    describeRoute({
+      description: options.description,
+      ...buildOpenAPIInput(fnInputSchema, inputConfig),
+      responses: buildOpenAPIResponses(outputSchema, responses) as never,
+    }),
+    async (c: Context<Env, string, Input>) => {
+      const { service, context } = options.provide(c)
+      const resolvedService = resolveEffects(service as Record<string, any>)
+      const effectFn = options.effect(resolvedService)(context)
+      const result = inputConfig
+        ? await effectFn(await extractInput(c, inputConfig))
+        : fnInputSchema
+          ? await effectFn(await c.req.json())
+          : await effectFn()
+      const label = (result as Record<symbol, string>)[descLabelKey]
+      const status = responses?.[label]?.status ?? (result.ok ? 200 : 400)
+      const { ok: _, ...rest } = result as Record<string, unknown>
+      delete rest[descLabelKey as unknown as string]
+      return c.json(rest, status as ContentfulStatusCode) as Response
+    },
+  ]
+}
+
+/** Effect から内部の contract 関数を探索する。ダミー引数で service → context → fn を辿る。 */
+function findEffectContractFn(
+  effect: (...args: any[]) => any,
+): ((...args: any[]) => any) | undefined {
+  const deps = (effect as unknown as Record<symbol, any>)[effectDepsKey] as
+    | { service?: Record<string, any> }
+    | undefined
+  try {
+    const childService = deps?.service
+    let inner: any
+    if (childService && Object.keys(childService).length > 0) {
+      const dummyResolved: Record<string, any> = {}
+      for (const [key, childEffect] of Object.entries(childService)) {
+        const childContractFn = findEffectContractFn(childEffect)
+        dummyResolved[key] = () => childContractFn ?? (() => {})
+      }
+      inner = effect(dummyResolved)
+    } else {
+      inner = effect
+    }
+    if (typeof inner === "function") {
+      const deeper = inner({})
+      if (typeof deeper === "function") {
+        return deeper
+      }
+    }
+  } catch {
+    // 探索失敗
+  }
+  return undefined
 }
 
 /** input スキーマから routeInput のメタデータを取得する。 */

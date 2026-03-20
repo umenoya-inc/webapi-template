@@ -11,7 +11,7 @@
  * - `defineRouteContract` — ルート専用コントラクト（defineContract + responses マップ）
  * - `routeInput` — ルート入力のソース構成を定義する（params / query / headers / body）
  *
- * @dependencies db/**, behavior, contract
+ * @dependencies db/**, behavior, contract, effect
  */
 
 export { defineRoute } from "./defineRoute"

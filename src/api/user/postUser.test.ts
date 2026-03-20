@@ -3,7 +3,7 @@ import { parse } from "valibot"
 import { describe, expect } from "vite-plus/test"
 import type { DbContext } from "@/db"
 import { User, createUser } from "@/db/user"
-import { mockBehavior, mockEnv, propertyCheck, testBehavior } from "@/testing"
+import { mockBehavior, mockService, propertyCheck, testBehavior } from "@/testing"
 import { postUser } from "./postUser"
 
 const dummyCtx = {} as DbContext
@@ -29,13 +29,10 @@ describe("postUser", () => {
 
   testBehavior(postUser, {
     "作成成功": async (assert) => {
-      const env = mockEnv(postUser, {
+      const service = mockService(postUser, {
         createUser: createUserMock["ユーザーを新規作成"],
       })
-      const result = await postUser(
-        dummyCtx,
-        env,
-      )({
+      const result = await postUser(service)({ db: dummyCtx })({
         name: "Alice",
         email: "alice@example.com",
       })
@@ -45,13 +42,10 @@ describe("postUser", () => {
       expect(ok.value.id).toBe(dummyUserId)
     },
     "メールアドレスが重複": async (assert) => {
-      const env = mockEnv(postUser, {
+      const service = mockService(postUser, {
         createUser: createUserMock["メールアドレスが既存ユーザーと重複"],
       })
-      const result = await postUser(
-        dummyCtx,
-        env,
-      )({
+      const result = await postUser(service)({ db: dummyCtx })({
         name: "Bob",
         email: "alice@example.com",
       })
@@ -65,7 +59,10 @@ describe("postUser", () => {
         "name文字数超過": { name: string({ minLength: 101 }) },
       },
       async (assert, input) => {
-        const result = await postUser(dummyCtx)(input)
+        const service = mockService(postUser, {
+          createUser: createUserMock["入力値が不正"],
+        })
+        const result = await postUser(service)({ db: dummyCtx })(input)
         assert(result)
       },
     ),

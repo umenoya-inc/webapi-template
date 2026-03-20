@@ -22,7 +22,7 @@ describe("createUser", () => {
 
   testBehavior(createUser, {
     "ユーザーを新規作成": async (assert) => {
-      const result = await createUser(ctx)({
+      const result = await createUser({ db: ctx })({
         name: "Alice",
         email: "alice@example.com",
       })
@@ -32,7 +32,7 @@ describe("createUser", () => {
       expect(user.value.id).toBeDefined()
     },
     "メールアドレスが既存ユーザーと重複": async (assert) => {
-      const result = await createUser(ctx)({
+      const result = await createUser({ db: ctx })({
         name: "Bob",
         email: "alice@example.com",
       })
@@ -47,7 +47,7 @@ describe("createUser", () => {
         "name文字数超過": { name: string({ minLength: 101 }) },
       },
       async (assert, input) => {
-        const result = await createUser(ctx)(input)
+        const result = await createUser({ db: ctx })(input)
         assert(result)
       },
     ),
