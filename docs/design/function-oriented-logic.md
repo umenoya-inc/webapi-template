@@ -6,86 +6,87 @@
 
 - 1関数 = 1ファイル（1ファイル1エクスポートルールに準拠）
 - `defineContract` で入出力のバリデーションを行う。ビジネスロジック層のほとんどの関数で使用する。
-- `DbContext` と `env` は外側の関数の引数として受け取り、`defineContract` 内の `fn` からはクロージャ経由でアクセスする。
-- 副作用を持つ依存（DB操作関数、他モジュールの関数等）は `env` 引数で受け取る。
-- `env` にはデフォルト引数で実体を設定する。テスト時のみモックに差し替える。
-- 通常の呼び出し側は `env` を意識しない。
+- 副作用を持つ依存は `defineEffect` で宣言する。DB 層は `context` で `DbContext` を要求し、API 層は `service` で依存する Effect を宣言する。
+- テスト時は `mockService` で service を差し替え、`context` にはダミー値を渡す。
 
 ## 例
 
 ```typescript
-// ✅ createTodo.ts（ビジネスロジック）
-import type { DbContext } from "@/modules/db"
-import { flatten, minLength, object, pipe, string, uuid } from "valibot"
-import { defineContract } from "@/modules/contract"
-import { findUserById } from "@/modules/db/user"
-import { saveTodo } from "@/modules/db/todo"
-import { Todo } from "./Todo"
+// ✅ createTodo.ts（ビジネスロジック — API 層）
+import { defineEffect } from "@/effect"
+import { defineRouteContract } from "@/api/defineRouteContract"
+import { findUserById } from "@/db/user"
+import { saveTodo } from "@/db/todo"
 
-export const createTodo = (
-  ctx: DbContext,
-  env: {
-    findUserById: typeof findUserById
-    saveTodo: typeof saveTodo
-  } = { findUserById, saveTodo },
-) =>
-  defineContract({
-    input: object({
-      title: pipe(string(), minLength(1)),
-      assignee: pipe(string(), uuid()),
+export const createTodo = defineEffect(
+  { service: { findUserById, saveTodo } },
+  (service) => (context) =>
+    defineRouteContract({
+      input: object({
+        title: pipe(string(), minLength(1)),
+        assignee: pipe(string(), uuid()),
+      }),
+      output: Todo,
+      responses: {
+        "作成成功": { status: 201, description: "TODO を新規作成" },
+        "ユーザーが見つからない": { status: 404, description: "担当者が存在しない" },
+        "入力値が不正": { status: 400, description: "入力値が不正" },
+      },
+      fn: async (input) => {
+        const user = await service.findUserById(context)({ id: input.assignee })
+        return matchBehavior(user, {
+          success: () => okAs("作成成功", { value: { ... } }),
+          not_found: () => failAs("ユーザーが見つからない", "not_found"),
+          validation_failed: (r) => failAs("入力値が不正", "bad_request", { fields: r.fields }),
+        })
+      },
     }),
-    output: Todo,
-    onInputError: (issues) =>
-      ({
-        ok: false,
-        reason: "validation_failed",
-        fields: flatten(issues).nested ?? {},
-      }) as const,
-    fn: async (input) => {
-      // ctx, env はクロージャ経由でアクセス
-      const user = await env.findUserById(ctx)({ id: input.assignee })
-      if (!user.ok) return { ok: false, reason: "user_not_found" } as const
-      return {
-        ok: true,
-        value: { id: crypto.randomUUID(), title: input.title, assignee: input.assignee },
-      }
-    },
-  })
+)
 
+// ❌ defineEffect を使わず引数で依存を受け取る
 // ❌ defineContract を使わない（バリデーションなし）
-// ❌ env を使わず直接依存にアクセスする（テストで差し替えできない）
 ```
 
-## route 層からの呼び出し
+## ルート定義での provide
 
 ```typescript
-// routes/todoRoute.ts
-import { globalDbContext, dbTransaction } from "@/modules/db"
-import { createTodo } from "@/modules/todo"
-
-// トランザクションなし
-const result = await createTodo(globalDbContext)({ title, assignee })
-
-// トランザクションあり
-const result = await dbTransaction(async (ctx) => {
-  return await createTodo(ctx)({ title, assignee })
-})
+// routes/createTodoRoute.ts
+createTodoRoute.post(
+  "/",
+  ...defineRoute({
+    effect: createTodo,
+    provide: () => ({
+      service: { findUserById, saveTodo },
+      context: { db: globalDbContext },
+    }),
+    description: "TODO を新規作成する",
+  }),
+)
 ```
 
 ## テストでの利用
 
 ```typescript
-// env を差し替えてモックを注入する（DbContext もダミーで渡せる）
-const result = await createTodo({} as DbContext, {
-  findUserById: (_ctx) => async (_input) => ({
-    ok: true,
-    value: { id: "user-1", name: "Alice" },
-  }),
-  saveTodo: (_ctx) => async (input) => ({ ok: true, value: input }),
-})({ title: "Buy milk", assignee: "user-1" })
+// service をモックに差し替える（context にはダミー値を渡す）
+const findUserByIdMock = mockBehavior(findUserById, {
+  "IDに該当するユーザーを取得": async () => ({ ok: true, value: { ... } }),
+  // ...
+})
+
+testBehavior(createTodo, {
+  "作成成功": async (assert) => {
+    const service = mockService(createTodo, {
+      findUserById: findUserByIdMock["IDに該当するユーザーを取得"],
+      saveTodo: saveTodoMock["保存成功"],
+    })
+    const result = await createTodo(service)({ db: dummyCtx })({ title: "Buy milk", assignee: "user-1" })
+    const ok = assert(result)
+    // ...
+  },
+})
 ```
 
 ## 参考
 
 - [Domain Modeling Made Functional](https://pragprog.com/titles/swdddf/domain-modeling-made-functional/) — Scott Wlaschin による関数指向のドメインモデリング。クラスではなく関数でドメインロジックを表現するアプローチの基盤
-- [Dependency Injection Principles, Practices, and Patterns](https://www.manning.com/books/dependency-injection-principles-practices-patterns) — Mark Seemann による依存注入の原則。`env` パターンによる依存の外部化はこの考え方に基づく
+- [Dependency Injection Principles, Practices, and Patterns](https://www.manning.com/books/dependency-injection-principles-practices-patterns) — Mark Seemann による依存注入の原則。`defineEffect` による依存宣言はこの考え方に基づく

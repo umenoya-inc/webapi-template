@@ -11,20 +11,23 @@
 ### 例
 
 ```typescript
-export const createUser = (ctx: DbContext) =>
-  defineContract({
-    input: object({ ... }),
-    output: User,
-    fn: async (input) => {
-      // ...
-      if (error) {
-        // ✅ failAs で説明付きエラー値を返す
-        return failAs("メールアドレスが既存ユーザーと重複", "duplicate_entry", { field: "email" })
-      }
-      // ✅ okAs で説明付き成功値を返す
-      return okAs("ユーザーを新規作成", { value: { id: row.id, name: row.name, email: row.email } })
-    },
-  })
+export const createUser = defineEffect(
+  { context: requiredContext<{ db: DbContext }>() },
+  (context) =>
+    defineContract({
+      input: object({ ... }),
+      output: User,
+      fn: async (input) => {
+        // ...
+        if (error) {
+          // ✅ failAs で説明付きエラー値を返す
+          return failAs("メールアドレスが既存ユーザーと重複", "duplicate_entry", { field: "email" })
+        }
+        // ✅ okAs で説明付き成功値を返す
+        return okAs("ユーザーを新規作成", { value: { id: row.id, name: row.name, email: row.email } })
+      },
+    }),
+)
 ```
 
 ```typescript
@@ -48,22 +51,25 @@ return {
 
 ```typescript
 // ✅ matchBehavior で exhaustive に分岐
-export const postUser = (ctx: DbContext, env = { createUser }) =>
-  defineRouteContract({
-    // ...
-    fn: async (input) =>
-      matchBehavior(await env.createUser(ctx)(input), {
-        success: (r) => okAs("作成成功", { value: { ... } }),
-        duplicate_entry: () => failAs("メールアドレスが重複", "conflict"),
-        validation_failed: (r) => failAs("入力値が不正", "bad_request", { fields: r.fields }),
-      }),
-  })
+export const postUser = defineEffect(
+  { service: { createUser } },
+  (service) => (context) =>
+    defineRouteContract({
+      // ...
+      fn: async (input) =>
+        matchBehavior(await service.createUser(context)(input), {
+          success: (r) => okAs("作成成功", { value: { ... } }),
+          duplicate_entry: () => failAs("メールアドレスが重複", "conflict"),
+          validation_failed: (r) => failAs("入力値が不正", "bad_request", { fields: r.fields }),
+        }),
+    }),
+)
 ```
 
 ```typescript
 // ❌ if/else による手動分岐 — variant 追加時に漏れる可能性がある
 fn: async (input) => {
-  const result = await env.createUser(ctx)(input)
+  const result = await service.createUser(context)(input)
   if (!result.ok) {
     if (result.reason === "duplicate_entry") {
       return failAs("メールアドレスが重複", "conflict")

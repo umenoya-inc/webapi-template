@@ -16,6 +16,7 @@ rule と design の区分基準は [rule と design の区分基準](docs/rule/r
 - [API エンドポイント](docs/rule/api-endpoint.md)
 - [ルート入力バリデーションの宣言](docs/rule/route-input-error.md)
 - [名前のある型は直接書く](docs/rule/no-indirect-type-derivation.md)
+- [defineEffect による副作用の宣言](docs/rule/define-effect.md)
 
 # Design
 
@@ -33,6 +34,7 @@ rule と design の区分基準は [rule と design の区分基準](docs/rule/r
 
 - [Behavior](src/behavior/index.ts) — 振る舞いパスの型表現、テスト網羅強制、Desc ラベル
 - [Contract](src/contract/index.ts) — Valibot スキーマによる入出力検証付き関数定義（behavior の上に構築）
+- [Effect](src/effect/index.ts) — 軽量 Effect System（defineEffect, requiredContext, resolveEffects）
 - [DBアクセス](src/db/index.ts) — DbContext, トランザクション, DB操作関数の追加方法
 - [環境変数](src/envvar/index.ts) — 型安全な環境変数の取得・追加方法
 
