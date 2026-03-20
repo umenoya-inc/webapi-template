@@ -2,13 +2,14 @@ import { email, object, pipe, string, uuid } from "valibot"
 import { failAs, matchBehavior, okAs } from "@/behavior"
 import { defaultInputError } from "@/contract"
 import { findUserById } from "@/db/user"
-import { defineEffect } from "@/effect"
+import { defineEffect, requiredContext } from "@/effect"
+import type { AuthContext } from "../auth"
 import { defineRouteContract } from "../defineRouteContract"
 import { routeInput } from "../routeInput"
 
 /** ユーザー取得 API のハンドラロジック。 */
 export const getUserById = defineEffect(
-  { service: { findUserById } },
+  { service: { findUserById }, context: requiredContext<{ auth: AuthContext }>() },
   (service) => (context) =>
     defineRouteContract({
       input: routeInput({

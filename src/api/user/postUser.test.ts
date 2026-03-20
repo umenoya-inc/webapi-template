@@ -35,6 +35,7 @@ describe("postUser", () => {
       const result = await postUser(service)({ db: dummyCtx })({
         name: "Alice",
         email: "alice@example.com",
+        password: "password123",
       })
       const ok = assert(result)
       expect(ok.value.name).toBe("Alice")
@@ -48,6 +49,7 @@ describe("postUser", () => {
       const result = await postUser(service)({ db: dummyCtx })({
         name: "Bob",
         email: "alice@example.com",
+        password: "password123",
       })
       assert(result)
     },
@@ -57,6 +59,7 @@ describe("postUser", () => {
         "nameが空": { name: constant("") },
         "emailが不正": { email: string() },
         "name文字数超過": { name: string({ minLength: 101 }) },
+        "パスワードが短すぎる": { password: string({ maxLength: 7 }) },
       },
       async (assert, input) => {
         const service = mockService(postUser, {

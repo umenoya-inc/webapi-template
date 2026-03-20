@@ -4,9 +4,11 @@ import { describe, expect } from "vite-plus/test"
 import type { DbContext } from "@/db"
 import { User, findUserById } from "@/db/user"
 import { mockBehavior, mockService, propertyCheck, testBehavior } from "@/testing"
+import type { AuthContext } from "../auth"
 import { getUserById } from "./getUserById"
 
 const dummyCtx = {} as DbContext
+const dummyAuth: AuthContext = { userId: "00000000-0000-0000-0000-000000000099" }
 const dummyUserId = "00000000-0000-0000-0000-000000000001"
 
 describe("getUserById", () => {
@@ -35,7 +37,9 @@ describe("getUserById", () => {
       const service = mockService(getUserById, {
         findUserById: findUserByIdMock["IDに該当するユーザーを取得"],
       })
-      const result = await getUserById(service)({ db: dummyCtx })({ id: dummyUserId })
+      const result = await getUserById(service)({ db: dummyCtx, auth: dummyAuth })({
+        id: dummyUserId,
+      })
       const ok = assert(result)
       expect(ok.value.id).toBe(dummyUserId)
       expect(ok.value.name).toBe("Alice")
@@ -45,7 +49,9 @@ describe("getUserById", () => {
       const service = mockService(getUserById, {
         findUserById: findUserByIdMock["IDに該当するユーザーが存在しない"],
       })
-      const result = await getUserById(service)({ db: dummyCtx })({ id: dummyUserId })
+      const result = await getUserById(service)({ db: dummyCtx, auth: dummyAuth })({
+        id: dummyUserId,
+      })
       assert(result)
     },
     "入力値が不正": propertyCheck(
@@ -57,7 +63,7 @@ describe("getUserById", () => {
         const service = mockService(getUserById, {
           findUserById: findUserByIdMock["入力値が不正"],
         })
-        const result = await getUserById(service)({ db: dummyCtx })(input)
+        const result = await getUserById(service)({ db: dummyCtx, auth: dummyAuth })(input)
         assert(result)
       },
     ),

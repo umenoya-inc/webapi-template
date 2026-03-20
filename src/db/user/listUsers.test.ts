@@ -6,7 +6,10 @@ import { testBehavior } from "@/testing"
 import { listUsers } from "./listUsers"
 import { userTable } from "./userTable"
 
-const insertUserRow = (ctx: DbContext, values: { name: string; email: string }) => {
+const insertUserRow = (
+  ctx: DbContext,
+  values: { name: string; email: string; passwordHash: string },
+) => {
   const db = fromDbContext(ctx)
   return db.insert(userTable).values(values)
 }
@@ -32,8 +35,16 @@ describe("listUsers", () => {
       expect(ok.value).toEqual([])
     },
     "登録済みユーザー一覧を取得": async (assert) => {
-      await insertUserRow(ctx, { name: "Alice", email: "alice@example.com" })
-      await insertUserRow(ctx, { name: "Bob", email: "bob@example.com" })
+      await insertUserRow(ctx, {
+        name: "Alice",
+        email: "alice@example.com",
+        passwordHash: "$2a$10$dummyhash",
+      })
+      await insertUserRow(ctx, {
+        name: "Bob",
+        email: "bob@example.com",
+        passwordHash: "$2a$10$dummyhash",
+      })
 
       const result = await listUsers({ db: ctx })()
       const ok = assert(result)

@@ -1,3 +1,4 @@
+import { hash } from "bcryptjs"
 import { email, maxLength, minLength, object, pipe, string } from "valibot"
 import type { DbContext } from "../DbContext"
 import { dbExecute } from "../error/dbExecute"
@@ -16,13 +17,23 @@ export const createUser = defineEffect(
       input: object({
         name: pipe(string(), minLength(1), maxLength(100)),
         email: pipe(string(), email()),
+        password: pipe(string(), minLength(8)),
       }),
       output: User,
-      onInputError: defaultInputError(["nameが空", "emailが不正", "name文字数超過"]),
+      onInputError: defaultInputError([
+        "nameが空",
+        "emailが不正",
+        "name文字数超過",
+        "パスワードが短すぎる",
+      ]),
       fn: async (input) => {
         const db = fromDbContext(context.db)
+        const passwordHash = await hash(input.password, 10)
         const result = await dbExecute(() =>
-          db.insert(userTable).values({ name: input.name, email: input.email }).returning(),
+          db
+            .insert(userTable)
+            .values({ name: input.name, email: input.email, passwordHash })
+            .returning(),
         )
         if (!result.ok) {
           if (result.error.kind === "unique_violation") {

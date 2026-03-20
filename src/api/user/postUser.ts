@@ -13,13 +13,19 @@ export const postUser = defineEffect(
       input: object({
         name: pipe(string(), minLength(1), maxLength(100)),
         email: pipe(string(), email()),
+        password: pipe(string(), minLength(8)),
       }),
       output: object({
         id: pipe(string(), uuid()),
         name: string(),
         email: pipe(string(), email()),
       }),
-      onInputError: defaultInputError(["nameが空", "emailが不正", "name文字数超過"]),
+      onInputError: defaultInputError([
+        "nameが空",
+        "emailが不正",
+        "name文字数超過",
+        "パスワードが短すぎる",
+      ]),
       responses: {
         "作成成功": { status: 201, description: "ユーザーを新規作成" },
         "メールアドレスが重複": { status: 409, description: "メールアドレスが既に使用されている" },

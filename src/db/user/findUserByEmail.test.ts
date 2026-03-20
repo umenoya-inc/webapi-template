@@ -4,7 +4,7 @@ import type { DbContext } from "../DbContext"
 import { fromDbContext } from "../fromDbContext"
 import { createTestDbContext } from "../testing/createTestDbContext.testutil"
 import { propertyCheck, testBehavior } from "@/testing"
-import { findUserById } from "./findUserById"
+import { findUserByEmail } from "./findUserByEmail"
 import { userTable } from "./userTable"
 
 const insertUserRow = (
@@ -15,7 +15,7 @@ const insertUserRow = (
   return db.insert(userTable).values(values).returning()
 }
 
-describe("findUserById", () => {
+describe("findUserByEmail", () => {
   let ctx: DbContext
   let cleanup: () => Promise<void>
 
@@ -29,30 +29,30 @@ describe("findUserById", () => {
     await cleanup?.()
   })
 
-  testBehavior(findUserById, {
-    "IDに該当するユーザーを取得": async (assert) => {
-      const [inserted] = await insertUserRow(ctx, {
+  testBehavior(findUserByEmail, {
+    "メールアドレスに該当するユーザーを取得": async (assert) => {
+      await insertUserRow(ctx, {
         name: "Alice",
         email: "alice@example.com",
         passwordHash: "$2a$10$dummyhash",
       })
-      const result = await findUserById({ db: ctx })({ id: inserted.id })
+      const result = await findUserByEmail({ db: ctx })({ email: "alice@example.com" })
       const user = assert(result)
-      expect(user.value.id).toBe(inserted.id)
-      expect(user.value.name).toBe("Alice")
       expect(user.value.email).toBe("alice@example.com")
+      expect(user.value.passwordHash).toBe("$2a$10$dummyhash")
+      expect(user.value.id).toBeDefined()
     },
-    "IDに該当するユーザーが存在しない": async (assert) => {
-      const result = await findUserById({ db: ctx })({ id: "00000000-0000-0000-0000-000000000000" })
+    "メールアドレスに該当するユーザーが存在しない": async (assert) => {
+      const result = await findUserByEmail({ db: ctx })({ email: "nonexistent@example.com" })
       assert(result)
     },
     "入力値が不正": propertyCheck(
-      findUserById,
+      findUserByEmail,
       {
-        "IDが不正": { id: string() },
+        "emailが不正": { email: string() },
       },
       async (assert, input) => {
-        const result = await findUserById({ db: ctx })(input)
+        const result = await findUserByEmail({ db: ctx })(input)
         assert(result)
       },
     ),

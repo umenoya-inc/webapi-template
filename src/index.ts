@@ -1,5 +1,6 @@
 import { Hono } from "hono"
 import { openAPIRouteHandler } from "hono-openapi"
+import { postLoginRoute } from "./api/auth/postLoginRoute"
 import { healthRoute } from "./api/healthRoute"
 import { getUserByIdRoute } from "./api/user/getUserByIdRoute"
 import { listUsersRoute } from "./api/user/listUsersRoute"
@@ -8,6 +9,7 @@ import { postUserRoute } from "./api/user/postUserRoute"
 const app = new Hono()
 
 app.route("/health", healthRoute)
+app.route("/auth", postLoginRoute)
 app.route("/users", postUserRoute)
 app.route("/users", listUsersRoute)
 app.route("/users", getUserByIdRoute)

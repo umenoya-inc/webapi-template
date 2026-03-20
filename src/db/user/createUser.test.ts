@@ -25,6 +25,7 @@ describe("createUser", () => {
       const result = await createUser({ db: ctx })({
         name: "Alice",
         email: "alice@example.com",
+        password: "password123",
       })
       const user = assert(result)
       expect(user.value.name).toBe("Alice")
@@ -35,6 +36,7 @@ describe("createUser", () => {
       const result = await createUser({ db: ctx })({
         name: "Bob",
         email: "alice@example.com",
+        password: "password123",
       })
       const error = assert(result)
       expect(error.field).toBe("email")
@@ -45,6 +47,7 @@ describe("createUser", () => {
         "nameが空": { name: constant("") },
         "emailが不正": { email: string() },
         "name文字数超過": { name: string({ minLength: 101 }) },
+        "パスワードが短すぎる": { password: string({ maxLength: 7 }) },
       },
       async (assert, input) => {
         const result = await createUser({ db: ctx })(input)
