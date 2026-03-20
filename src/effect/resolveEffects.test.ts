@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vite-plus/test"
 import { EffectChainError } from "./EffectChainError"
+import type { EffectTrace } from "./EffectTrace"
 import { defineEffect } from "./defineEffect"
 import { requiredContext } from "./requiredContext"
 import { resolveEffects } from "./resolveEffects"
@@ -72,6 +73,42 @@ describe("resolveEffects", () => {
         inner: { id: "user-1" },
       })
     }
+  })
+
+  it("エラーに各 Effect の実行時間が記録される", async () => {
+    const inner = defineEffect({ context: requiredContext<{ db: unknown }>() }, (_context) => {
+      return async () => {
+        throw new Error("failed")
+      }
+    })
+
+    const resolved = resolveEffects({ inner } as any)
+    try {
+      await resolved.inner({})()
+      expect.unreachable("should have thrown")
+    } catch (e) {
+      const err = e as EffectChainError
+      expect(err.durations).toHaveProperty("inner")
+      expect(typeof err.durations.inner).toBe("number")
+      expect(err.durations.inner).toBeGreaterThanOrEqual(0)
+    }
+  })
+
+  it("onTrace コールバックで成功時のトレースが取得できる", async () => {
+    const greet = defineEffect({ context: requiredContext<{ db: unknown }>() }, (_context) => {
+      return async (_input: { name: string }) => {
+        return { ok: true, value: "hello" }
+      }
+    })
+
+    const traces: EffectTrace[] = []
+    const resolved = resolveEffects({ greet } as any, (t) => traces.push(t))
+    await resolved.greet({})({ name: "Alice" })
+
+    expect(traces).toHaveLength(1)
+    expect(traces[0].effect).toBe("greet")
+    expect(traces[0].input).toEqual({ name: "Alice" })
+    expect(traces[0].durationMs).toBeGreaterThanOrEqual(0)
   })
 
   it("引数なしの Effect では input が undefined になる", async () => {

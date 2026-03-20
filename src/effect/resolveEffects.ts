@@ -1,4 +1,5 @@
 import { EffectChainError } from "./EffectChainError"
+import type { EffectTrace } from "./EffectTrace"
 import { effectDepsKey } from "./effectDepsKey"
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -8,7 +9,10 @@ type ServiceMap = Record<string, EffectFn>
 type ResolvedMap = Record<string, (context: any) => any>
 
 /** フラットな Effect 群を再帰的に解決し、各 Effect を `(context) => Fn` にする。 */
-export function resolveEffects(service: ServiceMap): ResolvedMap {
+export function resolveEffects(
+  service: ServiceMap,
+  onTrace?: (trace: EffectTrace) => void,
+): ResolvedMap {
   const resolved: ResolvedMap = {}
   const resolving = new Set<string>()
 
@@ -36,7 +40,7 @@ export function resolveEffects(service: ServiceMap): ResolvedMap {
     }
 
     resolving.delete(key)
-    resolved[key] = wrapWithChainError(key, unwrapped)
+    resolved[key] = wrapWithTrace(key, unwrapped, onTrace)
     return resolved[key]
   }
 
@@ -46,25 +50,38 @@ export function resolveEffects(service: ServiceMap): ResolvedMap {
   return resolved
 }
 
-function wrapWithChainError(
+function wrapWithTrace(
   effectName: string,
   contextFn: (context: any) => any,
+  onTrace?: (trace: EffectTrace) => void,
 ): (context: any) => any {
   return (context: any) => {
     const contractFn = contextFn(context)
     if (typeof contractFn !== "function") return contractFn
     return (...args: any[]) => {
       const input = args.length === 1 ? args[0] : args.length === 0 ? undefined : args
+      const start = performance.now()
       try {
         const ret = contractFn(...args)
-        if (ret && typeof (ret as Promise<unknown>).catch === "function") {
-          return (ret as Promise<unknown>).catch((e: unknown) => {
-            throw new EffectChainError(effectName, input, e)
-          })
+        if (ret && typeof (ret as Promise<unknown>).then === "function") {
+          return (ret as Promise<unknown>).then(
+            (result) => {
+              onTrace?.({ effect: effectName, input, durationMs: performance.now() - start })
+              return result
+            },
+            (e: unknown) => {
+              const durationMs = performance.now() - start
+              onTrace?.({ effect: effectName, input, durationMs })
+              throw new EffectChainError(effectName, input, durationMs, e)
+            },
+          )
         }
+        onTrace?.({ effect: effectName, input, durationMs: performance.now() - start })
         return ret
       } catch (e) {
-        throw new EffectChainError(effectName, input, e)
+        const durationMs = performance.now() - start
+        onTrace?.({ effect: effectName, input, durationMs })
+        throw new EffectChainError(effectName, input, durationMs, e)
       }
     }
   }

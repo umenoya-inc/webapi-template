@@ -5,6 +5,7 @@ import { describeRoute, resolver } from "hono-openapi"
 import { descLabelKey } from "@/behavior"
 import { inputSchemaKey, outputSchemaKey } from "@/contract"
 import { EffectChainError, effectDepsKey, resolveEffects } from "@/effect"
+import type { EffectTrace } from "@/effect"
 import { inputConfigKey } from "./inputConfigKey"
 import { responsesKey } from "./responsesKey"
 
@@ -45,9 +46,12 @@ export function defineRoute(options: RouteOptions): [MiddlewareHandler, Handler]
       responses: buildOpenAPIResponses(outputSchema, responses) as never,
     }),
     async (c: Context<Env, string, Input>) => {
+      const traces: EffectTrace[] = []
       try {
         const { service, context } = options.provide(c)
-        const resolvedService = resolveEffects(service as Record<string, any>)
+        const resolvedService = resolveEffects(service as Record<string, any>, (t) =>
+          traces.push(t),
+        )
         const effectFn = options.effect(resolvedService)(context)
         const result = inputConfig
           ? await effectFn(await extractInput(c, inputConfig))
@@ -58,6 +62,16 @@ export function defineRoute(options: RouteOptions): [MiddlewareHandler, Handler]
         const status = responses?.[label]?.status ?? (result.ok ? 200 : 400)
         const { ok: _, ...rest } = result as Record<string, unknown>
         delete rest[descLabelKey as unknown as string]
+        if (traces.length > 0) {
+          console.log("Effect traces:", {
+            method: c.req.method,
+            path: c.req.path,
+            traces: traces.map((t) => ({
+              effect: t.effect,
+              durationMs: Math.round(t.durationMs * 100) / 100,
+            })),
+          })
+        }
         return c.json(rest, status as ContentfulStatusCode) as Response
       } catch (e) {
         const request = { method: c.req.method, path: c.req.path }
@@ -66,6 +80,7 @@ export function defineRoute(options: RouteOptions): [MiddlewareHandler, Handler]
             ...request,
             chain: e.chain,
             inputs: e.inputs,
+            durations: e.durations,
             message: e.message,
             cause: e.cause,
           })
