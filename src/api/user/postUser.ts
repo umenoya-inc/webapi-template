@@ -1,14 +1,12 @@
 import { email, maxLength, minLength, object, pipe, string, uuid } from "valibot"
 import { failAs, matchBehavior, okAs } from "@/behavior"
 import { defaultInputError } from "@/contract"
+import { DbContext } from "@/db"
 import { createUser } from "@/db/user"
 import { defineRouteContract } from "../defineRouteContract"
 
 /** ユーザー作成 API のハンドラロジック。 */
-export const postUser = (
-  ctx: Parameters<typeof createUser>[0],
-  env: { createUser: typeof createUser } = { createUser },
-) =>
+export const postUser = (ctx: DbContext, env: { createUser: typeof createUser } = { createUser }) =>
   defineRouteContract({
     input: object({
       name: pipe(string(), minLength(1), maxLength(100)),

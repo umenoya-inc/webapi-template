@@ -1,13 +1,14 @@
 import { email, object, pipe, string, uuid } from "valibot"
 import { failAs, matchBehavior, okAs } from "@/behavior"
 import { defaultInputError } from "@/contract"
+import { DbContext } from "@/db"
 import { findUserById } from "@/db/user"
 import { defineRouteContract } from "../defineRouteContract"
 import { routeInput } from "../routeInput"
 
 /** ユーザー取得 API のハンドラロジック。 */
 export const getUserById = (
-  ctx: Parameters<typeof findUserById>[0],
+  ctx: DbContext,
   env: { findUserById: typeof findUserById } = { findUserById },
 ) =>
   defineRouteContract({

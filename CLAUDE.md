@@ -14,6 +14,7 @@ TypeScript ファイルを作成・編集する際は、以下のルールを必
 - [defineContract の fn 内ルール](docs/rule/contract-fn-rule.md)
 - [API エンドポイント](docs/rule/api-endpoint.md)
 - [ルート入力バリデーションの宣言](docs/rule/route-input-error.md)
+- [名前のある型は直接書く](docs/rule/no-indirect-type-derivation.md)
 
 # Design
 

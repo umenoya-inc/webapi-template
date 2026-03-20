@@ -1,11 +1,12 @@
 import { array, email, object, pipe, string, uuid } from "valibot"
 import { matchBehavior, okAs } from "@/behavior"
+import { DbContext } from "@/db"
 import { listUsers as dbListUsers } from "@/db/user"
 import { defineRouteContract } from "../defineRouteContract"
 
 /** ユーザー一覧取得 API のハンドラロジック。 */
 export const listUsers = (
-  ctx: Parameters<typeof dbListUsers>[0],
+  ctx: DbContext,
   env: { listUsers: typeof dbListUsers } = { listUsers: dbListUsers },
 ) =>
   defineRouteContract({
