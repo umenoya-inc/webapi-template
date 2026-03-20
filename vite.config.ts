@@ -20,6 +20,9 @@ export default defineConfig({
       entry: "src/index.ts",
     }),
   ],
+  test: {
+    setupFiles: ["./src/testing/effectErrorHandler.setup.ts"],
+  },
   fmt: {
     semi: false,
     quoteProps: "preserve",
