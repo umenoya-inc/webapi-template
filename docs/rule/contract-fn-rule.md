@@ -67,6 +67,23 @@ export const postUser = defineEffect(
 ```
 
 ```typescript
+// ✅ early return パターン — !result.ok ガードでエラー側を matchBehavior で処理し early return
+fn: async (input) => {
+  const userResult = await service.findUserByEmail(context)({ email: input.email })
+  if (!userResult.ok) {
+    return matchBehavior(userResult, {
+      not_found: () => failAs("認証失敗", "unauthorized"),
+      validation_failed: (r) => failAs("入力値が不正", "bad_request", { fields: r.fields }),
+    })
+  }
+  // userResult は success に絞り込まれる
+  return okAs("成功", { value: { ... } })
+}
+```
+
+ネストが深くなる場合は early return パターンを優先する。`matchBehavior` のネストより `!result.ok` ガード + エラー側 `matchBehavior` で early return し、正常系をフラットに書く。
+
+```typescript
 // ❌ if/else による手動分岐 — variant 追加時に漏れる可能性がある
 fn: async (input) => {
   const result = await service.createUser(context)(input)

@@ -28,25 +28,26 @@ export const postLogin = defineEffect(
       },
       fn: async (input) => {
         const userResult = await service.findUserByEmail(context)({ email: input.email })
-        return matchBehavior(userResult, {
-          success: async (r) => {
-            const passwordValid = await compare(input.password, r.value.passwordHash)
-            if (!passwordValid) {
-              return failAs("認証失敗", "unauthorized")
-            }
-            const tokenResult = await service.createAuthToken(context)({
-              userId: r.value.id,
-            })
-            return matchBehavior(tokenResult, {
-              success: (t) =>
-                okAs("ログイン成功", {
-                  value: { token: t.value.token, expiresAt: t.value.expiresAt },
-                }),
-              validation_failed: () => failAs("入力値が不正", "bad_request", { fields: {} }),
-            })
-          },
-          not_found: () => failAs("認証失敗", "unauthorized"),
-          validation_failed: (r) => failAs("入力値が不正", "bad_request", { fields: r.fields }),
+        if (!userResult.ok) {
+          return matchBehavior(userResult, {
+            not_found: () => failAs("認証失敗", "unauthorized"),
+            validation_failed: (r) => failAs("入力値が不正", "bad_request", { fields: r.fields }),
+          })
+        }
+        const passwordValid = await compare(input.password, userResult.value.passwordHash)
+        if (!passwordValid) {
+          return failAs("認証失敗", "unauthorized")
+        }
+        const tokenResult = await service.createAuthToken(context)({
+          userId: userResult.value.id,
+        })
+        if (!tokenResult.ok) {
+          return matchBehavior(tokenResult, {
+            validation_failed: () => failAs("入力値が不正", "bad_request", { fields: {} }),
+          })
+        }
+        return okAs("ログイン成功", {
+          value: { token: tokenResult.value.token, expiresAt: tokenResult.value.expiresAt },
         })
       },
     }),
