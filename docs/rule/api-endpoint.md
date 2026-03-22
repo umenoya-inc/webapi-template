@@ -60,6 +60,8 @@ export const postUser = defineEffect(
 
 ルート定義は `defineRoute` で Hono インスタンスを生成する。`effect` に Effect を渡し、`provide` で service と context を提供する。ハンドラのスキーマと `responses` は自動取得されるため、記述は最小限。
 
+`provide` の `service` にはハンドラの `defineEffect` で宣言した Effect と同じものを渡す。ハンドラ側が依存の**宣言**、ルート定義側が実体の**注入**であり、役割が異なるため重複ではない。
+
 ```typescript
 // postUserRoute.ts
 export const postUserRoute = new Hono()
@@ -76,6 +78,10 @@ postUserRoute.post(
   }),
 )
 ```
+
+### provide の型安全
+
+`provide` の戻り値は `defineRoute` のジェネリクスにより Effect の `ProvideService` / `ProvideContext` で型制約される。service や context のフィールドが不足していればコンパイルエラーになる。
 
 ルート定義を作成したら `src/index.ts` に登録する。
 

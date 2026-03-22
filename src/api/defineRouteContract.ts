@@ -1,8 +1,6 @@
 import type { BaseIssue, BaseSchema, InferInput, InferIssue, InferOutput } from "valibot"
 import type { BehaviorBrand, Desc, DescLabel } from "@/behavior"
-import { defineBehavior } from "@/behavior"
-import { inputSchemaKey, outputSchemaKey } from "@/contract"
-import { withSchema } from "@/contract"
+import { defineContract } from "@/contract"
 import { responsesKey } from "./responsesKey"
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -80,18 +78,7 @@ export function defineRouteContract(options: {
   responses: Record<string, ResponseEntry>
   fn: (input?: unknown) => Promise<unknown>
 }) {
-  const fn = defineBehavior(
-    withSchema({
-      input: options.input,
-      output: options.output,
-      onInputError: options.onInputError,
-      fn: options.fn,
-    } as any) as any,
-  )
-  if (options.input) {
-    ;(fn as Record<symbol, unknown>)[inputSchemaKey] = options.input
-  }
-  ;(fn as Record<symbol, unknown>)[outputSchemaKey] = options.output
-  ;(fn as Record<symbol, unknown>)[responsesKey] = options.responses
+  const fn = defineContract(options as any)
+  ;(fn as any)[responsesKey] = options.responses
   return fn
 }

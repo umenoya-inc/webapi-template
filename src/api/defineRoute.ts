@@ -5,17 +5,17 @@ import { describeRoute, resolver } from "hono-openapi"
 import { descLabelKey } from "@/behavior"
 import { inputSchemaKey, outputSchemaKey } from "@/contract"
 import { EffectChainError, effectResultKey, resolveEffects } from "@/effect"
-import type { EffectTrace } from "@/effect"
+import type { EffectBrand, EffectTrace, ProvideContext, ProvideService } from "@/effect"
 import { inputConfigKey } from "./inputConfigKey"
 import { responsesKey } from "./responsesKey"
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-interface RouteOptions {
-  effect: (...args: any[]) => any
+interface RouteOptions<E extends EffectBrand<any, any, any, any>> {
+  effect: E
   provide: (c: Context<Env, string, Input>) => {
-    service: Record<string, unknown>
-    context: Record<string, unknown>
+    service: ProvideService<E>
+    context: ProvideContext<E>
   }
   description: string
 }
@@ -35,7 +35,9 @@ interface InputConfig {
 }
 
 /** Effect と provide から OpenAPI 付きルートハンドラを生成する。 */
-export function defineRoute(options: RouteOptions): [MiddlewareHandler, Handler] {
+export function defineRoute<E extends EffectBrand<any, any, any, any>>(
+  options: RouteOptions<E>,
+): [MiddlewareHandler, Handler] {
   const contractFn = (options.effect as unknown as Record<symbol, unknown>)[effectResultKey] as
     | ((...args: any[]) => any)
     | undefined
@@ -57,7 +59,7 @@ export function defineRoute(options: RouteOptions): [MiddlewareHandler, Handler]
         const resolvedService = resolveEffects(service as Record<string, any>, (t) =>
           traces.push(t),
         )
-        const effectFn = options.effect(resolvedService)(context)
+        const effectFn = (options.effect as any)(resolvedService)(context)
         const result = inputConfig
           ? await effectFn(await extractInput(c, inputConfig))
           : fnInputSchema
@@ -65,8 +67,8 @@ export function defineRoute(options: RouteOptions): [MiddlewareHandler, Handler]
             : await effectFn()
         const label = (result as Record<symbol, string>)[descLabelKey]
         const status = responses?.[label]?.status ?? (result.ok ? 200 : 400)
-        const { ok: _, ...rest } = result as Record<string, unknown>
-        delete rest[descLabelKey as unknown as string]
+        const { ok: _, ...rest } = result as Record<string | symbol, unknown>
+        delete rest[descLabelKey]
         if (traces.length > 0) {
           console.log("Effect traces:", {
             method: c.req.method,
