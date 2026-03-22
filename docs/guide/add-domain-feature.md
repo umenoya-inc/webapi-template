@@ -330,11 +330,12 @@ defineRouteContract({
 `src/api/todo/postTodo.test.ts` を作成する。API 層は `mockBehavior` / `mockService` で DB 層をモック化してテスト。
 
 ```typescript
+import { constant } from "fast-check"
+import { parse } from "valibot"
 import { describe, expect } from "vite-plus/test"
 import type { DbContext } from "@/db"
-import { createTodo } from "@/db/todo"
+import { Todo, createTodo } from "@/db/todo"
 import { mockBehavior, mockService, testBehavior, propertyCheck } from "@/testing"
-import { constant } from "fast-check"
 import { postTodo } from "./postTodo"
 
 const dummyCtx = {} as DbContext
@@ -343,10 +344,7 @@ describe("postTodo", () => {
   const createTodoMock = mockBehavior(createTodo, {
     "TODOを新規作成": async (input) => ({
       ok: true,
-      value: {
-        id: "00000000-0000-0000-0000-000000000001",
-        title: input.title,
-      },
+      value: parse(Todo, { id: "00000000-0000-0000-0000-000000000001", title: input.title }),
     }),
     "入力値が不正": async () => ({
       ok: false,
@@ -462,22 +460,16 @@ app.route("/todos", todoRoutes)
 
 ## チェックリスト
 
-新規ドメイン追加時の最終確認。
+新規ドメイン追加時の最終確認。以下の項目は lint や型チェックでは検出されないため、目視で確認する。
 
 - [ ] テーブル名は単数形
-- [ ] Branded Entity ID が定義されている
-- [ ] ドメインモデルが Branded Type で定義されている
-- [ ] DB 操作関数は `defineEffect` + `defineContract` で定義されている
-- [ ] DB クエリは `pgExecute` でラップされている
-- [ ] `okAs` / `failAs` でビジネスラベルが付与されている
-- [ ] `input` がある関数は `onInputError` を宣言している
-- [ ] DB 層テストは実 DB（PGlite）で動作する
-- [ ] API ハンドラは `defineEffect` + `defineRouteContract` で定義されている
-- [ ] `responses` マップで全ラベルにステータスコードが割り当てられている
-- [ ] `matchBehavior` で子 Effect の結果を exhaustive に処理している
-- [ ] API 層テストは `mockBehavior` / `mockService` でモック化されている
-- [ ] `testBehavior` で全振る舞いパスがテストされている
-- [ ] barrel export で公開 API が制御されている（テーブル定義・ハンドラは非公開）
+- [ ] DB クエリは `pgExecute` でラップされている（素の try-catch ではなく）
+- [ ] DB 層テストは実 DB（PGlite）で動作する（モックではなく）
+- [ ] API 層テストは `mockBehavior` / `mockService` でモック化されている（実 DB ではなく）
+- [ ] `mockBehavior` の成功値は `parse(DomainModel, ...)` で Branded Type にしている
 - [ ] `index.ts` に JSDoc でモジュール説明が記述されている
-- [ ] `npx vp check --fix` がエラーなし
-- [ ] `npx vp test` が全件パス
+
+以下は `npx vp check --fix` と `npx vp test` で自動検証される。
+
+- `okAs` / `failAs` のラベル付与、`onInputError` の宣言、`responses` の網羅、`matchBehavior` の exhaustive 処理、`testBehavior` の全パス網羅 → 型チェックで強制
+- barrel export のアクセス制御 → `module-boundary` lint ルールで強制
