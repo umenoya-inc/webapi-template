@@ -1,15 +1,13 @@
 import { afterAll, beforeAll, describe, expect } from "vite-plus/test"
 import type { DbContext } from "../DbContext"
-import { fromDbContext } from "../fromDbContext"
 import { createTestDbContext } from "../testing/createTestDbContext.testutil"
+import { rawDb } from "../testing/rawDb.testutil"
 import { testBehavior } from "@/testing"
 import { listTodos } from "./listTodos"
 import { todoTable } from "./todoTable"
 
-const insertTodoRow = (ctx: DbContext, values: { title: string }) => {
-  const db = fromDbContext(ctx)
-  return db.query((q) => q.insert(todoTable).values(values))
-}
+const insertTodoRow = (ctx: DbContext, values: { title: string }) =>
+  rawDb(ctx).insert(todoTable).values(values)
 
 describe("listTodos", () => {
   let ctx: DbContext

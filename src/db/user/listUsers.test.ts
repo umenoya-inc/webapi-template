@@ -1,19 +1,15 @@
 import { afterAll, beforeAll, describe, expect } from "vite-plus/test"
 import type { DbContext } from "../DbContext"
-import { fromDbContext } from "../fromDbContext"
 import { createTestDbContext } from "../testing/createTestDbContext.testutil"
+import { rawDb } from "../testing/rawDb.testutil"
 import { testBehavior } from "@/testing"
 import { listUsers } from "./listUsers"
 import { userTable } from "./userTable"
 
-const insertUserRow = async (
+const insertUserRow = (
   ctx: DbContext,
   values: { name: string; email: string; passwordHash: string },
-) => {
-  const db = fromDbContext(ctx)
-  const result = await db.execute((q) => q.insert(userTable).values(values))
-  if (!result.ok) throw new Error("insert failed", { cause: result.error })
-}
+) => rawDb(ctx).insert(userTable).values(values)
 
 describe("listUsers", () => {
   let ctx: DbContext

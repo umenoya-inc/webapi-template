@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect } from "vite-plus/test"
 import { string } from "fast-check"
 import type { DbContext } from "../DbContext"
-import { fromDbContext } from "../fromDbContext"
 import { createTestDbContext } from "../testing/createTestDbContext.testutil"
+import { rawDb } from "../testing/rawDb.testutil"
 import { propertyCheck, testBehavior } from "@/testing"
 import { findUserById } from "./findUserById"
 import { userTable } from "./userTable"
@@ -10,10 +10,7 @@ import { userTable } from "./userTable"
 const insertUserRow = (
   ctx: DbContext,
   values: { name: string; email: string; passwordHash: string },
-) => {
-  const db = fromDbContext(ctx)
-  return db.query((q) => q.insert(userTable).values(values).returning())
-}
+) => rawDb(ctx).insert(userTable).values(values).returning()
 
 describe("findUserById", () => {
   let ctx: DbContext

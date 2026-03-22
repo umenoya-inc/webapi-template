@@ -1,16 +1,14 @@
 import { afterAll, beforeAll, describe, expect } from "vite-plus/test"
 import { string } from "fast-check"
 import type { DbContext } from "../DbContext"
-import { fromDbContext } from "../fromDbContext"
 import { createTestDbContext } from "../testing/createTestDbContext.testutil"
+import { rawDb } from "../testing/rawDb.testutil"
 import { propertyCheck, testBehavior } from "@/testing"
 import { findTodoById } from "./findTodoById"
 import { todoTable } from "./todoTable"
 
-const insertTodoRow = (ctx: DbContext, values: { title: string }) => {
-  const db = fromDbContext(ctx)
-  return db.query((q) => q.insert(todoTable).values(values).returning())
-}
+const insertTodoRow = (ctx: DbContext, values: { title: string }) =>
+  rawDb(ctx).insert(todoTable).values(values).returning()
 
 describe("findTodoById", () => {
   let ctx: DbContext

@@ -1,16 +1,14 @@
 import { afterAll, beforeAll, describe, expect } from "vite-plus/test"
 import { string } from "fast-check"
 import type { DbContext } from "../DbContext"
-import { fromDbContext } from "../fromDbContext"
 import { createTestDbContext } from "../testing/createTestDbContext.testutil"
+import { rawDb } from "../testing/rawDb.testutil"
 import { propertyCheck, testBehavior } from "@/testing"
 import { authTokenTable } from "./authTokenTable"
 import { findAuthToken } from "./findAuthToken"
 
-const insertAuthTokenRow = (ctx: DbContext, values: { userId: string; expiresAt: Date }) => {
-  const db = fromDbContext(ctx)
-  return db.query((q) => q.insert(authTokenTable).values(values).returning())
-}
+const insertAuthTokenRow = (ctx: DbContext, values: { userId: string; expiresAt: Date }) =>
+  rawDb(ctx).insert(authTokenTable).values(values).returning()
 
 describe("findAuthToken", () => {
   let ctx: DbContext

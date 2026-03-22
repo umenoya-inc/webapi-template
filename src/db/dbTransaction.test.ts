@@ -3,6 +3,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test"
 import type { DbContext } from "./DbContext"
 import { fromDbContext } from "./fromDbContext"
 import { createTestDbContext } from "./testing/createTestDbContext.testutil"
+import { rawDb } from "./testing/rawDb.testutil"
 import { userTable } from "./user/userTable"
 
 describe("DbClient.transaction", () => {
@@ -22,7 +23,7 @@ describe("DbClient.transaction", () => {
   it("ok: true を返した場合コミットされる", async () => {
     const db = fromDbContext(ctx)
     const result = await db.transaction(async (txDb) => {
-      await txDb.query((q) =>
+      await txDb.execute((q) =>
         q.insert(userTable).values({
           name: "Alice",
           email: "alice@example.com",
@@ -34,16 +35,17 @@ describe("DbClient.transaction", () => {
 
     expect(result.ok).toBe(true)
 
-    const rows = await db.query((q) =>
-      q.select().from(userTable).where(eq(userTable.email, "alice@example.com")),
-    )
+    const rows = await rawDb(ctx)
+      .select()
+      .from(userTable)
+      .where(eq(userTable.email, "alice@example.com"))
     expect(rows).toHaveLength(1)
   })
 
   it("ok: false を返した場合ロールバックされる", async () => {
     const db = fromDbContext(ctx)
     const result = await db.transaction(async (txDb) => {
-      await txDb.query((q) =>
+      await txDb.execute((q) =>
         q.insert(userTable).values({
           name: "Bob",
           email: "bob@example.com",
@@ -58,9 +60,10 @@ describe("DbClient.transaction", () => {
       expect(result.reason).toBe("duplicate")
     }
 
-    const rows = await db.query((q) =>
-      q.select().from(userTable).where(eq(userTable.email, "bob@example.com")),
-    )
+    const rows = await rawDb(ctx)
+      .select()
+      .from(userTable)
+      .where(eq(userTable.email, "bob@example.com"))
     expect(rows).toHaveLength(0)
   })
 
