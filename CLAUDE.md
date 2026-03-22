@@ -1,6 +1,6 @@
 # Overview
 
-Hono + Drizzle + Valibot + PGlite による TypeScript Web API のテンプレートプロジェクト。コーディングエージェントが品質を保ちながら高速にコードを書くためのフィードバック設計を重視している。
+Hono + Drizzle + Valibot + PGlite による TypeScript Web API のテンプレートプロジェクト。人間とコーディングエージェントが協働し、品質を保ちながら高速にコードを書くためのフィードバック設計を重視している。
 
 上位方針: [コーディングエージェントのための高速フィードバック設計](docs/design/agent-feedback-loop.md)
 
