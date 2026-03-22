@@ -19,7 +19,7 @@ export const listUsers = (ctx: DbContext) =>
     output: array(User),
     fn: async () => {
       const db = fromDbContext(ctx)
-      const rows = await db.select().from(userTable)
+      const rows = await db.query((q) => q.select().from(userTable))
       if (rows.length === 0) {
         return okAs("ユーザーが存在しない", [])
       }

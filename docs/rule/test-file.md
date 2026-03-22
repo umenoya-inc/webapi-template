@@ -44,7 +44,7 @@ import { userTable } from "./userTable"
 
 const insertUserRow = (ctx: DbContext, values: { name: string; email: string }) => {
   const db = fromDbContext(ctx)
-  return db.insert(userTable).values(values).returning()
+  return db.query((q) => q.insert(userTable).values(values).returning())
 }
 
 describe("findUserById", () => {

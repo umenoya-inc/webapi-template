@@ -96,17 +96,16 @@ export type Todo = InferOutput<typeof Todo>
 `src/db/todo/createTodo.ts` を作成する。DB 操作関数は `defineEffect` + `defineContract` で定義する。
 
 ```typescript
-import { failAs, okAs } from "@/behavior"
-import { defaultInputError, defineContract } from "@/contract"
-import { requiredContext, defineEffect } from "@/effect"
 import { minLength, object, pipe, string } from "valibot"
 import type { DbContext } from "../DbContext"
 import { fromDbContext } from "../fromDbContext"
-import { pgExecute } from "../error/pgExecute"
+import { okAs } from "@/behavior"
+import { defaultInputError, defineContract } from "@/contract"
+import { requiredContext, defineEffect } from "@/effect"
 import { Todo } from "./Todo"
 import { todoTable } from "./todoTable"
 
-/** TODO を新規作成する */
+/** TODO を新規作成する。 */
 export const createTodo = defineEffect(
   { context: requiredContext<{ db: DbContext }>() },
   (context) =>
@@ -118,11 +117,11 @@ export const createTodo = defineEffect(
       onInputError: defaultInputError(["titleが空"]),
       fn: async (input) => {
         const db = fromDbContext(context.db)
-        const result = await pgExecute(() =>
-          db.insert(todoTable).values({ title: input.title }).returning(),
+        const result = await db.execute((q) =>
+          q.insert(todoTable).values({ title: input.title }).returning(),
         )
         if (!result.ok) {
-          throw new Error("Unexpected database error", { cause: result.error.cause })
+          throw new Error("Unexpected database error", { cause: result.error })
         }
         const row = result.value[0]
         return okAs("TODOを新規作成", {
@@ -136,18 +135,21 @@ export const createTodo = defineEffect(
 **ポイント:**
 
 - `context: requiredContext<{ db: DbContext }>()` で DB アクセスを宣言する
-- DB クエリは `pgExecute` でラップする（[DB エラーハンドリング](../rule/db-error-handling.md)）
+- `fromDbContext` で `DbClient` を取得し、書き込みは `execute`、読み取りは `query` を使う（[DB エラーハンドリング](../rule/db-error-handling.md)）
 - `okAs` / `failAs` でビジネスラベルを付与する（[contract fn ルール](../rule/contract-fn-rule.md)）
 - `input` がある場合は `onInputError` が必須（[入力バリデーションシナリオ](../rule/route-input-error.md)）
 
 **DB エラーをビジネスエラーに翻訳する例（unique 制約がある場合）:**
 
 ```typescript
+const result = await db.execute((q) =>
+  q.insert(userTable).values({ name, email, passwordHash }).returning(),
+)
 if (!result.ok) {
   if (result.error.kind === "unique_violation") {
-    return failAs("タイトルが重複", "duplicate_entry", { field: "title" })
+    return failAs("メールアドレスが既存ユーザーと重複", "duplicate_entry", { field: "email" })
   }
-  throw new Error("Unexpected database error", { cause: result.error.cause })
+  throw new Error("Unexpected database error", { cause: result.error })
 }
 ```
 
@@ -463,7 +465,7 @@ app.route("/todos", todoRoutes)
 新規ドメイン追加時の最終確認。以下の項目は lint や型チェックでは検出されないため、目視で確認する。
 
 - [ ] テーブル名は単数形
-- [ ] DB クエリは `pgExecute` でラップされている（素の try-catch ではなく）
+- [ ] 書き込みは `db.execute`、読み取りは `db.query` を使っている
 - [ ] DB 層テストは実 DB（PGlite）で動作する（モックではなく）
 - [ ] API 層テストは `mockBehavior` / `mockService` でモック化されている（実 DB ではなく）
 - [ ] `mockBehavior` の成功値は `parse(DomainModel, ...)` で Branded Type にしている

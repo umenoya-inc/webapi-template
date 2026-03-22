@@ -37,26 +37,24 @@ try {
 - 想定外のエラー（変換できないもの）はそのまま throw して Let it crash に委ねる
 
 ```typescript
-// pgExecute: PostgreSQL ドライバの例外を DbError (DU) に変換する境界層
-export const pgExecute = async <T>(
-  fn: () => Promise<T>,
-): Promise<{ ok: true; value: T } | { ok: false; error: DbError }> => {
-  try {
-    const value = await fn()
-    return { ok: true, value }
-  } catch (e) {
-    const pgError = findPgError(e)
-    if (pgError) {
-      return { ok: false, error: normalizePgError(pgError) }
-      //      ↑ 想定内の DB エラー → DU に変換
-    }
-    throw e
-    // ↑ 想定外のエラー → Let it crash
+// DbClient.execute: 書き込み操作で PG エラーを PgResult (DU) に変換する境界層
+const db = fromDbContext(context.db)
+const result = await db.execute((q) =>
+  q.insert(userTable).values({ name, email, passwordHash }).returning(),
+)
+if (!result.ok) {
+  if (result.error.kind === "unique_violation") {
+    return failAs("メールアドレスが既存ユーザーと重複", "duplicate_entry", { field: "email" })
+    //     ↑ 想定内の DB エラー → ビジネスエラーに変換
   }
+  throw new Error("Unexpected database error", { cause: result.error })
+  // ↑ 想定外の DB エラー → Let it crash
 }
 ```
 
-新しい外部依存（外部 API クライアント、認証プロバイダ等）を導入する際は、同様の境界層を設けること。ビジネスロジックが直接 try/catch を書く必要がない状態を維持する。
+`DbClient` は書き込み（`execute`）と読み取り（`query`）で異なるメソッドを提供する。`execute` は PG エラーを `PgResult` に変換し、`query` はそのまま throw する。境界層の実装は `DbClient` の内部に閉じ込められており、ビジネスロジックが直接 try/catch を書く必要はない。
+
+新しい外部依存（外部 API クライアント、認証プロバイダ等）を導入する際は、同様の境界層を設けること。
 
 ## Discriminated Union と正常系
 
@@ -70,7 +68,7 @@ export const pgExecute = async <T>(
 
 #### Fallible — ok のみを制約とする最小の型
 
-`Fallible`（`@/types/Fallible`）は `{ ok: true } | { ok: false }` だけを制約とする型。カスタム Discriminated Union を受け入れる共通の上界として使う。直接の戻り値型としては使わず、`dbTransaction` のようにジェネリクスの制約（`F extends Fallible`）として利用する。
+`Fallible`（`@/types/Fallible`）は `{ ok: true } | { ok: false }` だけを制約とする型。カスタム Discriminated Union を受け入れる共通の上界として使う。直接の戻り値型としては使わず、`DbClient.transaction` のようにジェネリクスの制約（`F extends Fallible`）として利用する。
 
 #### ReasonedFallible — reason を持つ Fallible
 

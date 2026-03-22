@@ -51,6 +51,7 @@ src/db/
 │   ├── User.ts
 │   ├── createUser.ts
 │   └── userTable.ts
+├── DbClient.ts
 ├── DbContext.ts
 ├── fromDbContext.ts
 └── index.ts
@@ -58,8 +59,8 @@ src/db/
 
 この構造では:
 
-- `db/user/createUser.ts` → `db/error/pgExecute.ts` を相対 import できる（`error/` は `index.ts` なし）
 - `db/user/createUser.ts` → `db/fromDbContext.ts` を相対 import できる（同一トップレベルモジュール内）
+- `db/user/createUser.ts` → `db/error/pgExecute.ts` は直接 import しない（`DbClient` 内部に隠蔽）
 - `domain/user/` → `db/user/` の内部ファイルにアクセスできない（トップレベルモジュールの壁）
 - `domain/user/` → `domain/todo/` の内部ファイルにアクセスできない（両方 `index.ts` を持つサブモジュール）
 

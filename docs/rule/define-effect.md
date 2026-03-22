@@ -27,6 +27,7 @@ export const createUser = defineEffect(
       output: User,
       fn: async (input) => {
         const db = fromDbContext(context.db)
+        const rows = await db.query((q) => q.select().from(userTable).where(...))
         // ...
       },
     }),
