@@ -53,6 +53,11 @@ rule と design の区分基準は [rule と design の区分基準](docs/rule/r
 - [DBアクセス](src/db/index.ts) — DbContext, トランザクション, DB操作関数の追加方法
 - [環境変数](src/envvar/index.ts) — 型安全な環境変数の取得・追加方法
 
+# Tool Usage
+
+- Glob でファイルを検索する際は `path` パラメータに `src/` や `docs/` 等の対象ディレクトリを指定すること。`path` を省略すると `node_modules` の結果で溢れ、本来のファイルを見落とす
+- 特定のファイルがルートに存在するか確認するだけなら `ls` を使う
+
 # Commands
 
 すべてのコマンドは `vp` (vite-plus) 経由で実行すること。vitest 等を直接実行しない。
