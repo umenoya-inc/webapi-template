@@ -9,9 +9,9 @@ export const getUserByIdRoute = new Hono()
 
 getUserByIdRoute.get(
   "/:id",
-  authMiddleware,
   ...defineRoute({
     effect: getUserById,
+    middleware: [authMiddleware] as const,
     provide: (c) => ({
       service: { findUserById },
       context: { db: globalDbContext, auth: getAuthContext(c) },

@@ -1,9 +1,10 @@
 import { createMiddleware } from "hono/factory"
 import { globalDbContext } from "@/db"
 import { findAuthToken } from "@/db/auth"
+import type { AuthEnv } from "./AuthEnv"
 
 /** Bearer トークンによる認証ミドルウェア。 */
-export const authMiddleware = createMiddleware(async (c, next) => {
+export const authMiddleware = createMiddleware<AuthEnv>(async (c, next) => {
   const authorization = c.req.header("Authorization")
   if (!authorization?.startsWith("Bearer ")) {
     return c.json({ ok: false, reason: "unauthorized" }, 401)

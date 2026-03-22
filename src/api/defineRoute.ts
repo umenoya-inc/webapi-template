@@ -11,9 +11,24 @@ import { responsesKey } from "./responsesKey"
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-interface RouteOptions<E extends EffectBrand<any, any, any, any>> {
+/** MiddlewareHandler から Env 型を抽出する。 */
+type ExtractEnv<T> = T extends MiddlewareHandler<infer E> ? E : Env
+
+/** ミドルウェア配列の Env を交差型で合成する。 */
+type MergeEnvs<T extends readonly MiddlewareHandler[]> = T extends readonly [
+  infer H extends MiddlewareHandler,
+  ...infer R extends readonly MiddlewareHandler[],
+]
+  ? ExtractEnv<H> & MergeEnvs<R>
+  : Env
+
+interface RouteOptions<
+  E extends EffectBrand<any, any, any, any>,
+  M extends readonly MiddlewareHandler[] = [],
+> {
   effect: E
-  provide: (c: Context<Env, string, Input>) => {
+  middleware?: M
+  provide: (c: Context<MergeEnvs<M>, string, Input>) => {
     service: ProvideService<E>
     context: ProvideContext<E>
   }
@@ -35,9 +50,10 @@ interface InputConfig {
 }
 
 /** Effect と provide から OpenAPI 付きルートハンドラを生成する。 */
-export function defineRoute<E extends EffectBrand<any, any, any, any>>(
-  options: RouteOptions<E>,
-): [MiddlewareHandler, Handler] {
+export function defineRoute<
+  E extends EffectBrand<any, any, any, any>,
+  const M extends readonly MiddlewareHandler[] = [],
+>(options: RouteOptions<E, M>): [...M, MiddlewareHandler, Handler] {
   const contractFn = (options.effect as unknown as Record<symbol, unknown>)[effectResultKey] as
     | ((...args: any[]) => any)
     | undefined
@@ -46,13 +62,16 @@ export function defineRoute<E extends EffectBrand<any, any, any, any>>(
   const responses = contractFn ? findResponses(contractFn, responsesKey) : undefined
   const inputConfig = findInputConfig(fnInputSchema)
 
+  const middleware = options.middleware ?? ([] as unknown as M)
+
   return [
+    ...middleware,
     describeRoute({
       description: options.description,
       ...buildOpenAPIInput(fnInputSchema, inputConfig),
       responses: buildOpenAPIResponses(outputSchema, responses) as never,
     }),
-    async (c: Context<Env, string, Input>) => {
+    async (c: Context<any, string, Input>) => {
       const traces: EffectTrace[] = []
       try {
         const { service, context } = options.provide(c)
@@ -97,7 +116,7 @@ export function defineRoute<E extends EffectBrand<any, any, any, any>>(
         return c.json({ error: "Internal Server Error" }, 500)
       }
     },
-  ]
+  ] as any
 }
 
 /** input スキーマから routeInput のメタデータを取得する。 */

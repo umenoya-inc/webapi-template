@@ -14,6 +14,7 @@
  */
 
 export type { AuthContext } from "./AuthContext"
+export type { AuthEnv } from "./AuthEnv"
 export { getAuthContext } from "./getAuthContext"
 export { authMiddleware } from "./authMiddleware"
 export { postLogin } from "./postLogin"

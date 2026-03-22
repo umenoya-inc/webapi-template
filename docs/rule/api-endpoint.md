@@ -79,9 +79,29 @@ postUserRoute.post(
 )
 ```
 
+### ミドルウェア
+
+認証などのミドルウェアは `middleware` オプションで渡す。ミドルウェアが Hono Context に設定する Variables の型が `provide` の `c` に反映されるため、ミドルウェアなしで `getAuthContext(c)` を呼ぶとコンパイルエラーになる。
+
+```typescript
+// getUserByIdRoute.ts
+getUserByIdRoute.get(
+  "/:id",
+  ...defineRoute({
+    effect: getUserById,
+    middleware: [authMiddleware] as const,
+    provide: (c) => ({
+      service: { findUserById },
+      context: { db: globalDbContext, auth: getAuthContext(c) },
+    }),
+    description: "ID を指定してユーザーを取得する",
+  }),
+)
+```
+
 ### provide の型安全
 
-`provide` の戻り値は `defineRoute` のジェネリクスにより Effect の `ProvideService` / `ProvideContext` で型制約される。service や context のフィールドが不足していればコンパイルエラーになる。
+`provide` の戻り値は `defineRoute` のジェネリクスにより Effect の `ProvideService` / `ProvideContext` で型制約される。service や context のフィールドが不足していればコンパイルエラーになる。`middleware` で指定したミドルウェアの Env 型は `provide` の `c` パラメータに反映される。
 
 ルート定義を作成したら `src/index.ts` に登録する。
 
