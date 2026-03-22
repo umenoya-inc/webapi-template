@@ -32,6 +32,16 @@ interface ResponseEntry {
   description?: string
 }
 
+/** input ありの RouteContract。 */
+interface RouteContractWithInput<Input, Output> extends BehaviorBrand {
+  (input: Input): Promise<Output>
+}
+
+/** input なしの RouteContract。 */
+interface RouteContractNoInput<Output> extends BehaviorBrand {
+  (): Promise<Output>
+}
+
 // input + onInputError（input がある場合 onInputError は必須）
 export function defineRouteContract<
   TInputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
@@ -48,10 +58,10 @@ export function defineRouteContract<
     [K in DescLabel<FullReturn<TFnReturn, TOutputSchema, TInputError>>]: ResponseEntry
   }
   fn: (input: InferOutput<TInputSchema>) => Promise<TFnReturn>
-}): ((
-  input: InferInput<TInputSchema>,
-) => Promise<FullReturn<TFnReturn, TOutputSchema, TInputError>>) &
-  BehaviorBrand
+}): RouteContractWithInput<
+  InferInput<TInputSchema>,
+  FullReturn<TFnReturn, TOutputSchema, TInputError>
+>
 
 // no input
 export function defineRouteContract<
@@ -63,7 +73,7 @@ export function defineRouteContract<
   output: TOutputSchema
   responses: { [K in DescLabel<FullReturnNoInput<TFnReturn, TOutputSchema>>]: ResponseEntry }
   fn: () => Promise<TFnReturn>
-}): (() => Promise<FullReturnNoInput<TFnReturn, TOutputSchema>>) & BehaviorBrand
+}): RouteContractNoInput<FullReturnNoInput<TFnReturn, TOutputSchema>>
 
 export function defineRouteContract(options: {
   input?: BaseSchema<unknown, unknown, BaseIssue<unknown>>

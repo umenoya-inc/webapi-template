@@ -11,6 +11,16 @@ type ExtractFailure<T> = Extract<T, { ok: false }>
 type ReplaceOkValue<T, V> =
   T extends Desc<infer L, { ok: true; value: unknown }> ? Desc<L, { ok: true; value: V }> : never
 
+/** input ありの Contract。 */
+interface ContractWithInput<Input, Output> extends BehaviorBrand {
+  (input: Input): Promise<Output>
+}
+
+/** input なしの Contract。 */
+interface ContractNoInput<Output> extends BehaviorBrand {
+  (): Promise<Output>
+}
+
 // input + onInputError（input がある場合 onInputError は必須）
 export function defineContract<
   TInputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
@@ -24,12 +34,10 @@ export function defineContract<
   output: TOutputSchema
   onInputError: (issues: [InferIssue<TInputSchema>, ...InferIssue<TInputSchema>[]]) => TInputError
   fn: (input: InferOutput<TInputSchema>) => Promise<TFnReturn>
-}): ((
-  input: InferInput<TInputSchema>,
-) => Promise<
+}): ContractWithInput<
+  InferInput<TInputSchema>,
   ReplaceOkValue<TFnReturn, InferOutput<TOutputSchema>> | ExtractFailure<TFnReturn> | TInputError
->) &
-  BehaviorBrand
+>
 
 // no input
 export function defineContract<
@@ -40,10 +48,9 @@ export function defineContract<
 >(options: {
   output: TOutputSchema
   fn: () => Promise<TFnReturn>
-}): (() => Promise<
+}): ContractNoInput<
   ReplaceOkValue<TFnReturn, InferOutput<TOutputSchema>> | ExtractFailure<TFnReturn>
->) &
-  BehaviorBrand
+>
 
 export function defineContract(options: {
   input?: BaseSchema<unknown, unknown, BaseIssue<unknown>>

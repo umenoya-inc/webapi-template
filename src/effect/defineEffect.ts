@@ -7,6 +7,40 @@ import { effectDepsKey } from "./effectDepsKey"
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+/** service + context ありの Effect。 */
+interface ServiceContextEffect<
+  Declared extends Record<string, Effect<any, any, any, any>>,
+  OwnContext extends Record<string, unknown>,
+  Fn,
+> extends EffectBrand<
+  FlattenService<Declared>,
+  Declared,
+  OwnContext & DeriveContext<Declared>,
+  Fn
+> {
+  (
+    service: ResolvedService<FlattenService<Declared>>,
+  ): (context: OwnContext & DeriveContext<Declared>) => Fn
+}
+
+/** context のみの leaf Effect。 */
+interface LeafEffect<OwnContext extends Record<string, unknown>, Fn> extends EffectBrand<
+  {},
+  {},
+  OwnContext,
+  Fn
+> {
+  (context: OwnContext): Fn
+}
+
+/** service のみの Effect（自分固有の context なし）。 */
+interface ServiceEffect<
+  Declared extends Record<string, Effect<any, any, any, any>>,
+  Fn,
+> extends EffectBrand<FlattenService<Declared>, Declared, DeriveContext<Declared>, Fn> {
+  (service: ResolvedService<FlattenService<Declared>>): (context: DeriveContext<Declared>) => Fn
+}
+
 /** service + context あり */
 export function defineEffect<
   Declared extends Record<string, Effect<any, any, any, any>>,
@@ -17,16 +51,13 @@ export function defineEffect<
   fn: (
     service: ResolvedService<FlattenService<Declared>>,
   ) => (context: OwnContext & DeriveContext<Declared>) => Fn,
-): ((
-  service: ResolvedService<FlattenService<Declared>>,
-) => (context: OwnContext & DeriveContext<Declared>) => Fn) &
-  EffectBrand<FlattenService<Declared>, Declared, OwnContext & DeriveContext<Declared>, Fn>
+): ServiceContextEffect<Declared, OwnContext, Fn>
 
 /** context のみ（leaf Effect） */
 export function defineEffect<OwnContext extends Record<string, unknown>, Fn>(
   deps: { context: OwnContext },
   fn: (context: OwnContext) => Fn,
-): ((context: OwnContext) => Fn) & EffectBrand<{}, {}, OwnContext, Fn>
+): LeafEffect<OwnContext, Fn>
 
 /** service のみ（自分固有の context なし） */
 export function defineEffect<Declared extends Record<string, Effect<any, any, any, any>>, Fn>(
@@ -34,10 +65,7 @@ export function defineEffect<Declared extends Record<string, Effect<any, any, an
   fn: (
     service: ResolvedService<FlattenService<Declared>>,
   ) => (context: DeriveContext<Declared>) => Fn,
-): ((
-  service: ResolvedService<FlattenService<Declared>>,
-) => (context: DeriveContext<Declared>) => Fn) &
-  EffectBrand<FlattenService<Declared>, Declared, DeriveContext<Declared>, Fn>
+): ServiceEffect<Declared, Fn>
 
 export function defineEffect(deps: Record<string, unknown>, fn: (...args: any[]) => any): any {
   ;(fn as unknown as Record<symbol, unknown>)[effectDepsKey] = deps
