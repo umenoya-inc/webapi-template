@@ -466,7 +466,6 @@ app.route("/todos", todoRoutes)
 
 - [ ] テーブル名は単数形
 - [ ] DB 層テストは実 DB（PGlite）で動作する（モックではなく）
-- [ ] API 層テストは `mockBehavior` / `mockService` でモック化されている（実 DB ではなく）
 - [ ] `mockBehavior` の成功値は `parse(DomainModel, ...)` で Branded Type にしている
 - [ ] `index.ts` に JSDoc でモジュール説明が記述されている
 
@@ -475,3 +474,4 @@ app.route("/todos", todoRoutes)
 - `okAs` / `failAs` のラベル付与、`onInputError` の宣言、`responses` の網羅、`matchBehavior` の exhaustive 処理、`testBehavior` の全パス網羅 → 型チェックで強制
 - barrel export のアクセス制御 → `module-boundary` lint ルールで強制
 - `query` 内での書き込み操作の禁止 → `db-safety/no-write-in-query` lint ルールで強制
+- API 層テストから DB テストインフラ（`createTestDbContext`, `rawDb`）へのアクセス禁止 → `module-boundary/no-module-internal-import` で強制（`db/testing/` は barrel export を持たないため、`api/` からアクセスできない）
