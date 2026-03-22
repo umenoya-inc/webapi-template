@@ -30,6 +30,7 @@ rule と design の区分基準は [rule と design の区分基準](docs/rule/r
 - [index.ts によるモジュールアクセス制御](docs/design/module-access-control.md)
 - [型によるテスト網羅の強制](docs/design/type-enforced-test-coverage.md)
 - [型の展開コスト](docs/design/type-expansion-cost.md)
+- [コーディングエージェントのための高速フィードバック設計](docs/design/agent-feedback-loop.md)
 
 # Infrastructure
 
