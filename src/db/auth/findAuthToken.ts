@@ -20,12 +20,14 @@ export const findAuthToken = defineEffect(
       onInputError: defaultInputError(["トークンが不正"]),
       fn: async (input) => {
         const db = fromDbContext(context.db)
-        const rows = await db
-          .select()
-          .from(authTokenTable)
-          .where(
-            and(eq(authTokenTable.token, input.token), gt(authTokenTable.expiresAt, new Date())),
-          )
+        const rows = await db.query((q) =>
+          q
+            .select()
+            .from(authTokenTable)
+            .where(
+              and(eq(authTokenTable.token, input.token), gt(authTokenTable.expiresAt, new Date())),
+            ),
+        )
         if (rows.length === 0) {
           return failAs("トークンが存在しないまたは期限切れ", "not_found")
         }

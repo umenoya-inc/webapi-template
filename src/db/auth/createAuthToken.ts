@@ -22,11 +22,13 @@ export const createAuthToken = defineEffect(
       fn: async (input) => {
         const db = fromDbContext(context.db)
         const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000)
-        const rows = await db
-          .insert(authTokenTable)
-          .values({ userId: input.userId, expiresAt })
-          .returning()
-        const row = rows[0]
+        const result = await db.execute((q) =>
+          q.insert(authTokenTable).values({ userId: input.userId, expiresAt }).returning(),
+        )
+        if (!result.ok) {
+          throw new Error("Unexpected database error", { cause: result.error })
+        }
+        const row = result.value[0]
         return okAs("トークンを発行", {
           value: { token: row.token, expiresAt: row.expiresAt },
         })

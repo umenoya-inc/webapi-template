@@ -1,7 +1,6 @@
 import { hash } from "bcryptjs"
 import { email, maxLength, minLength, object, pipe, string } from "valibot"
 import type { DbContext } from "../DbContext"
-import { pgExecute } from "../error/pgExecute"
 import { fromDbContext } from "../fromDbContext"
 import { failAs, okAs } from "@/behavior"
 import { defaultInputError, defineContract } from "@/contract"
@@ -29,8 +28,8 @@ export const createUser = defineEffect(
       fn: async (input) => {
         const db = fromDbContext(context.db)
         const passwordHash = await hash(input.password, 10)
-        const result = await pgExecute(() =>
-          db
+        const result = await db.execute((q) =>
+          q
             .insert(userTable)
             .values({ name: input.name, email: input.email, passwordHash })
             .returning(),
@@ -41,7 +40,7 @@ export const createUser = defineEffect(
               field: "email",
             })
           }
-          throw new Error("Unexpected database error", { cause: result.error.cause })
+          throw new Error("Unexpected database error", { cause: result.error })
         }
         const row = result.value[0]
         return okAs("ユーザーを新規作成", {

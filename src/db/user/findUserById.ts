@@ -20,7 +20,9 @@ export const findUserById = defineEffect(
       onInputError: defaultInputError(["IDが不正"]),
       fn: async (input) => {
         const db = fromDbContext(context.db)
-        const rows = await db.select().from(userTable).where(eq(userTable.id, input.id))
+        const rows = await db.query((q) =>
+          q.select().from(userTable).where(eq(userTable.id, input.id)),
+        )
         if (rows.length === 0) {
           return failAs("IDに該当するユーザーが存在しない", "not_found")
         }

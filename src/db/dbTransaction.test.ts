@@ -1,12 +1,11 @@
 import { eq } from "drizzle-orm"
 import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test"
 import type { DbContext } from "./DbContext"
-import { dbTransaction } from "./dbTransaction"
 import { fromDbContext } from "./fromDbContext"
 import { createTestDbContext } from "./testing/createTestDbContext.testutil"
 import { userTable } from "./user/userTable"
 
-describe("dbTransaction", () => {
+describe("DbClient.transaction", () => {
   let ctx: DbContext
   let cleanup: () => Promise<void>
 
@@ -21,31 +20,36 @@ describe("dbTransaction", () => {
   })
 
   it("ok: true を返した場合コミットされる", async () => {
-    const result = await dbTransaction(ctx, async (txCtx) => {
-      const db = fromDbContext(txCtx)
-      await db.insert(userTable).values({
-        name: "Alice",
-        email: "alice@example.com",
-        passwordHash: "hash",
-      })
+    const db = fromDbContext(ctx)
+    const result = await db.transaction(async (txDb) => {
+      await txDb.query((q) =>
+        q.insert(userTable).values({
+          name: "Alice",
+          email: "alice@example.com",
+          passwordHash: "hash",
+        }),
+      )
       return { ok: true as const, value: "inserted" }
     })
 
     expect(result.ok).toBe(true)
 
-    const db = fromDbContext(ctx)
-    const rows = await db.select().from(userTable).where(eq(userTable.email, "alice@example.com"))
+    const rows = await db.query((q) =>
+      q.select().from(userTable).where(eq(userTable.email, "alice@example.com")),
+    )
     expect(rows).toHaveLength(1)
   })
 
   it("ok: false を返した場合ロールバックされる", async () => {
-    const result = await dbTransaction(ctx, async (txCtx) => {
-      const db = fromDbContext(txCtx)
-      await db.insert(userTable).values({
-        name: "Bob",
-        email: "bob@example.com",
-        passwordHash: "hash",
-      })
+    const db = fromDbContext(ctx)
+    const result = await db.transaction(async (txDb) => {
+      await txDb.query((q) =>
+        q.insert(userTable).values({
+          name: "Bob",
+          email: "bob@example.com",
+          passwordHash: "hash",
+        }),
+      )
       return { ok: false as const, reason: "duplicate" }
     })
 
@@ -54,14 +58,16 @@ describe("dbTransaction", () => {
       expect(result.reason).toBe("duplicate")
     }
 
-    const db = fromDbContext(ctx)
-    const rows = await db.select().from(userTable).where(eq(userTable.email, "bob@example.com"))
+    const rows = await db.query((q) =>
+      q.select().from(userTable).where(eq(userTable.email, "bob@example.com")),
+    )
     expect(rows).toHaveLength(0)
   })
 
   it("例外が発生した場合はそのまま throw する", async () => {
+    const db = fromDbContext(ctx)
     await expect(
-      dbTransaction(ctx, async () => {
+      db.transaction(async () => {
         throw new Error("unexpected")
       }),
     ).rejects.toThrow("unexpected")

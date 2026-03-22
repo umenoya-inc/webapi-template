@@ -9,7 +9,7 @@ import { findAuthToken } from "./findAuthToken"
 
 const insertAuthTokenRow = (ctx: DbContext, values: { userId: string; expiresAt: Date }) => {
   const db = fromDbContext(ctx)
-  return db.insert(authTokenTable).values(values).returning()
+  return db.query((q) => q.insert(authTokenTable).values(values).returning())
 }
 
 describe("findAuthToken", () => {

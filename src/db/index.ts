@@ -7,55 +7,46 @@
  *
  * ### エクスポート
  *
- * - `DbContext` — opaque なDB接続コンテキスト型。DB操作関数の第一引数に渡す。
+ * - `DbContext` — opaque なDB接続コンテキスト型。Effect の context に渡す。
  * - `globalDbContext` — トランザクション外で使用するグローバルな DbContext。
- * - `dbTransaction` — トランザクション実行。コールバックに DbContext が渡される。
- *   コールバックの戻り値は `{ ok: true } | { ok: false }` を満たす任意の Discriminated Union。
- *   コールバックが `ok: false` を返した場合は自動でロールバックされる。
- *   トランザクション自体の失敗（DB接続断等）は例外として伝播する。
  *
- * ### DB操作関数の追加
+ * ### DB 操作の実行
  *
- * ネストモジュールとして配置する（例: `db/user/`, `db/order/`）。
- * 各関数は `DbContext` を第一引数に取り、`fromDbContext` で内部の NodePgDatabase に変換して使用する。
+ * DB 操作関数の内部では `fromDbContext` で `DbClient` を取得し、
+ * すべてのクエリを `db.execute(q => ...)` 経由で実行する。
+ * `execute` は PG エラーを `PgResult` に変換し、生の NodePgDatabase はコールバック内に閉じ込める。
  *
  * ```typescript
  * import type { DbContext } from "./DbContext"
  * import { fromDbContext } from "./fromDbContext"
- * import { users } from "./schema"
- * import { eq } from "drizzle-orm"
  *
- * type FindUserResult =
- *   | { ok: true; value: User }
- *   | { ok: false; reason: "not_found" }
+ * const db = fromDbContext(context.db)
  *
- * export const findUserById = async (
- *   ctx: DbContext,
- *   id: string,
- * ): Promise<FindUserResult> => {
- *   const db = fromDbContext(ctx)
- *   const rows = await db.select().from(users).where(eq(users.id, id))
- *   if (rows.length === 0) return { ok: false, reason: "not_found" }
- *   return { ok: true, value: rows[0] }
+ * // 読み取り
+ * const result = await db.execute(q => q.select().from(users).where(eq(users.id, id)))
+ *
+ * // 書き込み（PG エラーのハンドリング）
+ * const result = await db.execute(q => q.insert(users).values({...}).returning())
+ * if (!result.ok) {
+ *   if (result.error.kind === "unique_violation") return failAs(...)
+ *   throw new Error("Unexpected database error", { cause: result.error })
  * }
  * ```
  *
- * ### 利用側（route層・ビジネスロジック）
+ * ### トランザクション
+ *
+ * `DbClient.transaction` でトランザクションを実行する。
+ * コールバックが `ok: false` を返した場合は自動でロールバックされる。
  *
  * ```typescript
- * import { globalDbContext, dbTransaction } from "@/db"
- * import { findUserById } from "@/db/user"
- *
- * // トランザクションなし
- * const result = await findUserById(globalDbContext, "user-1")
- *
- * // トランザクションあり
- * const result = await dbTransaction(globalDbContext, async (ctx) => {
- *   return await findUserById(ctx, "user-1")
+ * const db = fromDbContext(context.db)
+ * const result = await db.transaction(async (txDb) => {
+ *   const r = await txDb.execute(q => q.insert(users).values({...}).returning())
+ *   if (!r.ok) return { ok: false, reason: "failed" }
+ *   return { ok: true, value: r.value }
  * })
  * ```
  */
 
 export type { DbContext } from "./DbContext"
 export { globalDbContext } from "./globalDbContext"
-export { dbTransaction } from "./dbTransaction"

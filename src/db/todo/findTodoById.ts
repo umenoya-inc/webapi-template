@@ -20,7 +20,9 @@ export const findTodoById = defineEffect(
       onInputError: defaultInputError(["IDが不正"]),
       fn: async (input) => {
         const db = fromDbContext(context.db)
-        const rows = await db.select().from(todoTable).where(eq(todoTable.id, input.id))
+        const rows = await db.query((q) =>
+          q.select().from(todoTable).where(eq(todoTable.id, input.id)),
+        )
         if (rows.length === 0) {
           return failAs("IDに該当するTODOが存在しない", "not_found")
         }

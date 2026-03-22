@@ -15,7 +15,7 @@ export const listTodos = defineEffect(
       output: array(Todo),
       fn: async () => {
         const db = fromDbContext(context.db)
-        const rows = await db.select().from(todoTable)
+        const rows = await db.query((q) => q.select().from(todoTable))
         if (rows.length === 0) {
           return okAs("TODOが存在しない", { value: [] })
         }

@@ -12,7 +12,7 @@ const insertUserRow = (
   values: { name: string; email: string; passwordHash: string },
 ) => {
   const db = fromDbContext(ctx)
-  return db.insert(userTable).values(values).returning()
+  return db.query((q) => q.insert(userTable).values(values).returning())
 }
 
 describe("findUserById", () => {

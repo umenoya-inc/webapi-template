@@ -6,12 +6,13 @@ import { testBehavior } from "@/testing"
 import { listUsers } from "./listUsers"
 import { userTable } from "./userTable"
 
-const insertUserRow = (
+const insertUserRow = async (
   ctx: DbContext,
   values: { name: string; email: string; passwordHash: string },
 ) => {
   const db = fromDbContext(ctx)
-  return db.insert(userTable).values(values)
+  const result = await db.execute((q) => q.insert(userTable).values(values))
+  if (!result.ok) throw new Error("insert failed", { cause: result.error })
 }
 
 describe("listUsers", () => {

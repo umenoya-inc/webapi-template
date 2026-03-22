@@ -8,7 +8,7 @@ import { todoTable } from "./todoTable"
 
 const insertTodoRow = (ctx: DbContext, values: { title: string }) => {
   const db = fromDbContext(ctx)
-  return db.insert(todoTable).values(values)
+  return db.query((q) => q.insert(todoTable).values(values))
 }
 
 describe("listTodos", () => {

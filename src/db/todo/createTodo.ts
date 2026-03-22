@@ -1,6 +1,5 @@
 import { minLength, object, pipe, string } from "valibot"
 import type { DbContext } from "../DbContext"
-import { pgExecute } from "../error/pgExecute"
 import { fromDbContext } from "../fromDbContext"
 import { okAs } from "@/behavior"
 import { defaultInputError, defineContract } from "@/contract"
@@ -20,8 +19,8 @@ export const createTodo = defineEffect(
       onInputError: defaultInputError(["titleが空"]),
       fn: async (input) => {
         const db = fromDbContext(context.db)
-        const result = await pgExecute(() =>
-          db.insert(todoTable).values({ title: input.title }).returning(),
+        const result = await db.execute((q) =>
+          q.insert(todoTable).values({ title: input.title }).returning(),
         )
         if (!result.ok) {
           throw new Error("Unexpected database error", { cause: result.error })

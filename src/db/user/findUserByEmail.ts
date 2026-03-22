@@ -23,7 +23,9 @@ export const findUserByEmail = defineEffect(
       onInputError: defaultInputError(["emailが不正"]),
       fn: async (input) => {
         const db = fromDbContext(context.db)
-        const rows = await db.select().from(userTable).where(eq(userTable.email, input.email))
+        const rows = await db.query((q) =>
+          q.select().from(userTable).where(eq(userTable.email, input.email)),
+        )
         if (rows.length === 0) {
           return failAs("メールアドレスに該当するユーザーが存在しない", "not_found")
         }
