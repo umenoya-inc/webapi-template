@@ -37,6 +37,7 @@ export default defineConfig({
       "./lint/single-export/index.js",
       "./lint/import-style/index.js",
       "./lint/test-boundary/index.js",
+      "./lint/type-complexity/index.js",
     ],
     overrides: [
       {
@@ -50,6 +51,7 @@ export default defineConfig({
           "single-export/one-export-per-file": "error",
           "import-style/no-namespace-import": "error",
           "test-boundary/no-testutil-in-production": "error",
+          "type-complexity/type-expansion-cost": "warn",
         },
       },
     ],
