@@ -464,7 +464,6 @@ app.route("/todos", todoRoutes)
 
 新規ドメイン追加時の最終確認。以下の項目は lint や型チェックでは検出されないため、目視で確認する。
 
-- [ ] テーブル名は単数形
 - [ ] `mockBehavior` の成功値は `parse(DomainModel, ...)` で Branded Type にしている
 - [ ] `index.ts` に JSDoc でモジュール説明が記述されている
 
@@ -476,3 +475,4 @@ app.route("/todos", todoRoutes)
 - API 層テストから DB テストインフラ（`createTestDbContext`, `rawDb`）へのアクセス禁止 → `module-boundary/no-module-internal-import` で強制（`db/testing/` は barrel export を持たないため、`api/` からアクセスできない）
 - `db/` 内の composite effect（`service` 付き `defineEffect`）→ `effect-structure/no-service-in-db-effect` で警告
 - `api/` 内の leaf effect（`service` なし `defineEffect`）→ `effect-structure/no-leaf-in-api-effect` で警告
+- テーブル名の複数形 → `naming-convention/no-plural-table-name` で検出

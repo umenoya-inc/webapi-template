@@ -40,6 +40,7 @@ export default defineConfig({
       "./lint/type-complexity/index.js",
       "./lint/db-safety/index.js",
       "./lint/effect-structure/index.js",
+      "./lint/naming-convention/index.js",
     ],
     overrides: [
       {
@@ -55,6 +56,7 @@ export default defineConfig({
           "test-boundary/no-testutil-in-production": "error",
           "type-complexity/type-expansion-cost": "warn",
           "db-safety/no-write-in-query": "error",
+          "naming-convention/no-plural-table-name": "error",
           "effect-structure/no-service-in-db-effect": ["warn", { basePath: "src" }],
           "effect-structure/no-leaf-in-api-effect": ["warn", { basePath: "src" }],
         },
