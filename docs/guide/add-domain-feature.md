@@ -158,10 +158,11 @@ if (!result.ok) {
 `src/db/todo/createTodo.test.ts` を作成する。DB 層は PGlite を使った実 DB テスト。
 
 ```typescript
-import { describe, expect, afterAll, beforeAll } from "vite-plus/test"
+import { afterAll, beforeAll, describe, expect } from "vite-plus/test"
+import { constant } from "fast-check"
 import type { DbContext } from "../DbContext"
 import { createTestDbContext } from "../testing/createTestDbContext.testutil"
-import { testBehavior, propertyCheck } from "@/testing"
+import { propertyCheck, testBehavior } from "@/testing"
 import { createTodo } from "./createTodo"
 import { todoTable } from "./todoTable"
 
