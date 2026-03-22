@@ -38,6 +38,7 @@ export default defineConfig({
       "./lint/import-style/index.js",
       "./lint/test-boundary/index.js",
       "./lint/type-complexity/index.js",
+      "./lint/db-safety/index.js",
     ],
     overrides: [
       {
@@ -52,6 +53,7 @@ export default defineConfig({
           "import-style/no-namespace-import": "error",
           "test-boundary/no-testutil-in-production": "error",
           "type-complexity/type-expansion-cost": "warn",
+          "db-safety/no-write-in-query": "error",
         },
       },
     ],

@@ -58,6 +58,7 @@ const rows = await db.query((q) => q.select().from(userTable).where(eq(userTable
 ## 禁止事項
 
 - `fromDbContext` が返す `DbClient` を経由せずに Drizzle のクエリを直接実行しない
+- `query` 内で書き込み操作（insert / update / delete）を行わない — `db-safety/no-write-in-query` lint ルールで強制
 - `DbError` をそのまま外部に返さない。ドメインの意味に変換してから返す
 
 ## DbError の拡張

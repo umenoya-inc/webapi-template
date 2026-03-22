@@ -465,7 +465,6 @@ app.route("/todos", todoRoutes)
 新規ドメイン追加時の最終確認。以下の項目は lint や型チェックでは検出されないため、目視で確認する。
 
 - [ ] テーブル名は単数形
-- [ ] 書き込みは `db.execute`、読み取りは `db.query` を使っている
 - [ ] DB 層テストは実 DB（PGlite）で動作する（モックではなく）
 - [ ] API 層テストは `mockBehavior` / `mockService` でモック化されている（実 DB ではなく）
 - [ ] `mockBehavior` の成功値は `parse(DomainModel, ...)` で Branded Type にしている
@@ -475,3 +474,4 @@ app.route("/todos", todoRoutes)
 
 - `okAs` / `failAs` のラベル付与、`onInputError` の宣言、`responses` の網羅、`matchBehavior` の exhaustive 処理、`testBehavior` の全パス網羅 → 型チェックで強制
 - barrel export のアクセス制御 → `module-boundary` lint ルールで強制
+- `query` 内での書き込み操作の禁止 → `db-safety/no-write-in-query` lint ルールで強制
