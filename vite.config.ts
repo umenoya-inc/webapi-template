@@ -54,6 +54,7 @@ export default defineConfig({
           "test-boundary/no-testutil-in-production": "error",
           "type-complexity/type-expansion-cost": "warn",
           "db-safety/no-write-in-query": "error",
+          "db-safety/no-service-in-db-effect": ["warn", { basePath: "src" }],
         },
       },
     ],

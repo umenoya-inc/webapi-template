@@ -465,7 +465,6 @@ app.route("/todos", todoRoutes)
 新規ドメイン追加時の最終確認。以下の項目は lint や型チェックでは検出されないため、目視で確認する。
 
 - [ ] テーブル名は単数形
-- [ ] DB 層テストは実 DB（PGlite）で動作する（モックではなく）
 - [ ] `mockBehavior` の成功値は `parse(DomainModel, ...)` で Branded Type にしている
 - [ ] `index.ts` に JSDoc でモジュール説明が記述されている
 
@@ -475,3 +474,4 @@ app.route("/todos", todoRoutes)
 - barrel export のアクセス制御 → `module-boundary` lint ルールで強制
 - `query` 内での書き込み操作の禁止 → `db-safety/no-write-in-query` lint ルールで強制
 - API 層テストから DB テストインフラ（`createTestDbContext`, `rawDb`）へのアクセス禁止 → `module-boundary/no-module-internal-import` で強制（`db/testing/` は barrel export を持たないため、`api/` からアクセスできない）
+- `db/` 内の composite effect（`service` 付き `defineEffect`）→ `db-safety/no-service-in-db-effect` で警告

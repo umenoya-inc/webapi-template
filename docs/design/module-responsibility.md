@@ -19,7 +19,7 @@ src/
 `src/db/` はデータアクセスとドメインモデルを担う。
 
 - サブモジュール（`db/user/`, `db/todo/` 等）にテーブル定義・ドメインモデル・操作関数を配置する
-- 操作関数は `defineEffect` + `defineContract` で定義し、`context` で `DbContext` を要求する
+- 操作関数は `defineEffect` + `defineContract` で leaf effect（`context` のみ、`service` なし）として定義する — `db-safety/no-service-in-db-effect` lint ルールで強制
 - `okAs` / `failAs` でビジネス的な意味のあるラベルを付与する
 - DB エラー（unique_violation 等）をビジネスエラーに翻訳するのもここの責務
 - テストは PGlite を使った実 DB テスト
@@ -70,3 +70,5 @@ src/api/
 | ---------- | ----------------- | ---------------------------------- |
 | `db/*`     | CRUD + エラー判断 | PGlite（実 DB）                    |
 | `api/*`    | ハンドラロジック  | モック（`mockService` で差し替え） |
+
+`db/` が leaf effect のみに制限されることで、`db/` のテストは構造的に実 DB が必須になる（`mockService` でバイパスする手段がない）。`api/` のテストは `module-boundary` により DB テストインフラにアクセスできないため、モックが必須になる。
