@@ -37,6 +37,12 @@ rule と design の区分基準は [rule と design の区分基準](docs/rule/r
 - [型によるテスト網羅の強制](docs/design/type-enforced-test-coverage.md)
 - [型の展開コスト](docs/design/type-expansion-cost.md)
 
+# Guide
+
+新しいドメイン機能を追加する際は、以下のガイドに従うこと。
+
+- [新規ドメイン機能の追加](docs/guide/add-domain-feature.md) — DB 層からAPI 層・テストまでの一気通貫の手順
+
 # Infrastructure
 
 共通モジュールを利用・拡張する際は、各モジュールの `index.ts` のコードドキュメントを参照すること。
