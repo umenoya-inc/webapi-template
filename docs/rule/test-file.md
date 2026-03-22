@@ -31,21 +31,21 @@ src/modules/db/
 
 ### DB 層のテスト
 
-DB 層の関数（env を持たない）は、実際の DB に接続してテストする。
+DB 層の関数（leaf effect）は、PGlite を使った実 DB テスト。テストデータの準備・確認には `rawDb` を使い、テスト対象の関数は `DbContext` 経由で呼び出す。
+
+`rawDb` は `DbClient` を経由せず生の Drizzle クライアントを返すテスト専用ユーティリティ。テストデータのセットアップは本番コードの安全装置（`execute` / `query` の使い分け）が不要なため、直接操作する。`rawDb` は `.testutil.ts` に配置されており、`test-boundary/no-testutil-in-production` で本番コードからの使用は禁止されている。また `db/testing/` は barrel export を持たないため、`api/` からのアクセスは `module-boundary/no-module-internal-import` でブロックされる。
 
 ```typescript
 import { afterAll, beforeAll, describe, expect } from "vite-plus/test"
 import type { DbContext } from "../DbContext"
-import { fromDbContext } from "../fromDbContext"
 import { createTestDbContext } from "../testing/createTestDbContext.testutil"
-import { testBehavior } from "@/modules/testing"
+import { rawDb } from "../testing/rawDb.testutil"
+import { testBehavior } from "@/testing"
 import { findUserById } from "./findUserById"
 import { userTable } from "./userTable"
 
-const insertUserRow = (ctx: DbContext, values: { name: string; email: string }) => {
-  const db = fromDbContext(ctx)
-  return db.query((q) => q.insert(userTable).values(values).returning())
-}
+const insertUserRow = (ctx: DbContext, values: { name: string; email: string }) =>
+  rawDb(ctx).insert(userTable).values(values).returning()
 
 describe("findUserById", () => {
   let ctx: DbContext
@@ -66,17 +66,17 @@ describe("findUserById", () => {
   testBehavior(findUserById, {
     "IDに該当するユーザーを取得": async (assert) => {
       const [inserted] = await insertUserRow(ctx, { name: "Alice", email: "alice@example.com" })
-      const result = await findUserById(ctx)({ id: inserted.id })
+      const result = await findUserById({ db: ctx })({ id: inserted.id })
       const user = assert(result) // 型が該当 variant に絞り込まれる
       expect(user.value.id).toBe(inserted.id)
       expect(user.value.name).toBe("Alice")
     },
     "IDに該当するユーザーが存在しない": async (assert) => {
-      const result = await findUserById(ctx)({ id: "00000000-0000-0000-0000-000000000000" })
+      const result = await findUserById({ db: ctx })({ id: "00000000-0000-0000-0000-000000000000" })
       assert(result)
     },
     "入力値が不正": async (assert) => {
-      const result = await findUserById(ctx)({ id: "not-a-uuid" })
+      const result = await findUserById({ db: ctx })({ id: "not-a-uuid" })
       assert(result)
     },
   })
