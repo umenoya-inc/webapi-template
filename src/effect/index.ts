@@ -47,6 +47,7 @@
  * - `DirectServiceOf` — Effect から直接依存 service 型を抽出する型。mockService で使用。
  * - `EffectBrand` — defineEffect の戻り値に付与されるブランド型。
  * - `effectDepsKey` — deps 格納用シンボルキー。
+ * - `effectResultKey` — 定義時に fn をダミー実行して得た結果関数の格納用シンボルキー。実行せずにメタデータを静的参照する用途。
  *
  * ### 使い方
  *
@@ -89,4 +90,5 @@ export type { EffectTrace } from "./EffectTrace"
 export { requiredContext } from "./requiredContext"
 export { defineEffect } from "./defineEffect"
 export { effectDepsKey } from "./effectDepsKey"
+export { effectResultKey } from "./effectResultKey"
 export { resolveEffects } from "./resolveEffects"

@@ -4,7 +4,7 @@ import type { ContentfulStatusCode } from "hono/utils/http-status"
 import { describeRoute, resolver } from "hono-openapi"
 import { descLabelKey } from "@/behavior"
 import { inputSchemaKey, outputSchemaKey } from "@/contract"
-import { EffectChainError, effectDepsKey, resolveEffects } from "@/effect"
+import { EffectChainError, effectResultKey, resolveEffects } from "@/effect"
 import type { EffectTrace } from "@/effect"
 import { inputConfigKey } from "./inputConfigKey"
 import { responsesKey } from "./responsesKey"
@@ -36,7 +36,9 @@ interface InputConfig {
 
 /** Effect と provide から OpenAPI 付きルートハンドラを生成する。 */
 export function defineRoute(options: RouteOptions): [MiddlewareHandler, Handler] {
-  const contractFn = findEffectContractFn(options.effect)
+  const contractFn = (options.effect as unknown as Record<symbol, unknown>)[effectResultKey] as
+    | ((...args: any[]) => any)
+    | undefined
   const outputSchema = contractFn ? findSchema(contractFn, outputSchemaKey) : undefined
   const fnInputSchema = contractFn ? findSchema(contractFn, inputSchemaKey) : undefined
   const responses = contractFn ? findResponses(contractFn, responsesKey) : undefined
@@ -94,38 +96,6 @@ export function defineRoute(options: RouteOptions): [MiddlewareHandler, Handler]
       }
     },
   ]
-}
-
-/** Effect から内部の contract 関数を探索する。ダミー引数で service → context → fn を辿る。 */
-function findEffectContractFn(
-  effect: (...args: any[]) => any,
-): ((...args: any[]) => any) | undefined {
-  const deps = (effect as unknown as Record<symbol, any>)[effectDepsKey] as
-    | { service?: Record<string, any> }
-    | undefined
-  try {
-    const childService = deps?.service
-    let inner: any
-    if (childService && Object.keys(childService).length > 0) {
-      const dummyResolved: Record<string, any> = {}
-      for (const [key, childEffect] of Object.entries(childService)) {
-        const childContractFn = findEffectContractFn(childEffect)
-        dummyResolved[key] = () => childContractFn ?? (() => {})
-      }
-      inner = effect(dummyResolved)
-    } else {
-      inner = effect
-    }
-    if (typeof inner === "function") {
-      const deeper = inner({})
-      if (typeof deeper === "function") {
-        return deeper
-      }
-    }
-  } catch {
-    // 探索失敗
-  }
-  return undefined
 }
 
 /** input スキーマから routeInput のメタデータを取得する。 */

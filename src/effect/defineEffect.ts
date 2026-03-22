@@ -4,6 +4,7 @@ import type { EffectBrand } from "./EffectBrand"
 import type { FlattenService } from "./FlattenService"
 import type { ResolvedService } from "./ResolvedService"
 import { effectDepsKey } from "./effectDepsKey"
+import { effectResultKey } from "./effectResultKey"
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -69,5 +70,31 @@ export function defineEffect<Declared extends Record<string, Effect<any, any, an
 
 export function defineEffect(deps: Record<string, unknown>, fn: (...args: any[]) => any): any {
   ;(fn as unknown as Record<symbol, unknown>)[effectDepsKey] = deps
+  extractEffectResult(deps, fn)
   return fn
+}
+
+/** Effect の fn をダミー実行し、得られた結果関数を effectResultKey に格納する。 */
+function extractEffectResult(deps: Record<string, unknown>, fn: (...args: any[]) => any): void {
+  try {
+    const service = deps.service as Record<string, any> | undefined
+    let inner: any
+    if (service && Object.keys(service).length > 0) {
+      const dummyResolved: Record<string, any> = {}
+      for (const key of Object.keys(service)) {
+        dummyResolved[key] = () => () => {}
+      }
+      inner = fn(dummyResolved)
+    } else {
+      inner = fn
+    }
+    if (typeof inner === "function") {
+      const result = inner({})
+      if (typeof result === "function") {
+        ;(fn as unknown as Record<symbol, unknown>)[effectResultKey] = result
+      }
+    }
+  } catch {
+    // 抽出失敗は許容（非ルート Effect など）
+  }
 }
