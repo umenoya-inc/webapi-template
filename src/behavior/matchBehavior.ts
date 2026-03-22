@@ -21,14 +21,14 @@ type Handlers<TResult> = {
   [K in VariantKey<TResult>]: (result: VariantResult<TResult, K>) => unknown
 }
 
-type HandlersReturn<TResult, H extends Handlers<TResult>> = {
-  [K in keyof H]: H[K] extends (...args: any[]) => infer R ? R : never
-}[keyof H]
-
-export const matchBehavior = <TResult extends { ok: boolean }, H extends Handlers<TResult>>(
+export const matchBehavior = <
+  TResult extends { ok: boolean },
+  H extends Handlers<TResult>,
+  TReturn = { [K in keyof H]: H[K] extends (...args: any[]) => infer R ? R : never }[keyof H],
+>(
   result: TResult,
   handlers: H,
-): HandlersReturn<TResult, H> => {
+): TReturn => {
   if ((result as any).ok) {
     return (handlers as any).success(result)
   }

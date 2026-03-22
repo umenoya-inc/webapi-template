@@ -56,7 +56,7 @@ export function defineRouteContract<
   fn: (input: InferOutput<TInputSchema>) => Promise<TFnReturn>
 }): RouteContractWithInput<
   InferInput<TInputSchema>,
-  FullReturn<TFnReturn, TOutputSchema, TInputError>
+  ReplaceOkValue<TFnReturn, InferOutput<TOutputSchema>> | ExtractFailure<TFnReturn> | TInputError
 >
 
 // no input
@@ -69,7 +69,9 @@ export function defineRouteContract<
   output: TOutputSchema
   responses: { [K in DescLabel<FullReturnNoInput<TFnReturn, TOutputSchema>>]: ResponseEntry }
   fn: () => Promise<TFnReturn>
-}): RouteContractNoInput<FullReturnNoInput<TFnReturn, TOutputSchema>>
+}): RouteContractNoInput<
+  ReplaceOkValue<TFnReturn, InferOutput<TOutputSchema>> | ExtractFailure<TFnReturn>
+>
 
 export function defineRouteContract(options: {
   input?: BaseSchema<unknown, unknown, BaseIssue<unknown>>
