@@ -5,7 +5,7 @@ import type { DbError } from "./DbError"
  * 成功時はそのまま結果を返し、DB エラー時は DbError を返す。
  * DB エラー以外の予期しないエラーは throw する。
  */
-export const dbExecute = async <T>(
+export const pgExecute = async <T>(
   fn: () => Promise<T>,
 ): Promise<{ ok: true; value: T } | { ok: false; error: DbError }> => {
   try {
@@ -38,12 +38,14 @@ function findPgError(e: unknown): PgErrorLike | null {
   return null
 }
 
+/** PostgreSQL エラーコードは SQLSTATE 5文字（英数字）。非 PG エラーの誤検出を防ぐ。 */
 function isPgErrorLike(e: unknown): e is PgErrorLike {
   return (
     typeof e === "object" &&
     e !== null &&
     "code" in e &&
-    typeof (e as PgErrorLike).code === "string"
+    typeof (e as PgErrorLike).code === "string" &&
+    /^[0-9A-Z]{5}$/.test((e as PgErrorLike).code)
   )
 }
 

@@ -37,8 +37,8 @@ try {
 - 想定外のエラー（変換できないもの）はそのまま throw して Let it crash に委ねる
 
 ```typescript
-// dbExecute: DB ドライバの例外を DbError (DU) に変換する境界層
-export const dbExecute = async <T>(
+// pgExecute: PostgreSQL ドライバの例外を DbError (DU) に変換する境界層
+export const pgExecute = async <T>(
   fn: () => Promise<T>,
 ): Promise<{ ok: true; value: T } | { ok: false; error: DbError }> => {
   try {

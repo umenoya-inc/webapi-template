@@ -43,7 +43,7 @@
 src/db/
 ├── error/                 # index.ts なし → db/ 内で自由に共有
 │   ├── DbError.ts
-│   └── dbExecute.ts
+│   └── pgExecute.ts
 ├── testing/               # index.ts なし → db/ 内で自由に共有
 │   └── createTestDbContext.testutil.ts
 ├── user/                  # index.ts あり → カプセル化されたサブモジュール
@@ -58,7 +58,7 @@ src/db/
 
 この構造では:
 
-- `db/user/createUser.ts` → `db/error/dbExecute.ts` を相対 import できる（`error/` は `index.ts` なし）
+- `db/user/createUser.ts` → `db/error/pgExecute.ts` を相対 import できる（`error/` は `index.ts` なし）
 - `db/user/createUser.ts` → `db/fromDbContext.ts` を相対 import できる（同一トップレベルモジュール内）
 - `domain/user/` → `db/user/` の内部ファイルにアクセスできない（トップレベルモジュールの壁）
 - `domain/user/` → `domain/todo/` の内部ファイルにアクセスできない（両方 `index.ts` を持つサブモジュール）

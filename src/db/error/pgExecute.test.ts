@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vite-plus/test"
-import { dbExecute } from "./dbExecute"
+import { pgExecute } from "./pgExecute"
 
-describe("dbExecute", () => {
+describe("pgExecute", () => {
   it("成功時は ok: true と値を返す", async () => {
-    const result = await dbExecute(async () => ({ id: "1", name: "Alice" }))
+    const result = await pgExecute(async () => ({ id: "1", name: "Alice" }))
     expect(result.ok).toBe(true)
     if (result.ok) {
       expect(result.value).toEqual({ id: "1", name: "Alice" })
@@ -12,7 +12,7 @@ describe("dbExecute", () => {
 
   it("PostgreSQL unique_violation エラーを DbError に変換する", async () => {
     const pgError = { code: "23505", constraint: "users_email_unique" }
-    const result = await dbExecute(async () => {
+    const result = await pgExecute(async () => {
       throw pgError
     })
     expect(result.ok).toBe(false)
@@ -26,7 +26,7 @@ describe("dbExecute", () => {
 
   it("PostgreSQL の未知のエラーコードを unknown DbError に変換する", async () => {
     const pgError = { code: "42P01" }
-    const result = await dbExecute(async () => {
+    const result = await pgExecute(async () => {
       throw pgError
     })
     expect(result.ok).toBe(false)
@@ -38,7 +38,7 @@ describe("dbExecute", () => {
   it("cause チェーンに埋まった PostgreSQL エラーも検出する", async () => {
     const pgError = { code: "23505", constraint: "users_name_unique" }
     const wrappedError = new Error("Drizzle error", { cause: pgError })
-    const result = await dbExecute(async () => {
+    const result = await pgExecute(async () => {
       throw wrappedError
     })
     expect(result.ok).toBe(false)
@@ -53,15 +53,24 @@ describe("dbExecute", () => {
   it("DB エラー以外の例外はそのまま throw する", async () => {
     const error = new Error("Network timeout")
     await expect(
-      dbExecute(async () => {
+      pgExecute(async () => {
         throw error
       }),
     ).rejects.toThrow("Network timeout")
   })
 
+  it("SQLSTATE 形式でない code を持つエラーは DB エラーとして扱わない", async () => {
+    const nonPgError = { code: "ERR_NETWORK" }
+    await expect(
+      pgExecute(async () => {
+        throw nonPgError
+      }),
+    ).rejects.toBe(nonPgError)
+  })
+
   it("制約名からフィールド名を抽出できない場合は unknown を返す", async () => {
     const pgError = { code: "23505" }
-    const result = await dbExecute(async () => {
+    const result = await pgExecute(async () => {
       throw pgError
     })
     expect(result.ok).toBe(false)

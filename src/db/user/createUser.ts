@@ -1,7 +1,7 @@
 import { hash } from "bcryptjs"
 import { email, maxLength, minLength, object, pipe, string } from "valibot"
 import type { DbContext } from "../DbContext"
-import { dbExecute } from "../error/dbExecute"
+import { pgExecute } from "../error/pgExecute"
 import { fromDbContext } from "../fromDbContext"
 import { failAs, okAs } from "@/behavior"
 import { defaultInputError, defineContract } from "@/contract"
@@ -29,7 +29,7 @@ export const createUser = defineEffect(
       fn: async (input) => {
         const db = fromDbContext(context.db)
         const passwordHash = await hash(input.password, 10)
-        const result = await dbExecute(() =>
+        const result = await pgExecute(() =>
           db
             .insert(userTable)
             .values({ name: input.name, email: input.email, passwordHash })
