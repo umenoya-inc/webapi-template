@@ -1,16 +1,18 @@
 import type { Fallible } from "@/types"
 import type { DbContext } from "./DbContext"
-import { dbClient } from "./dbClient"
+import { fromDbContext } from "./fromDbContext"
 import { toDbContext } from "./toDbContext"
 
 const rollbackSymbol = Symbol("rollback")
 
 export const dbTransaction = async <F extends Fallible>(
+  ctx: DbContext,
   fn: (ctx: DbContext) => Promise<F>,
 ): Promise<F> => {
+  const db = fromDbContext(ctx)
   let failedResult: (F & { ok: false }) | undefined
   try {
-    return await dbClient.transaction(async (tx) => {
+    return await db.transaction(async (tx) => {
       const result = await fn(toDbContext(tx))
       if (!result.ok) {
         failedResult = result as F & { ok: false }

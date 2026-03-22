@@ -50,7 +50,7 @@
  * const result = await findUserById(globalDbContext, "user-1")
  *
  * // トランザクションあり
- * const result = await dbTransaction(async (ctx) => {
+ * const result = await dbTransaction(globalDbContext, async (ctx) => {
  *   return await findUserById(ctx, "user-1")
  * })
  * ```

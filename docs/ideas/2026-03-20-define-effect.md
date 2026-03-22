@@ -158,7 +158,7 @@ const postUser = defineEffect(
     defineRouteContract({
       fn: async (input) => {
         // fn 内で transaction を開始し、context を差し替え
-        return await dbTransaction(async (txDb) => {
+        return await dbTransaction(context.db, async (txDb) => {
           return matchBehavior(
             await service.createUser({ db: txDb })(input),
             { ... }
