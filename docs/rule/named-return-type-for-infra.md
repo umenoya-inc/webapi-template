@@ -48,3 +48,7 @@ export function defineEffect<OwnContext extends Record<string, unknown>, Fn>(
 ## 例外
 
 ジェネリックな関数型 `F` をそのまま intersection で返すパターン（`defineBehavior` の `F & BehaviorBrand`）は、`F` の call signature を interface で再現することが困難なため、intersection のまま許容する。
+
+## Lint
+
+lint 化対象外。対象がインフラ関数（`defineEffect`, `defineContract` 等）に限定され、変更頻度が低いため。

@@ -69,3 +69,8 @@ postUserRoute.post(
   }),
 )
 ```
+
+## Lint
+
+- `effect-structure/no-service-in-db-effect` で db/ 内の composite effect を警告
+- `effect-structure/no-leaf-in-api-effect` で api/ 内の leaf effect を警告

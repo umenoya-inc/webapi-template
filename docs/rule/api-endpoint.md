@@ -150,3 +150,9 @@ testBehavior(postUser, {
 5. ドメインの `*Routes.ts` に `defineRoute` でルートを追加
 6. 新しいドメインの場合は `*Routes.ts` と `index.ts` を作成し、`src/index.ts` にマウント
 7. `testBehavior` でテストを書く
+
+## Lint
+
+- `effect-structure/no-leaf-in-api-effect` で api/ 内の leaf effect を警告
+- `module-boundary` で barrel export のアクセス制御を強制
+- ファイル命名規則（`<method><Resource>.ts`）: lint 化対象外（ユーティリティファイルとの区別が AST だけでは困難なため）

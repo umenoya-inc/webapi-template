@@ -101,3 +101,7 @@ fn: async (input) => {
 // ✅ 他の Contract からの結果をそのまま返す場合は matchBehavior 不要
 return result
 ```
+
+## Lint
+
+型チェックで強制。`Desc` ブランドの要求により `okAs` / `failAs` の使用が必須。`matchBehavior` の exhaustive チェックも型で強制。

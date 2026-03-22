@@ -20,4 +20,4 @@ import * as v from "valibot"
 
 ## Lint
 
-`import-style/no-namespace-import` カスタム oxlint プラグイン（`lint/import-style/`）で強制する。
+`import-style/no-namespace-import` で強制。

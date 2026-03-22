@@ -106,3 +106,7 @@ if (!result.ok) {
   }
 }
 ```
+
+## Lint
+
+設計方針のため lint 化対象外。DbClient による境界層の実装は `db-safety/no-write-in-query` で部分的に強制。

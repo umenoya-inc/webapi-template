@@ -64,3 +64,8 @@ const rows = await db.query((q) => q.select().from(userTable).where(eq(userTable
 ## DbError の拡張
 
 新しい PostgreSQL エラーコードへの対応が必要になった場合は、`pgExecute.ts` 内の `normalizePgError` と `DbError` 型に追加する。
+
+## Lint
+
+- `db-safety/no-write-in-query` で `query` 内の書き込み操作を禁止
+- `DbClient` のアーキテクチャにより `fromDbContext` 経由でしか DB アクセスできない構造で強制

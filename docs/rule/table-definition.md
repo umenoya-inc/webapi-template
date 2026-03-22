@@ -35,3 +35,9 @@ export const userTable = pgTable("user", {
   updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
 })
 ```
+
+## Lint
+
+- テーブル名の単数形: `naming-convention/no-plural-table-name` で強制
+- barrel export への非公開: `module-boundary/no-table-in-barrel-export` で強制
+- ファイル名 `*Table.ts` の命名規則: lint 化対象外（drizzle-kit のスキーマ認識パターンと一致していれば動作するため）

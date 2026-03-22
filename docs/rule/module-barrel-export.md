@@ -68,3 +68,4 @@ import { userStore } from "./userStore"
 ## Lint
 
 `module-boundary/no-module-internal-import` カスタムoxlintプラグイン（`lint/module-boundary/`）でファイルシステムを参照し、インポート先が barrel export（`index.ts` を持つディレクトリ）か内部ファイルかを判定して強制する。
+`module-boundary/no-table-in-barrel-export` でテーブル定義（`*Table`）の barrel export を禁止。

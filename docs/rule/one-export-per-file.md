@@ -33,3 +33,7 @@ export type User = InferOutput<typeof User>
 ## 除外
 
 - `index.ts` は barrel export 用のファイルとして使用するため、このルールの対象外とする。
+
+## Lint
+
+`single-export/one-export-per-file` で強制。

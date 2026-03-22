@@ -49,3 +49,7 @@ type AuthContext = {
 - **branded / phantom 型:** `T & { readonly [brand]: ... }`
 - **推論型:** `InferOutput<typeof Schema>` 等、他の型から導出される型
 - **プリミティブ / タプル / リテラル / 関数型**
+
+## Lint
+
+`type-style/interface-for-object-types` で強制。computed property key を持つ branded/phantom 型は除外。

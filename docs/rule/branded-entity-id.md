@@ -86,3 +86,7 @@ const assignUser = async (ctx: DbContext, todoId: TodoId, userId: UserId) => {
 // 呼び出し側は not_found を気にせずに済む
 await assignUser(ctx, todoId, user.id) // user.id は User から取得した UserId
 ```
+
+## Lint
+
+型チェックで強制。Branded Type の不一致はコンパイルエラーになるため lint 化不要。

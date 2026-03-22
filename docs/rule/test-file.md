@@ -228,3 +228,7 @@ export const createUser = (ctx: DbContext) =>
     fn: async (input) => { ... },
   })
 ```
+
+## Lint
+
+`test-boundary/no-testutil-in-production` で `.testutil.ts` の本番コード使用を禁止。

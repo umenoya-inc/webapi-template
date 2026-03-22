@@ -63,3 +63,7 @@ defineRouteContract({
   fn: async () => { ... },
 })
 ```
+
+## Lint
+
+型チェックで強制。`input` がある場合に `onInputError` がないとコンパイルエラーになる。
