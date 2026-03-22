@@ -1,3 +1,9 @@
+# Overview
+
+Hono + Drizzle + Valibot + PGlite による TypeScript Web API のテンプレートプロジェクト。コーディングエージェントが品質を保ちながら高速にコードを書くためのフィードバック設計を重視している。
+
+上位方針: [コーディングエージェントのための高速フィードバック設計](docs/design/agent-feedback-loop.md)
+
 # Rules
 
 TypeScript ファイルを作成・編集する際は、以下のルールを必ず適用すること。
@@ -30,7 +36,6 @@ rule と design の区分基準は [rule と design の区分基準](docs/rule/r
 - [index.ts によるモジュールアクセス制御](docs/design/module-access-control.md)
 - [型によるテスト網羅の強制](docs/design/type-enforced-test-coverage.md)
 - [型の展開コスト](docs/design/type-expansion-cost.md)
-- [コーディングエージェントのための高速フィードバック設計](docs/design/agent-feedback-loop.md)
 
 # Infrastructure
 

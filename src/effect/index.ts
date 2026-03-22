@@ -5,6 +5,35 @@
  * 軽量 Effect System。`defineEffect` で副作用を持つ計算を定義し、
  * 依存の自動合成と副作用の型レベル明示を実現する。
  *
+ * ### Effect のツリー構造
+ *
+ * Effect は依存関係によりツリーを形成する。ノードは3種類。
+ *
+ * ```
+ * NodeEffect (getUserById)            ← 子 Effect + 自身固有の context (auth)
+ * └── LeafEffect (findUserById)       ← context のみ (db)
+ *
+ * CompositeEffect (postUser)          ← 子 Effect の合成のみ
+ * └── LeafEffect (createUser)         ← context のみ (db)
+ *
+ * LeafEffect (listUsers)              ← context のみ (db)
+ * ```
+ *
+ * | 種類              | 子 Effect | 自身の context | 呼び出しシグネチャ             |
+ * |-------------------|-----------|---------------|-------------------------------|
+ * | `LeafEffect`      | なし      | あり          | `(context) => Fn`             |
+ * | `CompositeEffect` | あり      | なし          | `(service) => (context) => Fn` |
+ * | `NodeEffect`      | あり      | あり          | `(service) => (context) => Fn` |
+ *
+ * ### EffectBrand の型パラメータ
+ *
+ * 全 Effect は `EffectBrand<Service, DirectService, Context, Fn>` を持つ。
+ *
+ * - `Service` — ツリー全体をフラット化した依存（`FlattenService` で導出）
+ * - `DirectService` — 直接の子 Effect のみ（`mockService` で使用）
+ * - `Context` — 必要な context の合成型（子の依存 + 自身固有の context）
+ * - `Fn` — Effect が返す関数の型（通常は Contract）
+ *
  * ### エクスポート
  *
  * - `defineEffect` — 副作用を持つ計算を定義する。deps に service / context を宣言し、fn で実装する。
@@ -26,13 +55,13 @@
  * import { requiredContext, defineEffect } from "@/effect"
  * import { defineContract } from "@/contract"
  *
- * // leaf Effect — context のみ
+ * // Leaf: context のみ
  * export const createUser = defineEffect(
  *   { context: requiredContext<{ db: DbContext }>() },
  *   (context) => defineContract({ ... })
  * )
  *
- * // service + context あり
+ * // Composite: 子 Effect の合成のみ
  * export const postUser = defineEffect(
  *   { service: { createUser } },
  *   (service) => (context) =>

@@ -7,8 +7,8 @@ import { effectDepsKey } from "./effectDepsKey"
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/** service + context ありの Effect。 */
-interface ServiceContextEffect<
+/** 子 Effect を束ねつつ、自身固有の context にも依存するノード。 */
+interface NodeEffect<
   Declared extends Record<string, Effect<any, any, any, any>>,
   OwnContext extends Record<string, unknown>,
   Fn,
@@ -33,15 +33,15 @@ interface LeafEffect<OwnContext extends Record<string, unknown>, Fn> extends Eff
   (context: OwnContext): Fn
 }
 
-/** service のみの Effect（自分固有の context なし）。 */
-interface ServiceEffect<
+/** 子 Effect の合成に徹するノード。自身固有の context は持たない。 */
+interface CompositeEffect<
   Declared extends Record<string, Effect<any, any, any, any>>,
   Fn,
 > extends EffectBrand<FlattenService<Declared>, Declared, DeriveContext<Declared>, Fn> {
   (service: ResolvedService<FlattenService<Declared>>): (context: DeriveContext<Declared>) => Fn
 }
 
-/** service + context あり */
+/** Node: 子 Effect + 自身固有の context */
 export function defineEffect<
   Declared extends Record<string, Effect<any, any, any, any>>,
   OwnContext extends Record<string, unknown>,
@@ -51,21 +51,21 @@ export function defineEffect<
   fn: (
     service: ResolvedService<FlattenService<Declared>>,
   ) => (context: OwnContext & DeriveContext<Declared>) => Fn,
-): ServiceContextEffect<Declared, OwnContext, Fn>
+): NodeEffect<Declared, OwnContext, Fn>
 
-/** context のみ（leaf Effect） */
+/** Leaf: context のみ、子 Effect なし */
 export function defineEffect<OwnContext extends Record<string, unknown>, Fn>(
   deps: { context: OwnContext },
   fn: (context: OwnContext) => Fn,
 ): LeafEffect<OwnContext, Fn>
 
-/** service のみ（自分固有の context なし） */
+/** Composite: 子 Effect の合成のみ、自身固有の context なし */
 export function defineEffect<Declared extends Record<string, Effect<any, any, any, any>>, Fn>(
   deps: { service: Declared },
   fn: (
     service: ResolvedService<FlattenService<Declared>>,
   ) => (context: DeriveContext<Declared>) => Fn,
-): ServiceEffect<Declared, Fn>
+): CompositeEffect<Declared, Fn>
 
 export function defineEffect(deps: Record<string, unknown>, fn: (...args: any[]) => any): any {
   ;(fn as unknown as Record<symbol, unknown>)[effectDepsKey] = deps
