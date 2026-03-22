@@ -1,14 +1,23 @@
 ---
 name: check-hover
-description: インフラ関数の hover 可読性を検証し、型の改善余地を洗い出す
+description: インフラ関数の hover 可読性を定性的に検証し、lint では検出できない問題を洗い出す
 allowed-tools: Bash(npx vp *), Glob, Grep, Read, LSP
 ---
 
 ## あなたのタスク
 
-インフラ関数（`defineEffect`, `defineContract`, `defineRouteContract`）の呼び出し結果に対する LSP hover の可読性を検証し、型の改善余地を報告してください。
+インフラ関数（`defineEffect`, `defineContract`, `defineRouteContract`）の呼び出し結果に対する LSP hover の可読性を定性的に検証し、改善余地を報告してください。
 
 **このスキルは読み取り専用です。コードの修正は行わないでください。**
+
+### lint ルールとの棲み分け
+
+型の展開コストの定量的な検出は `type-complexity/type-expansion-cost` lint ルールが担当する（`npx vp check` で自動実行）。このスキルは lint では拾えない以下の定性的な問題を検査する:
+
+- hover に内部構造（ブランド型等）が露出していないか
+- hover の表示が truncation されていないか
+- 同じ型情報が二重に展開されていないか
+- hover から型の意図が読み取れるか
 
 ### Step 1: 検査対象の収集
 
