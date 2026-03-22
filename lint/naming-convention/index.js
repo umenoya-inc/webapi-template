@@ -1,5 +1,4 @@
 import noPluralTableName from "./noPluralTableName.js"
-import noTableInBarrelExport from "./noTableInBarrelExport.js"
 
 export default {
   meta: {
@@ -7,6 +6,5 @@ export default {
   },
   rules: {
     "no-plural-table-name": noPluralTableName,
-    "no-table-in-barrel-export": noTableInBarrelExport,
   },
 }
