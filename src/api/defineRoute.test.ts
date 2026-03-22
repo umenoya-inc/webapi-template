@@ -10,11 +10,6 @@ import { routeInput } from "./routeInput"
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/**
- * テスト用の noop Leaf Effect。
- * findEffectContractFn のダミー探索で fn が実際に呼ばれるため、
- * output バリデーションを通る値を返す必要がある。
- */
 const noopLeaf = defineEffect({ context: requiredContext<{ db: unknown }>() }, (_ctx) =>
   defineContract({
     output: object({}),
@@ -30,7 +25,7 @@ describe("defineRoute", () => {
         defineRouteContract({
           output: object({ message: string() }),
           responses: { "挨拶を返す": { status: 200 } },
-          fn: async () => okAs("挨拶を返す", { value: { message: String(ctx.greeting ?? "") } }),
+          fn: async () => okAs("挨拶を返す", { value: { message: ctx.greeting } }),
         }),
     )
 
@@ -97,14 +92,15 @@ describe("defineRoute", () => {
   })
 
   describe("例外時（Let it crash）", () => {
-    // provide で例外を投げることでハンドラ内の catch を検証する
     const crashEffect = defineEffect(
       { service: { noopLeaf } } as any,
       (_service: any) => (_ctx: any) =>
         defineRouteContract({
           output: object({ value: string() }),
           responses: { "成功": { status: 200 } },
-          fn: async () => okAs("成功", { value: { value: "ok" } }),
+          fn: async () => {
+            throw new Error("Unexpected database error")
+          },
         }),
     )
 
@@ -113,9 +109,10 @@ describe("defineRoute", () => {
       "/crash",
       ...defineRoute({
         effect: crashEffect,
-        provide: () => {
-          throw new Error("Unexpected database error")
-        },
+        provide: () => ({
+          service: { noopLeaf },
+          context: {},
+        }),
         description: "クラッシュ",
       }),
     )

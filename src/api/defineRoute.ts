@@ -251,34 +251,12 @@ function buildOpenAPIResponses(
   return result
 }
 
-/** 関数から再帰的にスキーマを探索する */
+/** 関数からシンボルキーでスキーマを取得する */
 function findSchema(fn: (...args: any[]) => any, schemaKey: symbol): Schema | undefined {
-  const direct = (fn as unknown as Record<symbol, unknown>)[schemaKey] as Schema | undefined
-  if (direct) return direct
-
-  try {
-    const inner = fn()
-    if (typeof inner === "function") {
-      return findSchema(inner, schemaKey)
-    }
-  } catch {
-    // 呼び出しに失敗した場合は探索終了
-  }
-  return undefined
+  return (fn as unknown as Record<symbol, unknown>)[schemaKey] as Schema | undefined
 }
 
-/** 関数から再帰的に responses マップを探索する */
+/** 関数からシンボルキーで responses マップを取得する */
 function findResponses(fn: (...args: any[]) => any, key: symbol): ResponsesMap | undefined {
-  const direct = (fn as unknown as Record<symbol, unknown>)[key] as ResponsesMap | undefined
-  if (direct) return direct
-
-  try {
-    const inner = fn()
-    if (typeof inner === "function") {
-      return findResponses(inner, key)
-    }
-  } catch {
-    // 呼び出しに失敗した場合は探索終了
-  }
-  return undefined
+  return (fn as unknown as Record<symbol, unknown>)[key] as ResponsesMap | undefined
 }
