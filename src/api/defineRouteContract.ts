@@ -27,7 +27,10 @@ type FullReturnNoInput<
   TOutputSchema extends BaseSchema<unknown, unknown, BaseIssue<unknown>>,
 > = ReplaceOkValue<TFnReturn, InferOutput<TOutputSchema>> | ExtractFailure<TFnReturn>
 
-type ResponseEntry = { status: number; description?: string }
+interface ResponseEntry {
+  status: number
+  description?: string
+}
 
 // input + onInputError（input がある場合 onInputError は必須）
 export function defineRouteContract<

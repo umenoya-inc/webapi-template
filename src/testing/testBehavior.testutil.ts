@@ -56,7 +56,7 @@ type Scenarios<F, K extends string> = [ExtractInputScenarios<BehaviorResult<F>, 
   : ExtractInputScenarios<BehaviorResult<F>, K>
 
 /** パラメタライズドテストエントリの構造型 */
-type ParameterizedTestEntry<F, K extends string> = {
+interface ParameterizedTestEntry<F, K extends string> {
   __parameterize: true
   params: Record<Scenarios<F, K>, BehaviorInput<F>>
   test: (assert: LabelAssert<F, K>, param: BehaviorInput<F>) => Promise<void> | void
@@ -66,7 +66,7 @@ type ParameterizedTestEntry<F, K extends string> = {
 type ArbitraryOverrides<T> = { [K in keyof T]?: Arbitrary<T[K]> }
 
 /** プロパティベーステストエントリの構造型 */
-type PropertyTestEntry<F, K extends string> = {
+interface PropertyTestEntry<F, K extends string> {
   __propertyCheck: true
   fn: (...args: any[]) => any
   params: Record<Scenarios<F, K>, ArbitraryOverrides<BehaviorInput<F>>>

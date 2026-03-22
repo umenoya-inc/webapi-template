@@ -17,6 +17,7 @@ rule と design の区分基準は [rule と design の区分基準](docs/rule/r
 - [ルート入力バリデーションの宣言](docs/rule/route-input-error.md)
 - [名前のある型は直接書く](docs/rule/no-indirect-type-derivation.md)
 - [defineEffect による副作用の宣言](docs/rule/define-effect.md)
+- [オブジェクト型には interface を使う](docs/rule/interface-for-object-types.md)
 
 # Design
 

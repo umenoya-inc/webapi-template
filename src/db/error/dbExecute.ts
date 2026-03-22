@@ -20,7 +20,10 @@ export const dbExecute = async <T>(
   }
 }
 
-type PgErrorLike = { code: string; constraint?: string }
+interface PgErrorLike {
+  code: string
+  constraint?: string
+}
 
 /**
  * ドライバ固有のエラーから PostgreSQL エラー情報を探す。

@@ -11,7 +11,7 @@ import { responsesKey } from "./responsesKey"
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-type RouteOptions = {
+interface RouteOptions {
   effect: (...args: any[]) => any
   provide: (c: Context<Env, string, Input>) => {
     service: Record<string, unknown>
@@ -21,10 +21,13 @@ type RouteOptions = {
 }
 
 type Schema = BaseSchema<unknown, unknown, BaseIssue<unknown>>
-type ResponseEntry = { status: number; description?: string }
+interface ResponseEntry {
+  status: number
+  description?: string
+}
 type ResponsesMap = Record<string, ResponseEntry>
 
-type InputConfig = {
+interface InputConfig {
   params?: ObjectSchema<ObjectEntries, any>
   query?: ObjectSchema<ObjectEntries, any>
   headers?: ObjectSchema<ObjectEntries, any>

@@ -1,2 +1,4 @@
 /** 認証済みユーザーのコンテキスト。 */
-export type AuthContext = { userId: string }
+export interface AuthContext {
+  userId: string
+}
