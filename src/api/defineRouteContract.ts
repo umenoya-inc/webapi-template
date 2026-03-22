@@ -10,11 +10,7 @@ import { responsesKey } from "./responsesKey"
 type ExtractFailure<T> = Extract<T, { ok: false }>
 
 type ReplaceOkValue<T, V> =
-  T extends Desc<infer L, infer U>
-    ? U extends { ok: true; value: unknown }
-      ? Desc<L, Omit<U, "value"> & { value: V }>
-      : never
-    : never
+  T extends Desc<infer L, { ok: true; value: unknown }> ? Desc<L, { ok: true; value: V }> : never
 
 type FullReturn<
   TFnReturn,
