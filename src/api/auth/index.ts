@@ -6,16 +6,17 @@
  *
  * ### エクスポート
  *
+ * - `authRoutes` — 認証 API のルートをまとめた Hono インスタンス
  * - `AuthContext` — 認証済みユーザーのコンテキスト型
+ * - `AuthEnv` — authMiddleware が Hono Context に設定する Variables の型
  * - `getAuthContext` — Hono Context から AuthContext を取り出す
  * - `authMiddleware` — Bearer トークンによる認証ミドルウェア
  * - `postLogin` — ログインハンドラロジック
- * - `postLoginRoute` — ログインルート定義
  */
 
+export { authRoutes } from "./authRoutes"
 export type { AuthContext } from "./AuthContext"
 export type { AuthEnv } from "./AuthEnv"
 export { getAuthContext } from "./getAuthContext"
 export { authMiddleware } from "./authMiddleware"
 export { postLogin } from "./postLogin"
-export { postLoginRoute } from "./postLoginRoute"

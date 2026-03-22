@@ -13,7 +13,8 @@ src/api/
 │   ├── getUserById.ts
 │   ├── getUserById.test.ts
 │   ├── getUserByIdRoute.ts
-│   └── index.ts             # barrel export
+│   ├── userRoutes.ts        # ドメイン内のルートを集約
+│   └── index.ts             # barrel export（ハンドラ + userRoutes）
 └── index.ts
 ```
 
@@ -103,7 +104,21 @@ getUserByIdRoute.get(
 
 `provide` の戻り値は `defineRoute` のジェネリクスにより Effect の `ProvideService` / `ProvideContext` で型制約される。service や context のフィールドが不足していればコンパイルエラーになる。`middleware` で指定したミドルウェアの Env 型は `provide` の `c` パラメータに反映される。
 
-ルート定義を作成したら `src/index.ts` に登録する。
+### ルートの集約
+
+個別のルート定義（`postUserRoute` 等）はドメインごとの `*Routes.ts` にまとめ、`src/index.ts` にはドメイン単位でマウントする。個別ルート定義は barrel export しない（`*Routes.ts` 内の相対 import でのみ使用）。
+
+```typescript
+// api/user/userRoutes.ts
+export const userRoutes = new Hono()
+userRoutes.route("/", postUserRoute)
+userRoutes.route("/", listUsersRoute)
+userRoutes.route("/", getUserByIdRoute)
+
+// src/index.ts
+app.route("/users", userRoutes)
+app.route("/auth", authRoutes)
+```
 
 ## テスト
 
@@ -147,6 +162,7 @@ testBehavior(postUser, {
 3. `responses` マップでステータスコードと説明を宣言
 4. `fn` 内で `service` 経由で DB 操作関数を呼び出しビジネスロジックを記述
 5. ルート定義ファイルを作成（`defineRoute` に `effect` と `provide` を渡す）
-6. `index.ts` の barrel export に追加
-7. `src/index.ts` にルートを登録
-8. `testBehavior` でテストを書く
+6. ドメインの `*Routes.ts` にルートを追加
+7. ハンドラを `index.ts` の barrel export に追加（ルート定義は追加しない）
+8. 新しいドメインの場合は `src/index.ts` に `app.route()` でマウント
+9. `testBehavior` でテストを書く
