@@ -19,7 +19,7 @@ src/
 `src/db/` はデータアクセスとドメインモデルを担う。
 
 - サブモジュール（`db/user/`, `db/todo/` 等）にテーブル定義・ドメインモデル・操作関数を配置する
-- 操作関数は `defineEffect` + `defineContract` で leaf effect（`context` のみ、`service` なし）として定義する — `db-safety/no-service-in-db-effect` lint ルールで強制
+- 操作関数は `defineEffect` + `defineContract` で leaf effect（`context` のみ、`service` なし）として定義する — `effect-structure/no-service-in-db-effect` lint ルールで強制
 - `okAs` / `failAs` でビジネス的な意味のあるラベルを付与する
 - DB エラー（unique_violation 等）をビジネスエラーに翻訳するのもここの責務
 - テストは PGlite を使った実 DB テスト
@@ -42,17 +42,18 @@ src/db/
 `src/api/` は API ハンドラとルート定義を担う。ドメインロジック（複数の DB 操作の組み合わせ、条件分岐等）もここに含む。
 
 - ドメインごとにサブモジュール（`api/user/` 等）を作る
-- ハンドラ（`postUser.ts`）は `defineEffect` で依存する Effect を `service` に宣言し、`defineRouteContract` でロジックを定義する。`responses` マップでステータスコードを宣言し、`fn` 内でビジネスロジックを記述する
-- ルート定義（`postUserRoute.ts`）は `defineRoute` に `effect` と `provide` を渡して Hono インスタンスを生成する薄いアダプタ
-- ハンドラとルート定義は対称的な名前でペアにする
+- ハンドラ（`postUser.ts`）は `defineEffect` で依存する Effect を `service` に宣言し（`effect-structure/no-leaf-in-api-effect` lint ルールで強制）、`defineRouteContract` でロジックを定義する。`responses` マップでステータスコードを宣言し、`fn` 内でビジネスロジックを記述する
+- ルート集約（`userRoutes.ts`）はドメイン内の全ルートを `defineRoute` でまとめた Hono インスタンス。ハンドラロジック（RouteEffect）はモジュール内部でのみ使用し、barrel export しない
 
 ```
 src/api/
 ├── user/
 │   ├── postUser.ts          # defineEffect + defineRouteContract（ハンドラロジック）
 │   ├── postUser.test.ts     # testBehavior でテスト（DB はモック）
-│   ├── postUserRoute.ts     # defineRoute（ルート定義）
-│   └── index.ts
+│   ├── getUserById.ts
+│   ├── listUsers.ts
+│   ├── userRoutes.ts        # 全ルートの Hono セットアップを集約
+│   └── index.ts             # barrel export（userRoutes のみ）
 ├── defineRoute.ts           # ルート生成ユーティリティ
 ├── defineRouteContract.ts   # ルート専用コントラクト
 └── index.ts

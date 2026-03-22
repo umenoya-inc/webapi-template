@@ -474,4 +474,5 @@ app.route("/todos", todoRoutes)
 - barrel export のアクセス制御 → `module-boundary` lint ルールで強制
 - `query` 内での書き込み操作の禁止 → `db-safety/no-write-in-query` lint ルールで強制
 - API 層テストから DB テストインフラ（`createTestDbContext`, `rawDb`）へのアクセス禁止 → `module-boundary/no-module-internal-import` で強制（`db/testing/` は barrel export を持たないため、`api/` からアクセスできない）
-- `db/` 内の composite effect（`service` 付き `defineEffect`）→ `db-safety/no-service-in-db-effect` で警告
+- `db/` 内の composite effect（`service` 付き `defineEffect`）→ `effect-structure/no-service-in-db-effect` で警告
+- `api/` 内の leaf effect（`service` なし `defineEffect`）→ `effect-structure/no-leaf-in-api-effect` で警告
