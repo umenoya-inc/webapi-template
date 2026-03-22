@@ -8,32 +8,32 @@ Hono + TypeScript + Vite+ による Web API テンプレート。
 
 ### 設計方針
 
-- [Always Valid Domain Model](docs/design/always-valid-domain-model.md)
 - [コーディングエージェントのための高速フィードバック設計](docs/design/agent-feedback-loop.md)
+- [関数指向のロジック設計](docs/design/function-oriented-logic.md)
+- [Always Valid Domain Model](docs/design/always-valid-domain-model.md)
+- [モジュールの責務分離](docs/design/module-responsibility.md)
+- [index.ts によるモジュールアクセス制御](docs/design/module-access-control.md)
 - [型によるテスト網羅の強制](docs/design/type-enforced-test-coverage.md)
 - [型の展開コスト](docs/design/type-expansion-cost.md)
-- [関数指向のロジック設計](docs/design/function-oriented-logic.md)
-- [index.ts によるモジュールアクセス制御](docs/design/module-access-control.md)
-- [モジュールの責務分離](docs/design/module-responsibility.md)
 
 ### ルール
 
+- [エラーハンドリング](docs/rule/error-handling.md)
+- [defineEffect による副作用の宣言](docs/rule/define-effect.md)
 - [1ファイル1エクスポート](docs/rule/one-export-per-file.md)
-- [API エンドポイント](docs/rule/api-endpoint.md)
+- [defineContract の fn 内ルール](docs/rule/contract-fn-rule.md)
+- [モジュールの公開API制御](docs/rule/module-barrel-export.md)
 - [Branded Entity ID](docs/rule/branded-entity-id.md)
 - [DB エラーハンドリング](docs/rule/db-error-handling.md)
-- [JSDoc フォーマット](docs/rule/jsdoc-format.md)
-- [Namespace Import の禁止](docs/rule/no-namespace-import.md)
-- [defineContract の fn 内ルール](docs/rule/contract-fn-rule.md)
-- [defineEffect による副作用の宣言](docs/rule/define-effect.md)
-- [インフラ関数の戻り値型には名前付き interface を宣言する](docs/rule/named-return-type-for-infra.md)
-- [エラーハンドリング](docs/rule/error-handling.md)
-- [オブジェクト型には interface を使う](docs/rule/interface-for-object-types.md)
 - [テーブル定義](docs/rule/table-definition.md)
+- [API エンドポイント](docs/rule/api-endpoint.md)
 - [テストファイル](docs/rule/test-file.md)
 - [入力バリデーションシナリオの宣言](docs/rule/route-input-error.md)
+- [オブジェクト型には interface を使う](docs/rule/interface-for-object-types.md)
+- [Namespace Import の禁止](docs/rule/no-namespace-import.md)
 - [名前のある型は直接書く](docs/rule/no-indirect-type-derivation.md)
-- [モジュールの公開API制御](docs/rule/module-barrel-export.md)
+- [インフラ関数の戻り値型には名前付き interface を宣言する](docs/rule/named-return-type-for-infra.md)
+- [JSDoc フォーマット](docs/rule/jsdoc-format.md)
 
 ## モジュール構成
 
