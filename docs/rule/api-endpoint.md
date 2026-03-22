@@ -2,26 +2,25 @@
 
 ## ファイル構成
 
-エンドポイントはハンドラロジックとルート定義の2ファイルで構成し、ドメインごとのサブモジュールに配置する。
+エンドポイントはハンドラロジックとルート集約の構成で、ドメインごとのサブモジュールに配置する。ハンドラロジック（RouteEffect）はモジュール内部でのみ使用し、barrel export しない。外部には `*Routes` のみ公開する。
 
 ```
 src/api/
 ├── user/
 │   ├── postUser.ts          # ハンドラロジック（defineEffect + defineRouteContract）
 │   ├── postUser.test.ts     # テスト
-│   ├── postUserRoute.ts     # ルート定義（defineRoute）
 │   ├── getUserById.ts
 │   ├── getUserById.test.ts
-│   ├── getUserByIdRoute.ts
-│   ├── userRoutes.ts        # ドメイン内のルートを集約
-│   └── index.ts             # barrel export（ハンドラ + userRoutes）
+│   ├── listUsers.ts
+│   ├── userRoutes.ts        # 全ルートの Hono セットアップを集約（defineRoute）
+│   └── index.ts             # barrel export（userRoutes のみ）
 └── index.ts
 ```
 
 ### 命名規則
 
 - ハンドラ: `<method><Resource>.ts` — 例: `postUser.ts`, `getUserById.ts`
-- ルート定義: `<method><Resource>Route.ts` — 例: `postUserRoute.ts`
+- ルート集約: `<domain>Routes.ts` — 例: `userRoutes.ts`
 - テスト: `<method><Resource>.test.ts` — ハンドラと同じディレクトリ
 
 ## ハンドラロジック（defineEffect + defineRouteContract）
@@ -59,15 +58,15 @@ export const postUser = defineEffect(
 
 ## ルート定義（defineRoute）
 
-ルート定義は `defineRoute` で Hono インスタンスを生成する。`effect` に Effect を渡し、`provide` で service と context を提供する。ハンドラのスキーマと `responses` は自動取得されるため、記述は最小限。
+ドメインごとの `*Routes.ts` に全ルートの Hono セットアップを集約する。`defineRoute` に `effect` と `provide` を渡してハンドラを生成する。ハンドラのスキーマと `responses` は自動取得されるため、記述は最小限。
 
 `provide` の `service` にはハンドラの `defineEffect` で宣言した Effect と同じものを渡す。ハンドラ側が依存の**宣言**、ルート定義側が実体の**注入**であり、役割が異なるため重複ではない。
 
 ```typescript
-// postUserRoute.ts
-export const postUserRoute = new Hono()
+// userRoutes.ts
+export const userRoutes = new Hono()
 
-postUserRoute.post(
+userRoutes.post(
   "/",
   ...defineRoute({
     effect: postUser,
@@ -78,15 +77,8 @@ postUserRoute.post(
     description: "ユーザーを新規作成する",
   }),
 )
-```
 
-### ミドルウェア
-
-認証などのミドルウェアは `middleware` オプションで渡す。ミドルウェアが Hono Context に設定する Variables の型が `provide` の `c` に反映されるため、ミドルウェアなしで `getAuthContext(c)` を呼ぶとコンパイルエラーになる。
-
-```typescript
-// getUserByIdRoute.ts
-getUserByIdRoute.get(
+userRoutes.get(
   "/:id",
   ...defineRoute({
     effect: getUserById,
@@ -104,17 +96,11 @@ getUserByIdRoute.get(
 
 `provide` の戻り値は `defineRoute` のジェネリクスにより Effect の `ProvideService` / `ProvideContext` で型制約される。service や context のフィールドが不足していればコンパイルエラーになる。`middleware` で指定したミドルウェアの Env 型は `provide` の `c` パラメータに反映される。
 
-### ルートの集約
+### ルートの登録
 
-個別のルート定義（`postUserRoute` 等）はドメインごとの `*Routes.ts` にまとめ、`src/index.ts` にはドメイン単位でマウントする。個別ルート定義は barrel export しない（`*Routes.ts` 内の相対 import でのみ使用）。
+`src/index.ts` にはドメイン単位でマウントする。
 
 ```typescript
-// api/user/userRoutes.ts
-export const userRoutes = new Hono()
-userRoutes.route("/", postUserRoute)
-userRoutes.route("/", listUsersRoute)
-userRoutes.route("/", getUserByIdRoute)
-
 // src/index.ts
 app.route("/users", userRoutes)
 app.route("/auth", authRoutes)
@@ -161,8 +147,6 @@ testBehavior(postUser, {
 2. `service` で依存する Effect を宣言
 3. `responses` マップでステータスコードと説明を宣言
 4. `fn` 内で `service` 経由で DB 操作関数を呼び出しビジネスロジックを記述
-5. ルート定義ファイルを作成（`defineRoute` に `effect` と `provide` を渡す）
-6. ドメインの `*Routes.ts` にルートを追加
-7. ハンドラを `index.ts` の barrel export に追加（ルート定義は追加しない）
-8. 新しいドメインの場合は `src/index.ts` に `app.route()` でマウント
-9. `testBehavior` でテストを書く
+5. ドメインの `*Routes.ts` に `defineRoute` でルートを追加
+6. 新しいドメインの場合は `*Routes.ts` と `index.ts` を作成し、`src/index.ts` にマウント
+7. `testBehavior` でテストを書く
