@@ -20,7 +20,7 @@ Hono + TypeScript + Vite+ による Web API テンプレート。
 - [API エンドポイント](docs/rule/api-endpoint.md)
 - [Branded Entity ID](docs/rule/branded-entity-id.md)
 - [DB エラーハンドリング](docs/rule/db-error-handling.md)
-- [Discriminated Unionによるエラーハンドリング](docs/rule/discriminated-union-error-handling.md)
+- [エラーハンドリング](docs/rule/error-handling.md)
 - [JSDoc フォーマット](docs/rule/jsdoc-format.md)
 - [Namespace Import の禁止](docs/rule/no-namespace-import.md)
 - [defineContract の fn 内ルール](docs/rule/contract-fn-rule.md)

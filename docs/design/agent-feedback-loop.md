@@ -18,7 +18,7 @@
 
 - **型によるテスト網羅の強制**（[type-enforced-test-coverage](type-enforced-test-coverage.md)）: Desc ラベルとtestBehavior によりテストケースの過不足がコンパイルエラーになる
 - **ブランド型によるドメイン制約**（[branded-entity-id](../rule/branded-entity-id.md)）: `UserId` と `string` を型レベルで区別し、取り違えを防ぐ
-- **Discriminated Union によるエラーハンドリング**（[discriminated-union-error-handling](../rule/discriminated-union-error-handling.md)）: エラーの種類を型で表現し、ハンドリング漏れをコンパイルエラーにする
+- **エラーハンドリング**（[error-handling](../rule/error-handling.md)）: 想定内の失敗は DU で型表現しハンドリング漏れをコンパイルエラーにする。想定外のバグは Let it crash で一律 500 + 構造化ログ
 
 ### 2. lint 時フィードバック（実装コード）
 

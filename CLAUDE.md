@@ -11,7 +11,7 @@ rule と design の区分基準は [rule と design の区分基準](docs/rule/r
 
 - [1ファイル1エクスポート](docs/rule/one-export-per-file.md)
 - [モジュールの公開API制御](docs/rule/module-barrel-export.md)
-- [Discriminated Unionによるエラーハンドリング](docs/rule/discriminated-union-error-handling.md)
+- [エラーハンドリング](docs/rule/error-handling.md)
 - [Namespace Importの禁止](docs/rule/no-namespace-import.md)
 - [テーブル定義](docs/rule/table-definition.md)
 - [テストファイル](docs/rule/test-file.md)
