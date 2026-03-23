@@ -2,7 +2,7 @@
 
 Hono + TypeScript + Vite+ による Web API テンプレート。
 
-人間とコーディングエージェントが協働し、品質を保ちながら高速にコードを書くためのフィードバック設計を重視している。関数の振る舞いパス（成功・失敗の分岐）を型レベルの Desc ラベルとして宣言し、テストケースの網羅・層間の分岐ハンドリング・OpenAPI ドキュメント生成をすべてコンパイル時に強制する。軽量 Effect System により副作用の依存関係を型レベルで合成し、DB 層から API ハンドラまで一貫した仕組みでテストと依存注入を実現する。エージェントが間違った方向に進んだとき、型チェック・lint・テストの順に高速なフィードバックが返る設計になっており、目視で発見したパターンを lint ルールに昇格させるサイクルが組み込まれている。
+人間とコーディングエージェントが協働し、品質を保ちながら高速にコードを書くためのフィードバック設計を重視している。関数の振る舞いパス（成功・失敗の分岐）を型レベルの Desc ラベルとして宣言し、テストケースの網羅・層間の分岐ハンドリング・OpenAPI ドキュメント生成をすべてコンパイル時に強制する。軽量 Effect System により副作用の依存関係を型レベルで合成し、DB 層から API ハンドラまで一貫した仕組みでテストと依存注入を実現する。エージェントが間違った方向に進んだとき、型チェック・lint・テストの順に高速なフィードバックが返る設計になっており、目視で発見したパターンを lint ルールに昇格させるサイクルが組み込まれている。さらに specdrift によるドリフト検出とバックトランスレーションで、仕様⇄コードの双方向の整合性をフィードバックループの中で維持する。
 
 ## 特徴
 
@@ -28,12 +28,13 @@ Hono + TypeScript + Vite+ による Web API テンプレート。
 - [テーブル定義](docs/rule/table-definition.md)
 - [API エンドポイント](docs/rule/api-endpoint.md)
 - [テストファイル](docs/rule/test-file.md)
-- [入力バリデーションシナリオの宣言](docs/rule/route-input-error.md)
+- [ルート入力バリデーションの宣言](docs/rule/route-input-error.md)
 - [オブジェクト型には interface を使う](docs/rule/interface-for-object-types.md)
 - [Namespace Import の禁止](docs/rule/no-namespace-import.md)
 - [名前のある型は直接書く](docs/rule/no-indirect-type-derivation.md)
 - [インフラ関数の戻り値型には名前付き interface を宣言する](docs/rule/named-return-type-for-infra.md)
 - [JSDoc フォーマット](docs/rule/jsdoc-format.md)
+- [specdrift アノテーション](docs/rule/specdrift-annotation.md)
 
 ## モジュール構成
 
