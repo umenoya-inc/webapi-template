@@ -1,0 +1,10 @@
+# テスト関連
+*.test.ts
+*.testutil.ts
+*.setup.ts
+
+# barrel export
+index.ts
+
+# 依存
+node_modules
