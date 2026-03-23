@@ -1,4 +1,8 @@
+<!-- specdrift v1 -->
+
 # インフラ関数の戻り値型には名前付き interface を宣言する
+
+<!-- source: src/effect/defineEffect.ts@307e0d67 -->
 
 ## ルール
 
@@ -48,6 +52,8 @@ export function defineEffect<OwnContext extends Record<string, unknown>, Fn>(
 ## 例外
 
 ジェネリックな関数型 `F` をそのまま intersection で返すパターン（`defineBehavior` の `F & BehaviorBrand`）は、`F` の call signature を interface で再現することが困難なため、intersection のまま許容する。
+
+<!-- /source -->
 
 ## Lint
 

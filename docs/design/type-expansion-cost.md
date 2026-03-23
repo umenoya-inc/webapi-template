@@ -1,4 +1,8 @@
+<!-- specdrift v1 -->
+
 # 型の展開コスト
+
+<!-- source: lint/type-complexity/typeExpansionCost.js@5e6dd609 -->
 
 TypeScript の型チェッカーが型を表示する際の「展開コスト」をヒューリスティックに定量化し、型の複雑さを lint で検出する。関数における循環的複雑度に相当する指標を型に適用するアプローチ。
 
@@ -61,6 +65,8 @@ LSP の hover 表示は、型チェッカーが型を再帰的に展開した結
 ## lint ルールとの対応
 
 `type-complexity/type-expansion-cost` ルール（warn レベル）として実装。`npx vp check` で自動検出される。
+
+<!-- /source -->
 
 ## check-hover スキルとの棲み分け
 

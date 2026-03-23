@@ -1,4 +1,8 @@
+<!-- specdrift v1 -->
+
 # 入力バリデーションシナリオの宣言
+
+<!-- source: src/contract/defaultInputError.ts@0974d158 -->
 
 ## ルール
 
@@ -63,6 +67,8 @@ defineRouteContract({
   fn: async () => { ... },
 })
 ```
+
+<!-- /source -->
 
 ## Lint
 

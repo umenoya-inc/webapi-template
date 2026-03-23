@@ -1,3 +1,5 @@
+<!-- specdrift v1 -->
+
 # エラーハンドリング
 
 このプロジェクトのエラーは2種類に分かれる。想定内の失敗と、想定外のバグ。それぞれ処理方針が異なる。
@@ -29,6 +31,8 @@ try {
 
 ## 例外を DU に変換する境界層
 
+<!-- source: src/db/DbClient.ts@b67db1ae -->
+
 外部ライブラリやドライバは例外で失敗を通知するものが多い。Let it crash の方針を貫徹するには、これらの例外をビジネスロジックに到達する前に DU に変換する境界層が必要になる。
 
 境界層の責務:
@@ -56,6 +60,8 @@ if (!result.ok) {
 
 新しい外部依存（外部 API クライアント、認証プロバイダ等）を導入する際は、同様の境界層を設けること。
 
+<!-- /source -->
+
 ## Discriminated Union と正常系
 
 想定内の失敗は、例外を使わず Discriminated Union（判別可能なユニオン型）で表現する。
@@ -68,11 +74,19 @@ if (!result.ok) {
 
 #### Fallible — ok のみを制約とする最小の型
 
+<!-- source: src/types/Fallible.ts@84d6f5b7 -->
+
 `Fallible`（`@/types/Fallible`）は `{ ok: true } | { ok: false }` だけを制約とする型。カスタム Discriminated Union を受け入れる共通の上界として使う。直接の戻り値型としては使わず、`DbClient.transaction` のようにジェネリクスの制約（`F extends Fallible`）として利用する。
+
+<!-- /source -->
 
 #### ReasonedFallible — reason を持つ Fallible
 
+<!-- source: src/types/ReasonedFallible.ts@e3ecd674 -->
+
 `ReasonedFallible`（`@/types/ReasonedFallible`）は `{ ok: true } | { ok: false; reason: string }` を制約とする型。`Fallible` を拡張し、失敗ケースに `reason` フィールドを要求する。`defineContract` のようにジェネリクスの制約として利用する。
+
+<!-- /source -->
 
 #### カスタム Discriminated Union — 関数の戻り値型
 

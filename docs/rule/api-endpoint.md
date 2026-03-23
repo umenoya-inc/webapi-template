@@ -1,3 +1,5 @@
+<!-- specdrift v1 -->
+
 # API エンドポイント
 
 ## ファイル構成
@@ -58,6 +60,8 @@ export const postUser = defineEffect(
 
 ## ルート定義（defineRoute）
 
+<!-- source: src/api/defineRoute.ts@88ddc384, src/api/defineRouteContract.ts@eef346ce -->
+
 ドメインごとの `*Routes.ts` に全ルートの Hono セットアップを集約する。`defineRoute` に `effect` と `provide` を渡してハンドラを生成する。ハンドラのスキーマと `responses` は自動取得されるため、記述は最小限。
 
 `provide` の `service` にはハンドラの `defineEffect` で宣言した Effect と同じものを渡す。ハンドラ側が依存の**宣言**、ルート定義側が実体の**注入**であり、役割が異なるため重複ではない。
@@ -105,6 +109,8 @@ userRoutes.get(
 app.route("/users", userRoutes)
 app.route("/auth", authRoutes)
 ```
+
+<!-- /source -->
 
 ## テスト
 

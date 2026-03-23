@@ -1,3 +1,5 @@
+<!-- specdrift v1 -->
+
 # テストファイル
 
 ## テストの配置
@@ -26,6 +28,8 @@ src/modules/db/
 ```
 
 ## testBehavior による振る舞い別テスト
+
+<!-- source: src/testing/testBehavior.testutil.ts@9ddce2c7, src/testing/mockBehavior.testutil.ts@6942f59a, src/testing/parameterize.testutil.ts@68053597, src/testing/propertyCheck.testutil.ts@117afa4e -->
 
 `defineContract` ベースの関数は `testBehavior` を使ってテストする。テストケースのキーは実装の Desc ラベルから導出され、全ラベルの網羅が型レベルで強制される。
 
@@ -228,6 +232,8 @@ export const createUser = (ctx: DbContext) =>
     fn: async (input) => { ... },
   })
 ```
+
+<!-- /source -->
 
 ## Lint
 

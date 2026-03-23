@@ -1,7 +1,7 @@
 ---
 name: commit
 description: コードチェックを実行してからコミットする
-allowed-tools: Bash(git *), Bash(npx vp *)
+allowed-tools: Bash(git *), Bash(npx vp *), Bash(specdrift *), Read
 ---
 
 ## コミット手順
@@ -19,7 +19,15 @@ npx vp test
 
 フォーマットは自動修正される。lint・型チェック・テストのいずれかが失敗した場合はコミットせず、修正内容をユーザーに報告する。
 
-### 2. 変更内容の確認
+### 2. specdrift チェック
+
+```bash
+specdrift check 'docs/**/*.md'
+```
+
+DRIFT が検出された場合、すぐに `specdrift update` しない。まず差分のある仕様と変更されたソースを読み、仕様の文面を修正する必要があるか判断する。必要なら仕様を修正してから `specdrift update` でハッシュを同期する。
+
+### 3. 変更内容の確認
 
 ```bash
 git status
@@ -27,7 +35,7 @@ git diff --staged
 git diff
 ```
 
-### 3. コミット
+### 4. コミット
 
 変更内容を分析し、適切なコミットメッセージを作成する。
 

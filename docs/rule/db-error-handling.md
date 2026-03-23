@@ -1,4 +1,8 @@
+<!-- specdrift v1 -->
+
 # DB エラーハンドリング
+
+<!-- source: src/db/DbClient.ts@b67db1ae -->
 
 DB 操作で発生するドライバ固有のエラーは `DbClient` を通じて正規化された `DbError` 型に変換する。DB 操作関数はドライバのエラー構造に直接依存しない。
 
@@ -64,6 +68,8 @@ const rows = await db.query((q) => q.select().from(userTable).where(eq(userTable
 ## DbError の拡張
 
 新しい PostgreSQL エラーコードへの対応が必要になった場合は、`pgExecute.ts` 内の `normalizePgError` と `DbError` 型に追加する。
+
+<!-- /source -->
 
 ## Lint
 

@@ -1,4 +1,8 @@
+<!-- specdrift v1 -->
+
 # defineEffect による副作用の宣言
+
+<!-- source: src/effect/defineEffect.ts@307e0d67 -->
 
 ## ルール
 
@@ -69,6 +73,8 @@ postUserRoute.post(
   }),
 )
 ```
+
+<!-- /source -->
 
 ## Lint
 

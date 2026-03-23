@@ -27,6 +27,7 @@ rule と design の区分基準は [rule と design の区分基準](docs/rule/r
 - [名前のある型は直接書く](docs/rule/no-indirect-type-derivation.md)
 - [インフラ関数の戻り値型には名前付き interface を宣言する](docs/rule/named-return-type-for-infra.md)
 - [JSDoc フォーマット](docs/rule/jsdoc-format.md)
+- [specdrift アノテーション](docs/rule/specdrift-annotation.md)
 
 # Design
 

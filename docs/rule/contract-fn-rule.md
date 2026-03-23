@@ -1,4 +1,8 @@
+<!-- specdrift v1 -->
+
 # defineContract の fn 内ルール
+
+<!-- source: src/behavior/okAs.ts@862da67e, src/behavior/failAs.ts@77007a47, src/behavior/matchBehavior.ts@86bd7fe3 -->
 
 ## failAs / okAs で返す
 
@@ -101,6 +105,8 @@ fn: async (input) => {
 // ✅ 他の Contract からの結果をそのまま返す場合は matchBehavior 不要
 return result
 ```
+
+<!-- /source -->
 
 ## Lint
 
