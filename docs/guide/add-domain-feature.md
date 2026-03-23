@@ -1,3 +1,5 @@
+<!-- specdrift v1 -->
+
 # 新規ドメイン機能の追加ガイド
 
 DB 層からAPI 層・テストまで、新しいドメイン機能を追加する手順を示す。`todo` ドメインの追加を例として使う。
@@ -34,6 +36,8 @@ Step 2: API 層の実装
 ---
 
 ## Step 1: DB 層の実装
+
+<!-- source: src/effect/defineEffect.ts@307e0d67, src/contract/defineContract.ts@088c2ff5, src/db/fromDbContext.ts@0c206c9e, src/testing/testBehavior.testutil.ts@9ddce2c7 -->
 
 ### 1-1. テーブル定義
 
@@ -239,7 +243,11 @@ export { createTodo } from "./createTodo"
 
 ---
 
+<!-- /source -->
+
 ## Step 2: API 層の実装
+
+<!-- source: src/api/defineRouteContract.ts@eef346ce, src/api/defineRoute.ts@88ddc384, src/testing/mockBehavior.testutil.ts@6942f59a, src/testing/mockService.testutil.ts@f9bfecba -->
 
 ### 2-1. ハンドラロジック
 
@@ -460,6 +468,8 @@ app.route("/todos", todoRoutes)
 最後に `npx vp check --fix` と `npx vp test` を実行して全体が正常に動作することを確認する。
 
 ---
+
+<!-- /source -->
 
 ## チェックリスト
 
